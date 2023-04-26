@@ -65,10 +65,10 @@ class SamplesVis:
     def road_line(self):
         # Define a polygon
         vertices = np.array([
-            [-5.52, 6.0],
-            [5.5, 6.0],
-            [5.5, -6.0],
-            [-5.52, -6.0]
+            [-2.1,  1.0],
+            [ 1.5,  1.0],
+            [ 1.5, -1.0],
+            [-2.1, -1.0]
         ])
 
         # Create a line between the first two vertices
@@ -130,15 +130,15 @@ class SamplesHZ:
 
     @property
     def road(self):
-        nx = 2      # Number of state variables
-        ni = 2      # Number of input variables
-        lw = 3.0    # Width of one road lane [m]
-        ll_12 = 16  # Length of road segments 1 and 2 [m]
-        ll_34 = 5   # Length of road segments 3 and 4 [m]
+        nx = 2          # Number of state variables
+        ni = 2          # Number of input variables
+        lw = 0.4        # Width of one road lane [m]
+        ll_12 = 4.40    # Length of road segments 1 and 2 [m] (Horizontal roads)
+        ll_34 = 1.20    # Length of road segments 3 and 4 [m]   (Vertical roads)
         color = (0.09804,  0.09804,  0.09804, 0.5)  # Gray
 
         ng = 4; nc = 0; nb = 1
-        c_road = np.array([ [0.0], [0.0], [0.0], [0.0] ])
+        c_road = np.array([ [-0.3], [0.0], [0.0], [0.0] ])
         Ac_road = np.zeros((nc, ng))
         b_road = np.zeros((nc, 1))
         Ab_road = np.zeros((nc, nb))
@@ -150,18 +150,18 @@ class SamplesHZ:
         ])
         Gb_road_12 = np.array([
             [0.0],
-            [6.0],
+            [1.0],
             [0.0],
             [0.0]
         ])
         Gc_road_34 = np.array([
-            [ll_34/2, 0.0, 0.0, 0.0],
-            [  0.0  , lw , 0.0, 0.0],
-            [  0.0  , 0.0, 1.0, 0.0],
-            [  0.0  , 0.0, 0.0, 1.0]
+            [  lw , 0.0, 0.0, 0.0],
+            [  0.0, ll_34/2 , 0.0, 0.0],
+            [  0.0, 0.0, 1.0, 0.0],
+            [  0.0, 0.0, 0.0, 1.0]
         ])
         Gb_road_34 = np.array([
-            [5.5],
+            [1.8],
             [0.0],
             [0.0],
             [0.0]
@@ -176,28 +176,92 @@ class SamplesHZ:
         return road, road_vis, color
 
     @property
-    def obstacles(self):
+    def obstacle_1(self):
+        '''
+        Internal obstacle
+        '''
         nx = 2  # Number of state variables
-        
-        # Obstacle
+        ng = 2; nc = 0; nb = 0
+        # Obstacle 1
         Gc_obs = np.array([
-            [3.0, 0.0],
-            [0.0, 3.0]
+            [0.6, 0.0],
+            [0.0, 0.3]
         ])
-        Gb_obs = np.zeros((nx, 0))
-        c_obs = np.array([ [0.0], [0.0] ])
-        Ac_obs = np.zeros((0, nx))
-        Ab_obs = np.zeros((0, 0))
-        b_obs = np.zeros((0, 1))
+        Gb_obs = np.zeros((nx, nb))
+        c_obs = np.array([ [-0.3], [-0.3] ])
+        Ac_obs = np.zeros((nc, ng))
+        Ab_obs = np.zeros((nc, nb))
+        b_obs = np.zeros((nc, 1))
 
         obs = HybridZonotope(Gc_obs, Gb_obs, c_obs, Ac_obs, Ab_obs, b_obs)
+        obs_color = (0.949, 0.262, 0.227, 1.0)  # Red
+        
+        return obs, obs_color
 
-        return obs
-    
+    @property
+    def obstacle_2(self):
+        '''
+        Internal obstacle
+        '''
+        ng = 2; nc = 0; nb = 1
+        # Obstacle 2
+        Gc_obs = np.array([
+            [0.4, 0.0],
+            [0.0, 0.6]
+        ])
+        Gb_obs = np.array([
+            [1.0],
+            [0.0]
+        ])
+        c_obs = np.array([ [-0.3], [0.0] ])
+        Ac_obs = np.zeros((nc, ng))
+        Ab_obs = np.zeros((nc, nb))
+        b_obs = np.zeros((nc, 1))
+
+        obs = HybridZonotope(Gc_obs, Gb_obs, c_obs, Ac_obs, Ab_obs, b_obs)
+        obs_color = (0.949, 0.262, 0.227, 1.0)  # Red
+        
+        return obs, obs_color    
+
+    @property
+    def obstacle_3(self):
+        '''
+        Internal obstacle
+        '''
+        nx = 2; ng = 2; nc = 0; nb = 0
+        # Obstacle 2
+        Gc_obs = np.array([
+            [0.2, 0.0],
+            [0.0, 0.3]
+        ])
+        Gb_obs = np.zeros((nx, nb))
+        c_obs = np.array([ [-0.3], [0.3] ])
+        Ac_obs = np.zeros((nc, ng))
+        Ab_obs = np.zeros((nc, nb))
+        b_obs = np.zeros((nc, 1))
+
+        obs = HybridZonotope(Gc_obs, Gb_obs, c_obs, Ac_obs, Ab_obs, b_obs)
+        obs_color = (0.949, 0.262, 0.227, 1.0)  # Red
+        
+        return obs, obs_color
+
+    @property
+    def obstacles(self):
+        '''
+        Returns a list of all obstacles
+        '''
+        obs_1, obs_color_1 = self.obstacle_1
+        obs_2, obs_color_2 = self.obstacle_2
+        obs_3, obs_color_3 = self.obstacle_3
+        obs_list = [obs_1, obs_2, obs_3]
+        obs_color_list = [obs_color_1, obs_color_2, obs_color_3]
+        
+        return obs_list, obs_color_list
+
     @property
     def park_1(self):
-        pw = 2.5    # Width of parking slot [m]
-        pl = 3      # Length of parking slot [m] (This is not a realistic length, but it is used to make the plot look nicer)
+        pw = 0.4    # Width of parking slot [m]
+        pl = 0.6      # Length of parking slot [m] (This is not a realistic length, but it is used to make the plot look nicer)
         ng = 2; nb = 1; nc = 0
         Gc_park = np.array([
             [pl/2, 0.0],
@@ -205,38 +269,59 @@ class SamplesHZ:
         ])
         Gb_park = np.array([
             [0.0],
-            [7.7]
+            [0.6]
         ])
-        c_park = np.array([ [9.5], [0.0] ])
+        c_park = np.array([ [2.2], [0.6] ])
         Ac_park = np.zeros((nc, ng))
         Ab_park = np.zeros((nc, nb))
         b_park = np.zeros((nc, 1))        
 
         parking = HybridZonotope(Gc_park, Gb_park, c_park, Ac_park, Ab_park, b_park)
+        parking_color = (0.09804,  0.09804,  0.09804, 0.5)
 
-        return parking
+        return parking, parking_color
     
     @property
     def park_2(self):
-        pw = 2.5    # Width of parking slot [m]
-        pl = 3      # Length of parking slot [m] (This is not a realistic length, but it is used to make the plot look nicer)
+        pw = 0.4    # Width of parking slot [m]
+        pl = 0.6      # Length of parking slot [m] (This is not a realistic length, but it is used to make the plot look nicer)
         ng = 2; nb = 1; nc = 0
         Gc_park = np.array([
-            [pl/2, 0.0],
-            [0.0, pw/2]
+            [pw/2, 0.0],
+            [0.0, pl/2]
         ])
         Gb_park = np.array([
-            [0.0],
-            [-7.7]
+            [0.4],
+            [0.0]
         ])
-        c_park = np.array([ [-9.5], [0.0] ])
+        c_park = np.array([ [-0.3], [0.3] ])
         Ac_park = np.zeros((nc, ng))
         Ab_park = np.zeros((nc, nb))
         b_park = np.zeros((nc, 1))        
 
         parking = HybridZonotope(Gc_park, Gb_park, c_park, Ac_park, Ab_park, b_park)
+        parking_color = (0.09804,  0.09804,  0.09804, 0.5)
 
-        return parking    
+        return parking, parking_color
+
+    @property
+    def parkings(self):
+        '''
+        Returns a list of all parking spots
+        '''
+        park_1, park_color_1 = self.park_1
+        park_2, park_color_2 = self.park_2
+        park_list = [park_1, park_2]
+        park_color_list = [park_color_1, park_color_2]
+
+        return park_list, park_color_list
+
+
+
+
+
+
+
 
 
 

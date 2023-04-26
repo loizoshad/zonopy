@@ -3,7 +3,8 @@ import graphviz
 import numpy as np
 from scipy.spatial import ConvexHull
 from matplotlib.collections import PatchCollection
-from matplotlib.patches import Polygon
+from matplotlib.patches import Polygon, FancyArrowPatch, FancyArrow
+import matplotlib.image as image
 import matplotlib.pyplot as plt
 import itertools
 import pypoman
@@ -42,12 +43,7 @@ class ZonoVisualizer:
             (1.000, 0.901, 0.800, 0.5)
         ]
 
-        # self.fig, self.ax = plt.subplots()        # Initialize the plot
-        # self.manager = plt.get_current_fig_manager()
-        # self.manager.window.attributes('-zoomed', True)        
-        # self.ax.grid()                          # Add a grid    
         self.zono_op = ZonoOperations()         # Initialize the zonotope operations class
-
         self.init_brs_plot()                    # Initialize the BRS plot environment
 
     def init_brs_plot(self):
@@ -189,8 +185,14 @@ class ZonoVisualizer:
         # ax.set_ylim(self.min_y - y_margin, self.max_y + y_margin)       
 
 
-        ax.set_xlim(-14, 14)
-        ax.set_ylim(-10, 10)        
+        # ax.set_xlim(-3, 3)
+        # ax.set_ylim(-2.1, 2.1)
+
+        ax.set_xlim(-2.5, 2.5)
+        ax.set_ylim(-1.4, 1.4)
+
+        # ax.set_xlim(-14, 14)
+        # ax.set_ylim(-10, 10)        
 
         # Add legend
         if add_legend:
@@ -228,7 +230,7 @@ class ZonoVisualizer:
                 b = b.reshape(-1, 1)
                 # Step 2.1: Create a constrained zonotope object out of the binary combination
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
-            self.vis_cz(cz, title = 'Lets Park This!', xlabel = r'qq', ylabel = r'yy', colors = colors[i], legend_labels = legend_labels, add_legend = True)
+            self.vis_cz(cz, title = 'Lets Park This!', xlabel = r'qq', ylabel = r'yy', colors = colors[i], legend_labels = legend_labels, add_legend = add_legend)
             # end_time = time.perf_counter()
             # print(f'Decomp+Vis time = {end_time - start_time}')
             i = i + 1
@@ -410,9 +412,129 @@ class TreeVisualizer:
 
 
 class AuxiliaryVisualizer:
-    def vis_patches(self, *patches):
+    def __init__(self) -> None:
+        self.images = image.imread('images/grass_dark.jpg')
+
+
+    def vis_patches(self):
         '''
         Visualizes a list of patches
         '''
-        for p in patches:
-            ax.add_patch(p)
+        # Define a polygon for the road line
+        vertices = np.array([
+            [-2.1,  1.0],
+            [ 1.5,  1.0],
+            [ 1.5, -1.0],
+            [-2.1, -1.0]
+        ])
+
+        # Create a line between the first two vertices
+        road_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 4)
+        ax.add_patch(road_line)
+
+        # Parking spot 1 line
+        vertices = np.array([
+            [1.905, 1.4],
+            [1.905, 1.4],
+            [1.905, 0.995],
+            [1.905, 0.995]
+        ])
+        parking_spot_1_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
+        ax.add_patch(parking_spot_1_line)
+        # Parking spot 2 line
+        vertices = np.array([
+            [1.905,  0.2],
+            [1.905,  0.2],
+            [1.905, -0.2],
+            [1.905, -0.2]
+        ])
+        parking_spot_2_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
+        ax.add_patch(parking_spot_2_line)
+
+        # Parking spot 3 line
+        vertices = np.array([
+            [-0.9, 0.6],
+            [-0.5, 0.6],
+            [-0.5, 0.6],
+            [-0.9, 0.6]
+        ])
+        parking_spot_3_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
+        ax.add_patch(parking_spot_3_line)
+        
+        # Parking spot 4 line
+        vertices = np.array([
+            [-0.105, 0.6],
+            [0.305, 0.6],
+            [-0.105, 0.6],
+            [0.305, 0.6]
+        ])
+        parking_spot_4_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
+        ax.add_patch(parking_spot_4_line)     
+
+        # Add text to the parking spots
+        ax.text( 2.2, 1.2, r'$\mathbb{P}_{1}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        ax.text( 2.2, 0.0, r'$\mathbb{P}_{2}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        ax.text(-0.7, 0.3, r'$\mathbb{P}_{3}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+        ax.text( 0.1, 0.3, r'$\mathbb{P}_{4}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+ 
+        # ##############################
+        # # Add the road arrows        #
+        # ##############################
+        # arrow = FancyArrowPatch(
+        #     (1.7, -0.8), # Start point
+        #     (1.7, -0.4), # End point
+        #     arrowstyle = '->', # Arrow style
+        #     mutation_scale = 40, # Size of the arrow
+        #     color = 'white', # Color of the arrow
+        #     linewidth = 2 # Width of the arrow
+        # )
+        # ax.add_patch(arrow)
+        # arrow = FancyArrowPatch(
+        #     (1.7, 0.4), # Start point
+        #     (1.7, 0.8), # End point
+        #     arrowstyle = '->', # Arrow style
+        #     mutation_scale = 40, # Size of the arrow
+        #     color = 'white', # Color of the arrow
+        #     linewidth = 2 # Width of the arrow
+        # )
+        # ax.add_patch(arrow)        
+        
+
+
+
+    def vis_images(self):
+        '''
+        Visualizes a list of images
+        '''
+        ax.imshow(self.images, extent=[1.9, # left
+                                       2.5, # right
+                                       1.0, # top
+                                       0.2 # bottom
+                                       ])
+        ax.imshow(self.images, extent=[1.9, # left
+                                       2.5, # right
+                                       -0.2, # top
+                                       -1.4 # bottom
+                                       ])        
+    
+
+        ax.imshow(self.images, extent=[-1.7, # left
+                                        1.1, # right
+                                        0.0, # top
+                                       -0.6 # bottom
+                                       ])
+        ax.imshow(self.images, extent=[-1.7, # left
+                                       -0.9, # right
+                                        0.6, # top
+                                        0.0 # bottom
+                                       ])
+        ax.imshow(self.images, extent=[ 0.3, # left
+                                        1.1, # right
+                                        0.6, # top
+                                        0.0 # bottom
+                                       ])
+        ax.imshow(self.images, extent=[-0.5, # left
+                                       -0.1, # right
+                                        0.6, # top
+                                        0.0 # bottom
+                                       ])        

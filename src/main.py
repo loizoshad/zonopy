@@ -18,20 +18,14 @@ is non-convex and contains obstacles internally to it.
 vis = ZonoVisualizer()
 op = ZonoOperations(visualizer = vis)
 
-obs = SamplesHZ().obstacles
+obs, obs_color = SamplesHZ().obstacles
 road_line, road_line_vis, road_line_color = SamplesHZ().road_line
 road, road_vis, road_color = SamplesHZ().road
-parking = SamplesHZ().park_1
+parking, parking_color = SamplesHZ().parkings
 
+colors = [road_color] + parking_color
+hz = [road_vis] + parking
 
-AuxiliaryVisualizer().vis_patches(SamplesVis().road_line)
-
-colors = [
-    road_color,                     # Road (Gray)
-    (0.949, 0.262, 0.227, 1.0),     # Obstacle (Red)
-    (0.231, 0.780, 0.160, 1.0),     # Parking spot (Green)
-    (0.423, 0.556, 0.749, 1.0)      # BRS (Blue)
-]
 ##############################################################################
 #                                  BRS                                       #
 ##############################################################################
@@ -55,14 +49,17 @@ B = np.array([
 # print(f'Compute and plot BRS took: {end_time - start_time} seconds')
 
 # Visualize Environment
-vis.vis_hz([road_vis, obs, parking],
+vis.vis_hz(hz,
         title = 'Environment', 
         colors = colors, 
         legend_labels=['$\mathscr{O}$', '$\mathscr{x}$', '$\mathscr{P}$'],
-        add_legend=True)
+        add_legend=False)
 
+AuxiliaryVisualizer().vis_patches()
+AuxiliaryVisualizer().vis_images()
 
-
+# plt.xticks(np.arange(-2.5, 2.5, 0.2))
+# plt.yticks(np.arange(-1.4, 1.4, 0.2))
 plt.grid(False)
 plt.show()
 
