@@ -1,0 +1,25 @@
+digraph {
+	"ℛ(true, p₁ ∪ p₂) ∪ p₁ ∪ p₂" [label="ℛ(true, p₁ ∪ p₂) ∪ p₁ ∪ p₂" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"ℛ(true, p₁ ∪ p₂) ∪ p₁ ∪ p₂_ℛ(true, p₁ ∪ p₂)∨p₁ ∪ p₂" [label="∨" color=black fillcolor="#F5F5F5" fontcolor=black shape=circle style=filled]
+	"ℛ(true, p₁ ∪ p₂)" [label="ℛ(true, p₁ ∪ p₂)" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"p₁ ∪ p₂_tree_true" [label="p₁ ∪ p₂" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"p₁ ∪ p₂_tree_true_p₁_tree_true∨p₂_tree_true_tree_true" [label="∨" color=black fillcolor="#F5F5F5" fontcolor=black shape=circle style=filled]
+	"p₁_tree_true" [label="p₁" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"p₂_tree_true" [label="p₂" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"ℛ(true, p₁ ∪ p₂)_p₁ ∪ p₂_tree_true" [label=U color=black fillcolor="#F5F5F5" fontcolor=black shape=circle style=filled]
+	"p₁ ∪ p₂" [label="p₁ ∪ p₂" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"p₁ ∪ p₂_p₁∨p₂" [label="∨" color=black fillcolor="#F5F5F5" fontcolor=black shape=circle style=filled]
+	"p₁" [label="p₁" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"p₂" [label="p₂" color=black fillcolor="#F5F5F5" fontcolor=black shape=square style=filled]
+	"ℛ(true, p₁ ∪ p₂) ∪ p₁ ∪ p₂" -> "ℛ(true, p₁ ∪ p₂) ∪ p₁ ∪ p₂_ℛ(true, p₁ ∪ p₂)∨p₁ ∪ p₂"
+	"ℛ(true, p₁ ∪ p₂) ∪ p₁ ∪ p₂_ℛ(true, p₁ ∪ p₂)∨p₁ ∪ p₂" -> "ℛ(true, p₁ ∪ p₂)"
+	"ℛ(true, p₁ ∪ p₂)_p₁ ∪ p₂_tree_true" -> "p₁ ∪ p₂_tree_true"
+	"p₁ ∪ p₂_tree_true" -> "p₁ ∪ p₂_tree_true_p₁_tree_true∨p₂_tree_true_tree_true"
+	"p₁ ∪ p₂_tree_true_p₁_tree_true∨p₂_tree_true_tree_true" -> "p₁_tree_true"
+	"p₁ ∪ p₂_tree_true_p₁_tree_true∨p₂_tree_true_tree_true" -> "p₂_tree_true"
+	"ℛ(true, p₁ ∪ p₂)" -> "ℛ(true, p₁ ∪ p₂)_p₁ ∪ p₂_tree_true"
+	"ℛ(true, p₁ ∪ p₂) ∪ p₁ ∪ p₂_ℛ(true, p₁ ∪ p₂)∨p₁ ∪ p₂" -> "p₁ ∪ p₂"
+	"p₁ ∪ p₂" -> "p₁ ∪ p₂_p₁∨p₂"
+	"p₁ ∪ p₂_p₁∨p₂" -> "p₁"
+	"p₁ ∪ p₂_p₁∨p₂" -> "p₂"
+}

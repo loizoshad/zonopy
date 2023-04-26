@@ -1,0 +1,59 @@
+Current:
+
+
+|---docs    -> Detailed description of the module
+|---papers  -> Contains implementations of existing research.
+|---tests   -> Implementations of different test scenarios
+|---utils   ->
+    |--- sets.py        -> Contains various set representations e.g:
+        |--- Zonotopes
+    |--- operations.py  -> Class containing set operations e.g.:
+    |--- visiaulization.py  -> Contains tools for visualizing sets
+    |--- bra                -> Implementations of backward reachability algorithms
+    |--- fra                -> Implementations of forward reachability algorithms
+
+
+
+
+
+
+
+
+
+
+
+
+
+GOAL:
+
+
+|---docs    -> Detailed description of the module
+|---papers  -> Contains implementations of existing research.
+    |--- girard_2005_reachability.py
+|---tests   -> Implementations of different test scenarios
+|---utils   ->
+    |--- sets.py        -> Contains various set representations e.g:
+        |--- Polytopes        
+        |--- Zonotopes
+        |--- Constrained Zonotopes
+        |--- Sparse polynomial Zonotopes
+        |--- Hybrid Zonotopes
+    |--- operations.py  -> Class containing set operations e.g.:
+        |--- Minkowski sum
+        |--- Minkowski difference
+        |--- Linear maps
+        |--- Quadratic maps
+        |--- Set union
+        |--- Disjoint set union
+        |--- Set intersection
+        |--- convex hull of union
+    |--- visiaulization.py  -> Contains tools for visualizing sets
+    |--- bra                -> Implementations of backward reachability algorithms
+    |--- fra                -> Implementations of forward reachability algorithms
+|
+|
+|
+|
+|
+|
+|
