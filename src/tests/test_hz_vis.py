@@ -4,7 +4,7 @@ import numpy as np
 
 from utils.operations.operations import ZonoOperations
 from utils.sets.hybrid_zonotopes import HybridZonotope
-from utils.samples.samples import SamplesHZ
+from utils.environments.environments import SamplesHZ
 from utils.visualization import ZonoVisualizer
 
 

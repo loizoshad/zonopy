@@ -4,7 +4,7 @@ import numpy as np
 
 from utils.operations.operations import ZonoOperations
 from utils.operations.operations import TreeOperations
-from utils.samples.samples import SamplesHZ
+from utils.environments.environments import SamplesHZ
 from utils.tlt.nodes import OR, AND, UNTIL, set_node
 from utils.tlt.tree import Tree
 from utils.visualization import ZonoVisualizer

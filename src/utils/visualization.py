@@ -251,7 +251,7 @@ class ZonoVisualizer:
                 b = b.reshape(-1, 1)
                 # Step 2.1: Create a constrained zonotope object out of the binary combination
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
-            self.vis_cz(cz, title = 'Lets Park This!', xlabel = r'qq', ylabel = r'yy', colors = colors[i], legend_labels = legend_labels, add_legend = add_legend)
+            self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], legend_labels = legend_labels, add_legend = add_legend)
             # end_time = time.perf_counter()
             # print(f'Decomp+Vis time = {end_time - start_time}')
             i = i + 1
@@ -326,8 +326,8 @@ class ZonoVisualizer:
                         plt.scatter(p[0], p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
 
                         # Just to fill in the gaps between the circles
-                        plt.scatter(p[0], p[1] + self.y_step/2, marker = '.', s = 400, color = '#4783FC', alpha = 1.0) 
-                        plt.scatter(p[0] - self.x_step/2, p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
+                        plt.scatter(p[0], p[1] + self.y_step/3, marker = '.', s = 400, color = '#4783FC', alpha = 1.0) 
+                        plt.scatter(p[0] - self.x_step/3, p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
 
 
 
@@ -470,19 +470,19 @@ class AuxiliaryVisualizer:
 
         # Parking spot 1 line
         vertices = np.array([
-            [1.905, 1.4],
-            [1.905, 1.4],
-            [1.905, 0.995],
-            [1.905, 0.995]
+            [1.910, 0.6],
+            [1.910, 0.6],
+            [1.910, 0.2],
+            [1.910, 0.2]
         ])
         parking_spot_1_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
         ax.add_patch(parking_spot_1_line)
         # Parking spot 2 line
         vertices = np.array([
-            [1.905,  0.2],
-            [1.905,  0.2],
-            [1.905, -0.2],
-            [1.905, -0.2]
+            [1.910, -0.2],
+            [1.910, -0.2],
+            [1.910, -0.6],
+            [1.910, -0.6]
         ])
         parking_spot_2_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
         ax.add_patch(parking_spot_2_line)
@@ -508,69 +508,194 @@ class AuxiliaryVisualizer:
         ax.add_patch(parking_spot_4_line)     
 
         # Add text to the parking spots
-        ax.text( 2.2, 1.2, r'$\mathbb{P}_{1}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
-        ax.text( 2.2, 0.0, r'$\mathbb{P}_{2}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
-        ax.text(-0.7, 0.3, r'$\mathbb{P}_{3}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
-        ax.text( 0.1, 0.3, r'$\mathbb{P}_{4}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+        ax.text( 2.2,  0.4, r'$\mathbb{P}_{1}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        ax.text( 2.2, -0.4, r'$\mathbb{P}_{2}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        ax.text(-0.7,  0.3, r'$\mathbb{P}_{3}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+        ax.text( 0.1,  0.3, r'$\mathbb{P}_{4}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
  
-        # ##############################
-        # # Add the road arrows        #
-        # ##############################
-        # arrow = FancyArrowPatch(
-        #     (1.7, -0.8), # Start point
-        #     (1.7, -0.4), # End point
-        #     arrowstyle = '->', # Arrow style
-        #     mutation_scale = 40, # Size of the arrow
-        #     color = 'white', # Color of the arrow
-        #     linewidth = 2 # Width of the arrow
-        # )
-        # ax.add_patch(arrow)
-        # arrow = FancyArrowPatch(
-        #     (1.7, 0.4), # Start point
-        #     (1.7, 0.8), # End point
-        #     arrowstyle = '->', # Arrow style
-        #     mutation_scale = 40, # Size of the arrow
-        #     color = 'white', # Color of the arrow
-        #     linewidth = 2 # Width of the arrow
-        # )
-        # ax.add_patch(arrow)        
-        
-
-
+        ##############################
+        # Add the road arrows        #
+        ##############################
+        arrow = FancyArrowPatch(
+            (1.7, -0.8), # Start point
+            (1.7, -0.4), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)
+        arrow = FancyArrowPatch(
+            (1.7, 0.4), # Start point
+            (1.7, 0.8), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        #
+        ax.add_patch(arrow)     
+        arrow = FancyArrowPatch(
+            (-2.3, -0.4), # Start point
+            (-2.3, -0.8), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)
+        arrow = FancyArrowPatch(
+            (-2.3, 0.8), # Start point
+            (-2.3, 0.4), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)          
+        #
+        ax.add_patch(arrow)     
+        arrow = FancyArrowPatch(
+            (-1.5, -1.2), # Start point
+            (-1.1, -1.2), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)
+        arrow = FancyArrowPatch(
+            (0.5, -1.2), # Start point
+            (0.9, -1.2), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)    
+        #      
+        ax.add_patch(arrow)     
+        arrow = FancyArrowPatch(
+            (-1.5, 0.8), # Start point
+            (-1.1, 0.8), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)
+        arrow = FancyArrowPatch(
+            (0.5, 0.8), # Start point
+            (0.9, 0.8), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)  
+        #
+        ax.add_patch(arrow)     
+        arrow = FancyArrowPatch(
+            (-1.1, 1.2), # Start point
+            (-1.5, 1.2), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)
+        arrow = FancyArrowPatch(
+            (0.9, 1.2), # Start point
+            (0.5, 1.2), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow) 
+        #
+        ax.add_patch(arrow)     
+        arrow = FancyArrowPatch(
+            (-1.1, -0.8), # Start point
+            (-1.5, -0.8), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)
+        arrow = FancyArrowPatch(
+            (0.9, -0.8), # Start point
+            (0.5, -0.8), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)  
+        #
+        ax.add_patch(arrow)     
+        arrow = FancyArrowPatch(
+            (-1.9, -0.2), # Start point
+            (-1.9,  0.2), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)
+        arrow = FancyArrowPatch(
+            (1.3,  0.2), # Start point
+            (1.3, -0.2), # End point
+            arrowstyle = '->', # Arrow style
+            mutation_scale = 40, # Size of the arrow
+            color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
+            linewidth = 2 # Width of the arrow
+        )
+        ax.add_patch(arrow)           
 
     def vis_images(self):
         '''
         Visualizes a list of images
         '''
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[1.9, # left
-                                       2.5, # right
-                                       1.0, # top
-                                       0.2 # bottom
-                                       ])
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[1.9, # left
-                                       2.5, # right
-                                       -0.2, # top
-                                       -1.4 # bottom
-                                       ])        
-    
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
+                                extent=[ 1.9, # left
+                                         2.5, # right
+                                         1.4, # top
+                                         0.6  # bottom
+                                        ])
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
+                                extent=[ 1.9, # left
+                                         2.5, # right
+                                         0.2, # top
+                                        -0.2  # bottom
+                                       ])     
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
+                                extent=[ 1.9, # left
+                                         2.5, # right
+                                        -0.6, # top
+                                        -1.4  # bottom
+                                       ])  
 
-        ax.imshow(self.images, alpha = 1.0, extent=[-1.7, # left
-                                        1.1, # right
-                                        0.0, # top
-                                       -0.6 # bottom
+        # INTERNAL OBSTACLES
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
+                                extent=[-1.7, # left
+                                         1.1, # right
+                                         0.0, # top
+                                        -0.6  # bottom
                                        ])
-        ax.imshow(self.images, alpha = 1.0, extent=[-1.7, # left
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[-1.7, # left
                                        -0.9, # right
                                         0.6, # top
                                         0.0 # bottom
                                        ])
-        ax.imshow(self.images, alpha = 1.0, extent=[ 0.3, # left
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[ 0.3, # left
                                         1.1, # right
                                         0.6, # top
                                         0.0 # bottom
                                        ])
-        ax.imshow(self.images, alpha = 1.0, extent=[-0.5, # left
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[-0.5, # left
                                        -0.1, # right
                                         0.6, # top
                                         0.0 # bottom
-                                       ])        
+                                       ])

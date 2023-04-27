@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-from utils.samples.samples import SamplesHZ
+from utils.environments.environments import SamplesHZ
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 

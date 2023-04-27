@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 
-from utils.samples.samples import SamplesHZ
+from utils.environments.environments import SamplesHZ
 from utils.operations.operations import TreeOperations
 from utils.tlt.nodes import OR, AND, UNTIL, set_node
 from utils.visualization import ZonoVisualizer

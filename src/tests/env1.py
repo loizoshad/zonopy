@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-from utils.samples.samples import SamplesHZ, SamplesVis, ParkEnv1
+from utils.environments.environments import SamplesHZ, SamplesVis, ParkEnv1
 from utils.visualization import ZonoVisualizer, AuxiliaryVisualizer
 from utils.operations.operations import ZonoOperations
 
@@ -59,11 +59,11 @@ AuxiliaryVisualizer().vis_images()
 plt.grid(False)
 
 
-# Save the figure
-name = f'brs_N_{N}'
-# Set the size of the figure to be saved
-plt.gcf().set_size_inches(15, 8)
-plt.savefig(f'./results/env1/{name}.pdf', dpi=300)
+# # Save the figure
+# name = f'brs_N_{N}'
+# # Set the size of the figure to be saved
+# plt.gcf().set_size_inches(15, 8)
+# plt.savefig(f'./results/env1/{name}.pdf', dpi=300)
 
 plt.show()
 
