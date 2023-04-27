@@ -21,10 +21,10 @@ op = ZonoOperations(visualizer = vis)
 obs, obs_color = SamplesHZ().obstacles
 road_line, road_line_vis, road_line_color = SamplesHZ().road_line
 road, road_vis, road_color = SamplesHZ().road
-parking, parking_color = SamplesHZ().parkings
+parking, parking_color = SamplesHZ().park_1
 
-colors = [road_color] + parking_color
-hz = [road_vis] + parking
+colors = [road_color] + [parking_color]
+hz = [road_vis] + [parking]
 
 ##############################################################################
 #                                  BRS                                       #
@@ -36,17 +36,17 @@ A = np.array([
 ])
 
 B = np.array([
-    [0.5, 0.5],
-    [0.0, 0.5]
+    [0.1, 0.1],
+    [0.0, 0.1]
 ])
 
-# D = np.block([A, B])
-# N = 1
-# start_time = time.perf_counter()
-# brs = op.brs_hz(X = road, T = parking, D = D, N = N, visualize = True)
-# end_time = time.perf_counter()
-# print(f'N = {N} \t ng = {brs.ng} \t nc = {brs.nc} \t nb = {brs.nb}')
-# print(f'Compute and plot BRS took: {end_time - start_time} seconds')
+D = np.block([A, B])
+N = 2
+start_time = time.perf_counter()
+brs = op.brs_hz(X = road, T = parking, D = D, N = N, visualize = True)
+end_time = time.perf_counter()
+print(f'N = {N} \t ng = {brs.ng} \t nc = {brs.nc} \t nb = {brs.nb}')
+print(f'Compute and plot BRS took: {end_time - start_time} seconds')
 
 # Visualize Environment
 vis.vis_hz(hz,
@@ -60,6 +60,9 @@ AuxiliaryVisualizer().vis_images()
 
 # plt.xticks(np.arange(-2.5, 2.5, 0.2))
 # plt.yticks(np.arange(-1.4, 1.4, 0.2))
+
+# plt.xlim(-14, 14)
+# plt.ylim(-10, 10)        
 plt.grid(False)
 plt.show()
 

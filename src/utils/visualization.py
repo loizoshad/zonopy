@@ -188,11 +188,11 @@ class ZonoVisualizer:
         # ax.set_xlim(-3, 3)
         # ax.set_ylim(-2.1, 2.1)
 
-        ax.set_xlim(-2.5, 2.5)
-        ax.set_ylim(-1.4, 1.4)
+        # ax.set_xlim(-2.5, 2.5)
+        # ax.set_ylim(-1.4, 1.4)
 
-        # ax.set_xlim(-14, 14)
-        # ax.set_ylim(-10, 10)        
+        ax.set_xlim(-14, 14)
+        ax.set_ylim(-10, 10)        
 
         # Add legend
         if add_legend:
