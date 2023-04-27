@@ -3,6 +3,7 @@ This file contains a collection of example sets represented as Hybrid Zonotopes
 '''
 
 import numpy as np
+import math
 
 from utils.sets.zonotopes import Zonotope
 from utils.sets.constrained_zonotopes import ConstrainedZonotope
@@ -15,7 +16,33 @@ from matplotlib.patches import Polygon
 class ParkEnv1:
     def __init__(self) -> None:
         self.zono_op = ZonoOperations()
-        
+
+        # Define the dynamics model in here (Create a separate class for this which this env can take)
+
+        self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4
+        self.samples_x = int(40*self.x_max); self.samples_y = int(40*self.y_max); self.max_dist = 0.3
+        self.x_step = (self.x_max - self.x_min) / (self.samples_x)
+        self.y_step = (self.y_max - self.y_min) / (self.samples_y)
+        self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
+        self.max_dist_y = math.ceil(self.max_dist / self.y_step) # Maximum number of steps in the y direction
+        self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)        
+        self.p1_ = np.array([ [ 1.9,  1.4],[ 1.9,  1.0] ])
+        self.p2_ = np.array([ [ 1.9,  0.2],[ 1.9, -0.2] ])
+        self.p3_ = np.array([ [-0.9,  0.6],[-0.5,  0.6] ])
+        self.p4_ = np.array([ [-0.1,  0.6],[ 0.3,  0.6] ])
+
+        # Create a list of all (x, y) points between the two points in p1_, p2_, p3_, p4_
+        self.initial_points = []
+        for i in range(int(abs(self.p3_[1][0] - self.p3_[0][0])/self.x_step) + 1):    # These are the horizontal lines
+            self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
+            self.initial_points.append([self.p4_[0][0] + i*self.x_step, self.p4_[0][1]])
+        for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 2):    # These are the vertical lines
+            self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
+            self.initial_points.append([self.p2_[0][0], self.p2_[0][1] - i*self.y_step])            
+
+        self.initial_points = np.array(self.initial_points)
+
+
     def get_sets(self):
         '''
         This class returns a list of hybrid zonotopes each representing a set
@@ -29,18 +56,18 @@ class ParkEnv1:
         # Road
         road = self.road
         env['sets'].append(road[0]); env['vis'].append(road[1]); env['colors'].append(road[2])
-        # Obstacles
-        obs = self.obstacle_1
-        env['sets'].append(obs[0]); env['vis'].append(obs[1]); env['colors'].append(obs[2])
-        obs = self.obstacle_2
-        env['sets'].append(obs[0]); env['vis'].append(obs[1]); env['colors'].append(obs[2])
-        obs = self.obstacle_3
-        env['sets'].append(obs[0]); env['vis'].append(obs[1]); env['colors'].append(obs[2])
         # Parking
         park = self.park_1
         env['sets'].append(park[0]); env['vis'].append(park[1]); env['colors'].append(park[2])
         park = self.park_2
-        env['sets'].append(park[0]); env['vis'].append(park[1]); env['colors'].append(park[2])
+        env['sets'].append(park[0]); env['vis'].append(park[1]); env['colors'].append(park[2])        
+        # Obstacles
+        obs = self.obstacle_1
+        env['sets'].append(obs[0])#; env['vis'].append(obs[1]); env['colors'].append(obs[2])
+        obs = self.obstacle_2
+        env['sets'].append(obs[0])#; env['vis'].append(obs[1]); env['colors'].append(obs[2])
+        obs = self.obstacle_3
+        env['sets'].append(obs[0])#; env['vis'].append(obs[1]); env['colors'].append(obs[2])
 
         return env['sets'], env['vis'], env['colors']
 

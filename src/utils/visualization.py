@@ -34,7 +34,7 @@ class ZonoVisualizer:
 
     min_x = 0; max_x = 0; min_y = 0; max_y = 0  # Plot limits
 
-    def __init__(self) -> None:
+    def __init__(self, env = None) -> None:
         
         self.colors = [
             (0.423, 0.556, 0.749, 0.5),
@@ -42,55 +42,86 @@ class ZonoVisualizer:
             (0.882, 0.835, 0.905, 0.5),
             (1.000, 0.901, 0.800, 0.5)
         ]
-
+        self.env = env
         self.zono_op = ZonoOperations()         # Initialize the zonotope operations class
         self.init_brs_plot()                    # Initialize the BRS plot environment
+
+        ax.set_xlim(-2.5, 2.5)
+        ax.set_ylim(-1.4, 1.4)
+        # ax.set_xlim(-14, 14)
+        # ax.set_ylim(-10, 10)
 
     def init_brs_plot(self):
         #####################################################################
         #                           Initialization                          #
         #####################################################################        
-        # Discretize the x-y state space
-        x_min = -7.9; x_max = 7.9; y_min = -8.9; y_max = 8.9; self.samples_x = 79; self.samples_y = 89
-        # x_min = -7.9; x_max = 7.9; y_min = -8.9; y_max = 8.9; self.samples_x = 89; self.samples_y = 99
-        self.x_space = np.linspace(x_min, x_max, self.samples_x)
-        self.y_space = np.linspace(y_min, y_max, self.samples_y)
-        self.x_step = self.x_space[1] - self.x_space[0]
-        self.y_step = self.y_space[1] - self.y_space[0]        
-        # self.grid = np.meshgrid(self.x_space, self.y_space)
-        # Associated flag for already contained points
-        self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
-        # Initialize vertex list
-        # TODO: First implement the functionality to obtain the vertices of the target sets (i.e., the parking spots)
-        self.already_contained_points = np.array([
-            [8.0, 9.0],
-            [8.0, 6.5],
-            [8.0, -9.0],
-            [8.0, -6.5]
-        ])        
-        # Update the flag for already contained points
-        for p in self.already_contained_points:
-            x_idx = np.argmin(np.abs(self.x_space - p[0]))
-            y_idx = np.argmin(np.abs(self.y_space - p[1]))
-            self.is_already_contained[y_idx, x_idx] = 1
+        if self.env is not None:
+            x_min = self.env.x_min; x_max = self.env.x_max; y_min = self.env.y_min; y_max = self.env.y_max
+            self.samples_x = self.env.samples_x; self.samples_y = self.env.samples_y
+            self.already_contained_points = self.env.initial_points
+            self.x_step = self.env.x_step; self.y_step = self.env.y_step
+            self.max_dist_x = self.env.max_dist_x; self.max_dist_y = self.env.max_dist_y; self.max_dist_diag = self.env.max_dist_diag
 
-        # Add all the points between points [8.0, 9.0] and [8.0, 6.5] as already contained
-        for i in range(1, 6):
-            x_idx = np.argmin(np.abs(self.x_space - 8.0))
-            y_idx = np.argmin(np.abs(self.y_space - (9.0 - i * 0.5)))
-            self.is_already_contained[y_idx, x_idx] = 1
+            # Discretize the x-y state space
+            self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            self.y_space = np.linspace(y_min, y_max, self.samples_y)          
 
-        # Add all the points between points [8.0, -9.0] and [8.0, -6.5] as already contained
-        for i in range(1, 6):
-            x_idx = np.argmin(np.abs(self.x_space - 8.0))
-            y_idx = np.argmin(np.abs(self.y_space - (-9.0 + i * 0.5)))
-            self.is_already_contained[y_idx, x_idx] = 1
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
 
-        # Auxiliary variables
-        self.max_dist = 1.0  # Assumed maximum possible propagation distance of the brs in a single iteration
-        self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
-        self.max_dist_y = math.ceil(self.max_dist / self.y_step) # Maximum number of steps in the y direction
-        self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1
+
+
+        else:   # Default environment
+            x_min = -7.9; x_max = 7.9; y_min = -8.9; y_max = 8.9; self.samples_x = 79; self.samples_y = 89
+
+            # Discretize the x-y state space
+            self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            self.y_space = np.linspace(y_min, y_max, self.samples_y)
+            self.x_step = (x_max - x_min) / (self.samples_x)
+            self.y_step = (y_max - y_min) / (self.samples_y)
+
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+
+            # Initialize vertex list
+            # TODO: First implement the functionality to obtain the vertices of the target sets (i.e., the parking spots)
+            self.already_contained_points = np.array([
+                [8.0, 9.0],
+                [8.0, 6.5],
+                [8.0, -9.0],
+                [8.0, -6.5]
+            ])        
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1
+
+            # Add all the points between points [8.0, 9.0] and [8.0, 6.5] as already contained
+            for i in range(1, 6):
+                x_idx = np.argmin(np.abs(self.x_space - 8.0))
+                y_idx = np.argmin(np.abs(self.y_space - (9.0 - i * 0.5)))
+                self.is_already_contained[y_idx, x_idx] = 1
+
+            # Add all the points between points [8.0, -9.0] and [8.0, -6.5] as already contained
+            for i in range(1, 6):
+                x_idx = np.argmin(np.abs(self.x_space - 8.0))
+                y_idx = np.argmin(np.abs(self.y_space - (-9.0 + i * 0.5)))
+                self.is_already_contained[y_idx, x_idx] = 1
+
+            # Auxiliary variables
+            self.max_dist = 1.0  # Assumed maximum possible propagation distance of the brs in a single iteration
+            self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
+            self.max_dist_y = math.ceil(self.max_dist / self.y_step) # Maximum number of steps in the y direction
+            self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)
+
+
+
 
     def vis_z(self, zonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', legend_labels = [], add_legend = True):
         '''
@@ -183,12 +214,6 @@ class ZonoVisualizer:
         # x_margin = 0.2 * (self.max_x - self.min_x); y_margin = 0.2 * (self.max_y - self.min_y)
         # ax.set_xlim(self.min_x - x_margin, self.max_x + x_margin)
         # ax.set_ylim(self.min_y - y_margin, self.max_y + y_margin)       
-
-        # ax.set_xlim(-2.5, 2.5)
-        # ax.set_ylim(-1.4, 1.4)
-
-        ax.set_xlim(-14, 14)
-        ax.set_ylim(-10, 10)
 
         # Add legend
         if add_legend:
@@ -517,34 +542,34 @@ class AuxiliaryVisualizer:
         '''
         Visualizes a list of images
         '''
-        ax.imshow(self.images, extent=[1.9, # left
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[1.9, # left
                                        2.5, # right
                                        1.0, # top
                                        0.2 # bottom
                                        ])
-        ax.imshow(self.images, extent=[1.9, # left
+        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[1.9, # left
                                        2.5, # right
                                        -0.2, # top
                                        -1.4 # bottom
                                        ])        
     
 
-        ax.imshow(self.images, extent=[-1.7, # left
+        ax.imshow(self.images, alpha = 1.0, extent=[-1.7, # left
                                         1.1, # right
                                         0.0, # top
                                        -0.6 # bottom
                                        ])
-        ax.imshow(self.images, extent=[-1.7, # left
+        ax.imshow(self.images, alpha = 1.0, extent=[-1.7, # left
                                        -0.9, # right
                                         0.6, # top
                                         0.0 # bottom
                                        ])
-        ax.imshow(self.images, extent=[ 0.3, # left
+        ax.imshow(self.images, alpha = 1.0, extent=[ 0.3, # left
                                         1.1, # right
                                         0.6, # top
                                         0.0 # bottom
                                        ])
-        ax.imshow(self.images, extent=[-0.5, # left
+        ax.imshow(self.images, alpha = 1.0, extent=[-0.5, # left
                                        -0.1, # right
                                         0.6, # top
                                         0.0 # bottom
