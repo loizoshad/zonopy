@@ -62,6 +62,5 @@ name = f'brs_N_{N}'
 plt.gcf().set_size_inches(15, 8)
 plt.savefig(f'./results/{name}.pdf', dpi=300)
 
-
 plt.show()
 
