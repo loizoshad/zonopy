@@ -252,7 +252,7 @@ class ParkEnv2:
         # Define the dynamics model in here (Create a separate class for this which this env can take)
         if road == 'full':
             self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4
-            self.samples_x = int(50*self.x_max); self.samples_y = int(50*self.y_max); self.max_dist = 0.3
+            self.samples_x = int(60*self.x_max); self.samples_y = int(60*self.y_max); self.max_dist = 0.3
             self.x_step = (self.x_max - self.x_min) / (self.samples_x)
             self.y_step = (self.y_max - self.y_min) / (self.samples_y)
             self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
@@ -275,7 +275,7 @@ class ParkEnv2:
             self.initial_points = np.array(self.initial_points)
         elif road == 'outer':
             self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4
-            self.samples_x = int(60*self.x_max); self.samples_y = int(60*self.y_max); self.max_dist = 0.25
+            self.samples_x = int(60*self.x_max); self.samples_y = int(60*self.y_max); self.max_dist = 0.22
             self.x_step = (self.x_max - self.x_min) / (self.samples_x)
             self.y_step = (self.y_max - self.y_min) / (self.samples_y)
             self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
@@ -293,7 +293,7 @@ class ParkEnv2:
             self.initial_points = np.array(self.initial_points)
         elif road == 'inner':
             self.x_min = -1.9; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0
-            self.samples_x = int(60*self.x_max); self.samples_y = int(60*self.y_max); self.max_dist = 0.25
+            self.samples_x = int(60*self.x_max); self.samples_y = int(60*self.y_max); self.max_dist = 0.22
             self.x_step = (self.x_max - self.x_min) / (self.samples_x)
             self.y_step = (self.y_max - self.y_min) / (self.samples_y)
             self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction

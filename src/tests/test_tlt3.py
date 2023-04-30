@@ -41,12 +41,13 @@ start_time = time.perf_counter()
 
 ## Step 2: Construct a tree for each atomic proposition
 
-# TLT for atomic proposition: true
-ap_true = set_node(road, 'true')
-tlt_ap_true = Tree(ap_true)
-
 SUBSCRIPT_1_SYMBOL = '\u2081'
 SUBSCRIPT_2_SYMBOL = '\u2082'
+DOUBLE_STRUCK_X_SYMBOL = '\U0001D54F'
+
+# TLT for atomic proposition: true
+ap_true = set_node(road, f'{DOUBLE_STRUCK_X_SYMBOL}')
+tlt_ap_true = Tree(ap_true)
 
 # TLT for atomic proposition: p1
 ap_p1 = set_node(p1, f'p{SUBSCRIPT_1_SYMBOL}')
@@ -63,7 +64,7 @@ tlt_ap_p2 = Tree(ap_p2)
 tree_p1_or_p2 = tree_op.attach_trees('OR', tlt_ap_p1, tlt_ap_p2)
 
 # TLT for operator: UNTIL : (true U (p1 OR p2))
-N = 0
+N = 100
 tlt_true_until_p1orp2 = tree_op.attach_trees('UNTIL', tlt_ap_true, tree_p1_or_p2, N = N)
 
 end_time = time.perf_counter()
