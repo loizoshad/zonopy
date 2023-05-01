@@ -36,7 +36,7 @@ class ZonoVisualizer:
 
     min_x = 0; max_x = 0; min_y = 0; max_y = 0  # Plot limits
 
-    def __init__(self, env = None) -> None:
+    def __init__(self) -> None:
         
         self.colors = [
             (0.423, 0.556, 0.749, 0.5),
@@ -44,25 +44,24 @@ class ZonoVisualizer:
             (0.882, 0.835, 0.905, 0.5),
             (1.000, 0.901, 0.800, 0.5)
         ]
-        self.env = env
         self.zono_op = ZonoOperations()         # Initialize the zonotope operations class
-        self.init_brs_plot()                    # Initialize the BRS plot environment
+        # self.init_brs_plot()                    # Initialize the BRS plot environment
 
         ax.set_xlim(-2.5, 2.5)
         ax.set_ylim(-1.4, 1.4)
         # ax.set_xlim(-14, 14)
         # ax.set_ylim(-10, 10)
 
-    def init_brs_plot(self):
+    def init_brs_plot(self, env):
         #####################################################################
         #                           Initialization                          #
         #####################################################################        
-        if self.env is not None:
-            x_min = self.env.x_min; x_max = self.env.x_max; y_min = self.env.y_min; y_max = self.env.y_max
-            self.samples_x = self.env.samples_x; self.samples_y = self.env.samples_y
-            self.already_contained_points = self.env.initial_points
-            self.x_step = self.env.x_step; self.y_step = self.env.y_step
-            self.max_dist_x = self.env.max_dist_x; self.max_dist_y = self.env.max_dist_y; self.max_dist_diag = self.env.max_dist_diag
+        if env is not None:
+            x_min = env.x_min; x_max = env.x_max; y_min = env.y_min; y_max = env.y_max
+            self.samples_x = env.samples_x; self.samples_y = env.samples_y
+            self.already_contained_points = env.initial_points
+            self.x_step = env.x_step; self.y_step = env.y_step
+            self.max_dist_x = env.max_dist_x; self.max_dist_y = env.max_dist_y; self.max_dist_diag = env.max_dist_diag
 
             # Discretize the x-y state space
             self.x_space = np.linspace(x_min, x_max, self.samples_x)

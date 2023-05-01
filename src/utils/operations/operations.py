@@ -471,17 +471,20 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
 
-    def brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray, N: int, visualize = False) -> HybridZonotope:
+    def brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray, N: int, visualize = False, env = None) -> HybridZonotope:
         '''
         Computes the N-step backward reachable set using the hybrid zonotope representation
         '''
+        if self.visualizer is not None and visualize and env is not None:
+            self.visualizer.init_brs_plot(env)
+
         for i in range(N):
             # print(f'BRS for {i}-steps')
             start_time = time.perf_counter()
             T = self.one_step_brs_hz(X, T, D)
             end_time = time.perf_counter()
             print(f'  - COMPUTING BRS took {end_time - start_time} seconds')
-            if self.visualizer is not None:
+            if self.visualizer is not None and visualize:
                 start_time = time.perf_counter()
                 self.visualizer.vis_hz_brs(T, title = 'BRS', legend_labels=['$\mathscr{BRS}$'], add_legend=True)
                 end_time = time.perf_counter()
