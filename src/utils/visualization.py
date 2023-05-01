@@ -3,8 +3,7 @@ import graphviz
 import numpy as np
 from scipy.spatial import ConvexHull
 from matplotlib.collections import PatchCollection
-from matplotlib.patches import Polygon, FancyArrowPatch, FancyArrow
-import matplotlib.image as image
+from matplotlib.patches import Polygon, FancyArrowPatch, FancyArrow, FancyBboxPatch, Rectangle
 import matplotlib.pyplot as plt
 import itertools
 import pypoman
@@ -24,8 +23,11 @@ import math
 fig, ax = plt.subplots()        # Initialize the plot
 manager = plt.get_current_fig_manager()
 manager.window.attributes('-zoomed', True)        
-ax.grid()                          # Add a grid  
-
+ax.grid()                          # Add a grid
+ax.spines['left'].set_edgecolor('white')
+ax.spines['bottom'].set_edgecolor('white')
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
 
 class ZonoVisualizer:
     '''
@@ -444,13 +446,7 @@ class TreeVisualizer:
 
 
 
-
-
-
 class AuxiliaryVisualizer:
-    def __init__(self) -> None:
-        self.images = image.imread('images/grass_dark.jpg')
-
 
     def vis_patches(self):
         '''
@@ -517,8 +513,8 @@ class AuxiliaryVisualizer:
         # Add the road arrows        #
         ##############################
         arrow = FancyArrowPatch(
-            (1.7, -0.8), # Start point
-            (1.7, -0.4), # End point
+            (1.7, -0.75), # Start point
+            (1.7, -0.45), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -526,8 +522,8 @@ class AuxiliaryVisualizer:
         )
         ax.add_patch(arrow)
         arrow = FancyArrowPatch(
-            (1.7, 0.4), # Start point
-            (1.7, 0.8), # End point
+            (1.7, 0.45), # Start point
+            (1.7, 0.75), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -536,8 +532,8 @@ class AuxiliaryVisualizer:
         #
         ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
-            (-2.3, -0.4), # Start point
-            (-2.3, -0.8), # End point
+            (-2.3, -0.45), # Start point
+            (-2.3, -0.75), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -545,8 +541,8 @@ class AuxiliaryVisualizer:
         )
         ax.add_patch(arrow)
         arrow = FancyArrowPatch(
-            (-2.3, 0.8), # Start point
-            (-2.3, 0.4), # End point
+            (-2.3, 0.75), # Start point
+            (-2.3, 0.45), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -556,8 +552,8 @@ class AuxiliaryVisualizer:
         #
         ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
-            (-1.5, -1.2), # Start point
-            (-1.1, -1.2), # End point
+            (-1.45, -1.2), # Start point
+            (-1.15, -1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -565,8 +561,8 @@ class AuxiliaryVisualizer:
         )
         ax.add_patch(arrow)
         arrow = FancyArrowPatch(
-            (0.5, -1.2), # Start point
-            (0.9, -1.2), # End point
+            (0.55, -1.2), # Start point
+            (0.85, -1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -576,8 +572,8 @@ class AuxiliaryVisualizer:
         #      
         ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
-            (-1.5, 0.8), # Start point
-            (-1.1, 0.8), # End point
+            (-1.45, 0.8), # Start point
+            (-1.15, 0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -585,8 +581,8 @@ class AuxiliaryVisualizer:
         )
         ax.add_patch(arrow)
         arrow = FancyArrowPatch(
-            (0.5, 0.8), # Start point
-            (0.9, 0.8), # End point
+            (0.55, 0.8), # Start point
+            (0.85, 0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -596,8 +592,8 @@ class AuxiliaryVisualizer:
         #
         ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
-            (-1.1, 1.2), # Start point
-            (-1.5, 1.2), # End point
+            (-1.15, 1.2), # Start point
+            (-1.45, 1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -605,8 +601,8 @@ class AuxiliaryVisualizer:
         )
         ax.add_patch(arrow)
         arrow = FancyArrowPatch(
-            (0.9, 1.2), # Start point
-            (0.5, 1.2), # End point
+            (0.85, 1.2), # Start point
+            (0.55, 1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -616,8 +612,8 @@ class AuxiliaryVisualizer:
         #
         ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
-            (-1.1, -0.8), # Start point
-            (-1.5, -0.8), # End point
+            (-1.15, -0.8), # Start point
+            (-1.45, -0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -625,8 +621,8 @@ class AuxiliaryVisualizer:
         )
         ax.add_patch(arrow)
         arrow = FancyArrowPatch(
-            (0.9, -0.8), # Start point
-            (0.5, -0.8), # End point
+            (0.85, -0.8), # Start point
+            (0.55, -0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -636,8 +632,8 @@ class AuxiliaryVisualizer:
         #
         ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
-            (-1.9, -0.2), # Start point
-            (-1.9,  0.2), # End point
+            (-1.9, -0.15), # Start point
+            (-1.9,  0.15), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
@@ -645,57 +641,116 @@ class AuxiliaryVisualizer:
         )
         ax.add_patch(arrow)
         arrow = FancyArrowPatch(
-            (1.3,  0.2), # Start point
-            (1.3, -0.2), # End point
+            (1.3,  0.15), # Start point
+            (1.3, -0.15), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
             linewidth = 2 # Width of the arrow
         )
-        ax.add_patch(arrow)           
+        ax.add_patch(arrow)
 
-    def vis_images(self):
-        '''
-        Visualizes a list of images
-        '''
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
-                                extent=[ 1.9, # left
-                                         2.5, # right
-                                         1.4, # top
-                                         0.6  # bottom
-                                        ])
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
-                                extent=[ 1.9, # left
-                                         2.5, # right
-                                         0.2, # top
-                                        -0.2  # bottom
-                                       ])     
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
-                                extent=[ 1.9, # left
-                                         2.5, # right
-                                        -0.6, # top
-                                        -1.4  # bottom
-                                       ])  
+        ##############################
+        # Add the perimeter          #
+        ##############################
+        bounding_box = FancyBboxPatch(
+            (-2.425, -1.325),
+            width = 4.85,
+            height = 2.65,
+            boxstyle = 'round, pad=0.1',
+            fill = False,
+            ec = 'white',
+            linewidth = 10,
+            zorder = 101)
+        ax.add_patch(bounding_box)
+
+
+        ##############################
+        # Add the obstacles          #
+        ##############################
+        rect = Rectangle((1.9, 0.60),
+                            width = 0.6,
+                            height = 0.8,
+                            linewidth = 2,
+                            facecolor = 'green',
+                            fill = True,
+                            hatch = '.....',
+                            alpha = 0.8,
+                            zorder = 100
+                        )
+        ax.add_patch(rect)
+
+        rect = Rectangle((1.9, -0.2),
+                            width = 0.6,
+                            height = 0.4,
+                            linewidth = 2,
+                            facecolor = 'green',
+                            fill = True,
+                            hatch = '.....',
+                            alpha = 0.8,
+                            zorder = 100
+                        )
+        ax.add_patch(rect)
+
+        rect = Rectangle((1.9, -1.4),
+                            width = 0.6,
+                            height = 0.8,
+                            linewidth = 2,
+                            facecolor = 'green',
+                            fill = True,
+                            hatch = '.....',
+                            alpha = 0.8,
+                            zorder = 100
+                        )
+        ax.add_patch(rect)        
+        
 
         # INTERNAL OBSTACLES
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, 
-                                extent=[-1.7, # left
-                                         1.1, # right
-                                         0.0, # top
-                                        -0.6  # bottom
-                                       ])
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[-1.7, # left
-                                       -0.9, # right
-                                        0.6, # top
-                                        0.0 # bottom
-                                       ])
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[ 0.3, # left
-                                        1.1, # right
-                                        0.6, # top
-                                        0.0 # bottom
-                                       ])
-        ax.imshow(self.images, alpha = 1.0, zorder = 100, extent=[-0.5, # left
-                                       -0.1, # right
-                                        0.6, # top
-                                        0.0 # bottom
-                                       ])
+
+        rect = Rectangle((-1.7, 0.0),
+                            width = 0.8,
+                            height = 0.6,
+                            linewidth = 2,
+                            facecolor = 'green',
+                            fill = True,
+                            hatch = '.....',
+                            alpha = 0.8,
+                            zorder = 100
+                        )
+        ax.add_patch(rect)
+
+        rect = Rectangle((-0.5, 0.0),
+                            width = 0.4,
+                            height = 0.6,
+                            linewidth = 2,
+                            facecolor = 'green',
+                            fill = True,
+                            hatch = '.....',
+                            alpha = 0.8,
+                            zorder = 100
+                        )
+        ax.add_patch(rect)        
+
+        rect = Rectangle((0.3, 0.0),
+                            width = 0.8,
+                            height = 0.6,
+                            linewidth = 2,
+                            facecolor = 'green',
+                            fill = True,
+                            hatch = '.....',
+                            alpha = 0.8,
+                            zorder = 100
+                        )
+        ax.add_patch(rect)
+
+        rect = Rectangle((-1.7, -0.6),
+                            width = 2.8,
+                            height = 0.6,
+                            linewidth = 2,
+                            facecolor = 'green',
+                            fill = True,
+                            hatch = '.....',
+                            alpha = 0.8,
+                            zorder = 100
+                        )
+        ax.add_patch(rect)        

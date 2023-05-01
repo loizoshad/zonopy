@@ -55,7 +55,6 @@ vis.vis_hz(hz_vis,
 
 
 AuxiliaryVisualizer().vis_patches()
-AuxiliaryVisualizer().vis_images()       
 plt.grid(False)
 
 

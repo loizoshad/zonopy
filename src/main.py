@@ -46,7 +46,7 @@ colors = [colors_1[0], colors_2[0], colors_1[1], colors_2[1]]
 #                                  BRS                                       #
 ##############################################################################
 
-N = 2
+N = 0
 
 start_time_total = time.perf_counter()
 
@@ -82,11 +82,10 @@ vis_1.vis_hz(hz_vis,
 
 
 AuxiliaryVisualizer().vis_patches()
-AuxiliaryVisualizer().vis_images()       
 plt.grid(False)
 
 # Save the figure
-name = f'8_brs_N_{N}'
+name = f'brs_N_{N}'
 # Set the size of the figure to be saved
 plt.gcf().set_size_inches(15, 8)
 plt.savefig(f'./results/env2/{name}.pdf', dpi=300)
