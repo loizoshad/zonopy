@@ -20,8 +20,8 @@ A = np.array([
 ])
 
 B = np.array([
-    [0.1, 0.0],
-    [0.0, 0.1]
+    [0.05, 0.0],
+    [0.0, 0.05]
 ])
 
 D = np.block([A, B])
@@ -46,7 +46,7 @@ colors = [colors_1[0], colors_2[0], colors_1[1], colors_2[1]]
 #                                  BRS                                       #
 ##############################################################################
 
-N = 5
+N = 2
 
 start_time_total = time.perf_counter()
 
@@ -86,7 +86,7 @@ AuxiliaryVisualizer().vis_images()
 plt.grid(False)
 
 # Save the figure
-name = f'brs_N_{N}'
+name = f'8_brs_N_{N}'
 # Set the size of the figure to be saved
 plt.gcf().set_size_inches(15, 8)
 plt.savefig(f'./results/env2/{name}.pdf', dpi=300)

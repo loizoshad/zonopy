@@ -274,13 +274,14 @@ class ParkEnv2:
 
             self.initial_points = np.array(self.initial_points)
         elif road == 'outer':
+            coarse = 60
             self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4
-            self.samples_x = int(60*self.x_max); self.samples_y = int(60*self.y_max); self.max_dist = 0.25
+            self.samples_x = int(coarse*self.x_max); self.samples_y = int(coarse*self.y_max); self.max_dist = 0.5
             self.x_step = (self.x_max - self.x_min) / (self.samples_x)
             self.y_step = (self.y_max - self.y_min) / (self.samples_y)
             self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
             self.max_dist_y = math.ceil(self.max_dist / self.y_step) # Maximum number of steps in the y direction
-            self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)        
+            self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)
             self.p1_ = np.array([ [ 1.90,  0.6],[ 1.90,  0.6] ])
             self.p2_ = np.array([ [ 1.90, -0.2],[ 1.90, -0.6] ])
 
@@ -292,8 +293,9 @@ class ParkEnv2:
 
             self.initial_points = np.array(self.initial_points)
         elif road == 'inner':
-            self.x_min = -1.9; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0
-            self.samples_x = int(60*self.x_max); self.samples_y = int(60*self.y_max); self.max_dist = 0.25
+            coarse = 60
+            self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0
+            self.samples_x = int(coarse*self.x_max); self.samples_y = int(coarse*self.y_max); self.max_dist = 0.5
             self.x_step = (self.x_max - self.x_min) / (self.samples_x)
             self.y_step = (self.y_max - self.y_min) / (self.samples_y)
             self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
@@ -382,26 +384,26 @@ class ParkEnv2:
         Gc_road_12 = np.array([
             [ll_12/2, 0.0, 0.0, 0.0],
             [  0.0  , lw/2, 0.0, 0.0],
-            [  0.0  , 0.0, 1.0, 0.0],
-            [  0.0  , 0.0, 0.0, 1.0]
+            [  0.0  , 0.0, 0.5, 0.0],
+            [  0.0  , 0.0, 0.0, 0.5]
         ])
         Gb_road_12 = np.array([
             [0.0],
             [1.2],
-            [-0.9],
+            [-0.45],
             [0.0]
         ])
         Gc_road_34 = np.array([
             [  lw/2 , 0.0, 0.0, 0.0],
             [  0.0, ll_34/2 , 0.0, 0.0],
-            [  0.0, 0.0, 1.0, 0.0],
-            [  0.0, 0.0, 0.0, 1.0]
+            [  0.0, 0.0, 0.5, 0.0],
+            [  0.0, 0.0, 0.0, 0.5]
         ])
         Gb_road_34 = np.array([
             [2.0],
             [0.0],
             [0.0],
-            [1.0]
+            [0.5]
         ])
         road_12 = HybridZonotope(Gc_road_12, Gb_road_12, c_road, Ac_road, Ab_road, b_road)
         road_34 = HybridZonotope(Gc_road_34, Gb_road_34, c_road, Ac_road, Ab_road, b_road)
@@ -429,26 +431,26 @@ class ParkEnv2:
         Gc_road_12 = np.array([
             [ll_12/2, 0.0, 0.0, 0.0],
             [  0.0  , lw/2, 0.0, 0.0],
-            [  0.0  , 0.0, 1.0, 0.0],
-            [  0.0  , 0.0, 0.0, 1.0]
+            [  0.0  , 0.0, 0.5, 0.0],
+            [  0.0  , 0.0, 0.0, 0.5]
         ])
         Gb_road_12 = np.array([
             [0.0],
             [0.8],
-            [0.95],
+            [0.45],
             [0.0]
         ])
         Gc_road_34 = np.array([
             [  lw/2 , 0.0, 0.0, 0.0],
             [  0.0, ll_34/2 , 0.0, 0.0],
-            [  0.0, 0.0, 1.0, 0.0],
-            [  0.0, 0.0, 0.0, 1.0]
+            [  0.0, 0.0, 0.5, 0.0],
+            [  0.0, 0.0, 0.0, 0.5]
         ])
         Gb_road_34 = np.array([
             [1.6],
             [0.0],
             [0.0],
-            [-1.0]
+            [-0.5]
         ])
         road_12 = HybridZonotope(Gc_road_12, Gb_road_12, c_road, Ac_road, Ab_road, b_road)
         road_34 = HybridZonotope(Gc_road_34, Gb_road_34, c_road, Ac_road, Ab_road, b_road)
