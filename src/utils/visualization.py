@@ -20,14 +20,7 @@ import time
 import math
  
 
-fig, ax = plt.subplots()        # Initialize the plot
-manager = plt.get_current_fig_manager()
-manager.window.attributes('-zoomed', True)        
-ax.grid()                          # Add a grid
-ax.spines['left'].set_edgecolor('white')
-ax.spines['bottom'].set_edgecolor('white')
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
+
 
 class ZonoVisualizer:
     '''
@@ -45,12 +38,50 @@ class ZonoVisualizer:
             (1.000, 0.901, 0.800, 0.5)
         ]
         self.zono_op = ZonoOperations()         # Initialize the zonotope operations class
-        # self.init_brs_plot()                    # Initialize the BRS plot environment
 
-        ax.set_xlim(-2.5, 2.5)
-        ax.set_ylim(-1.4, 1.4)
-        # ax.set_xlim(-14, 14)
-        # ax.set_ylim(-10, 10)
+
+        self.fig, self.ax = plt.subplots()        # Initialize the plot
+        self.manager = plt.get_current_fig_manager()
+        self.manager.window.attributes('-zoomed', True)        
+        self.ax.grid()                          # Add a grid
+        self.ax.spines['left'].set_edgecolor('white')
+        self.ax.spines['bottom'].set_edgecolor('white')
+        self.ax.spines['right'].set_visible(False)
+        self.ax.spines['top'].set_visible(False)
+
+
+        self.ax.set_xlim(-2.5, 2.5)
+        self.ax.set_ylim(-1.4, 1.4)
+
+
+    def vis_result(self, N):
+        self.ax.grid(False)
+
+        # Save the figure
+        name = f'brs_N_{N}'
+        # Saave the figure
+        # Set the figure size
+        self.fig.set_size_inches(15, 8)
+        self.fig.savefig(f'./results/env2/{name}.pdf', dpi=300)      
+
+        # Delete current fig, ax, manager and create new ones
+        plt.cla()
+        plt.clf()
+        plt.close()
+
+        self.fig, self.ax = plt.subplots()        # Initialize the plot
+        self.manager = plt.get_current_fig_manager()
+        self.manager.window.attributes('-zoomed', True)        
+        self.ax.grid()                          # Add a grid
+        self.ax.spines['left'].set_edgecolor('white')
+        self.ax.spines['bottom'].set_edgecolor('white')
+        self.ax.spines['right'].set_visible(False)
+        self.ax.spines['top'].set_visible(False)
+
+
+        self.ax.set_xlim(-2.5, 2.5)
+        self.ax.set_ylim(-1.4, 1.4)
+
 
     def init_brs_plot(self, env):
         #####################################################################
@@ -175,7 +206,7 @@ class ZonoVisualizer:
         
         # plt.show()
 
-    def vis_cz(self, czonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', colors = [(0.423, 0.556, 0.749, 0.5)], legend_labels = [], add_legend = True):
+    def vis_cz(self, czonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', colors = [(0.423, 0.556, 0.749, 0.5)], is_parking = False, legend_labels = [], add_legend = True):
         '''
         Visualizes the exact shape of a list of constrained zonotopes
         '''
@@ -205,8 +236,12 @@ class ZonoVisualizer:
             colors = np.array(colors).reshape(-1, 4)            
             random_index = np.random.randint(0, len(colors))   # Set color
             color = colors[random_index]
-            poly = Polygon(vertices, closed = True, fill = True, facecolor = (color[0], color[1], color[2]),  alpha = color[3])
-            ax.add_patch(poly)
+            if is_parking: 
+                zorder = 12
+            else:
+                zorder = 10
+            poly = Polygon(vertices, closed = True, fill = True, facecolor = (color[0], color[1], color[2]),  alpha = color[3], zorder = zorder)
+            self.ax.add_patch(poly)
 
         #     # Find the min and max of the vertices of all zonotopes to set the axis limits
         #     self.min_x = min(np.min(vertices[:, 0]), self.min_x); self.max_x = max(np.max(vertices[:, 0]), self.max_x)
@@ -218,13 +253,13 @@ class ZonoVisualizer:
 
         # Add legend
         if add_legend:
-            ax.legend(legend_labels, loc='upper left')    
+            self.ax.legend(legend_labels, loc='upper left')    
 
-        ax.set_title(title)    
+        self.ax.set_title(title)    
 
         # plt.show()
 
-    def vis_hz(self, hzonotopes: list, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], legend_labels = [], add_legend = True):
+    def vis_hz(self, hzonotopes: list, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], is_parking = None, legend_labels = [], add_legend = True):
         '''
         Visualizes a list of hybrid zonotoped
 
@@ -252,7 +287,7 @@ class ZonoVisualizer:
                 b = b.reshape(-1, 1)
                 # Step 2.1: Create a constrained zonotope object out of the binary combination
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
-            self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], legend_labels = legend_labels, add_legend = add_legend)
+            self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], is_parking = is_parking[i], legend_labels = legend_labels, add_legend = add_legend)
             # end_time = time.perf_counter()
             # print(f'Decomp+Vis time = {end_time - start_time}')
             i = i + 1
@@ -261,9 +296,9 @@ class ZonoVisualizer:
             vert1 = np.array([[-11, 9], [-11, 10], [11, 10], [11, 9]])
             vert2 = np.array([[-11, -9], [-11, -10], [11, -10], [11, -9]])
             poly = Polygon(vert1, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
-            ax.add_patch(poly)
+            self.ax.add_patch(poly)
             poly = Polygon(vert2, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
-            ax.add_patch(poly)
+            self.ax.add_patch(poly)
 
     def vis_hz_brs(self, hz, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], legend_labels = [], add_legend = True):
         '''
@@ -323,12 +358,13 @@ class ZonoVisualizer:
                         # Add the point p in the list of already contained points
                         self.already_contained_points = np.append(self.already_contained_points, p.reshape(1, -1), axis = 0)
 
-                        # Add to the plot a circle of radius 'step'
-                        plt.scatter(p[0], p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
+                        # # Add to the plot a circle of radius 'step'
+                        # plt.scatter(p[0], p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
+                        self.ax.scatter(p[0], p[1], marker = '.', s = 350, color = '#66B2FF', alpha = 0.9, zorder = 11)
 
-                        # Just to fill in the gaps between the circles
-                        plt.scatter(p[0], p[1] + self.y_step/3, marker = '.', s = 400, color = '#4783FC', alpha = 1.0) 
-                        plt.scatter(p[0] - self.x_step/3, p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
+                        # # Just to fill in the gaps between the circles
+                        # plt.scatter(p[0], p[1] + self.y_step/3, marker = '.', s = 400, color = '#4783FC', alpha = 1.0) 
+                        # plt.scatter(p[0] - self.x_step/3, p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
 
 
 
@@ -447,6 +483,9 @@ class TreeVisualizer:
 
 class AuxiliaryVisualizer:
 
+    def __init__(self, visualizer) -> None:
+        self.vis = visualizer
+
     def vis_patches(self):
         '''
         Visualizes a list of patches
@@ -460,8 +499,8 @@ class AuxiliaryVisualizer:
         ])
 
         # Create a line between the first two vertices
-        road_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 4)
-        ax.add_patch(road_line)
+        road_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 4)
+        self.vis.ax.add_patch(road_line)
 
         # Parking spot 1 line
         vertices = np.array([
@@ -470,8 +509,8 @@ class AuxiliaryVisualizer:
             [1.910, 0.2],
             [1.910, 0.2]
         ])
-        parking_spot_1_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
-        ax.add_patch(parking_spot_1_line)
+        parking_spot_1_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
+        self.vis.ax.add_patch(parking_spot_1_line)
         # Parking spot 2 line
         vertices = np.array([
             [1.910, -0.2],
@@ -479,8 +518,8 @@ class AuxiliaryVisualizer:
             [1.910, -0.6],
             [1.910, -0.6]
         ])
-        parking_spot_2_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
-        ax.add_patch(parking_spot_2_line)
+        parking_spot_2_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
+        self.vis.ax.add_patch(parking_spot_2_line)
 
         # Parking spot 3 line
         vertices = np.array([
@@ -489,8 +528,8 @@ class AuxiliaryVisualizer:
             [-0.5, 0.6],
             [-0.9, 0.6]
         ])
-        parking_spot_3_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
-        ax.add_patch(parking_spot_3_line)
+        parking_spot_3_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
+        self.vis.ax.add_patch(parking_spot_3_line)
         
         # Parking spot 4 line
         vertices = np.array([
@@ -499,15 +538,15 @@ class AuxiliaryVisualizer:
             [-0.105, 0.6],
             [0.305, 0.6]
         ])
-        parking_spot_4_line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 2)
-        ax.add_patch(parking_spot_4_line)     
+        parking_spot_4_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
+        self.vis.ax.add_patch(parking_spot_4_line)     
 
         # Add text to the parking spots
-        ax.text( 2.2,  0.4, r'$\mathbb{P}_{1}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
-        ax.text( 2.2, -0.4, r'$\mathbb{P}_{2}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
-        ax.text(-0.7,  0.3, r'$\mathbb{P}_{3}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
-        ax.text( 0.1,  0.3, r'$\mathbb{P}_{4}$', fontsize = 30, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
- 
+        self.vis.ax.text( 2.2,  0.4, r'$\mathbb{P}_{1}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        self.vis.ax.text( 2.2, -0.4, r'$\mathbb{P}_{2}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        self.vis.ax.text(-0.7,  0.3, r'$\mathbb{P}_{3}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+        self.vis.ax.text( 0.1,  0.3, r'$\mathbb{P}_{4}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+
         ##############################
         # Add the road arrows        #
         ##############################
@@ -517,137 +556,151 @@ class AuxiliaryVisualizer:
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (1.7, 0.45), # Start point
             (1.7, 0.75), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
         #
-        ax.add_patch(arrow)     
+        self.vis.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-2.3, -0.45), # Start point
             (-2.3, -0.75), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (-2.3, 0.75), # Start point
             (-2.3, 0.45), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)          
+        self.vis.ax.add_patch(arrow)          
         #
-        ax.add_patch(arrow)     
+        self.vis.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.45, -1.2), # Start point
             (-1.15, -1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.55, -1.2), # Start point
             (0.85, -1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)    
+        self.vis.ax.add_patch(arrow)    
         #      
-        ax.add_patch(arrow)     
+        self.vis.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.45, 0.8), # Start point
             (-1.15, 0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.55, 0.8), # Start point
             (0.85, 0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)  
+        self.vis.ax.add_patch(arrow)  
         #
-        ax.add_patch(arrow)     
+        self.vis.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.15, 1.2), # Start point
             (-1.45, 1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.85, 1.2), # Start point
             (0.55, 1.2), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow) 
+        self.vis.ax.add_patch(arrow) 
         #
-        ax.add_patch(arrow)     
+        self.vis.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.15, -0.8), # Start point
             (-1.45, -0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.85, -0.8), # Start point
             (0.55, -0.8), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)  
+        self.vis.ax.add_patch(arrow)  
         #
-        ax.add_patch(arrow)     
+        self.vis.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.9, -0.15), # Start point
             (-1.9,  0.15), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (1.3,  0.15), # Start point
             (1.3, -0.15), # End point
             arrowstyle = '->', # Arrow style
             mutation_scale = 40, # Size of the arrow
             color = (1.0, 1.0, 1.0, 0.5), # Color of the arrow
-            linewidth = 2 # Width of the arrow
+            linewidth = 2, # Width of the arrow
+            zorder = 11
         )
-        ax.add_patch(arrow)
+        self.vis.ax.add_patch(arrow)
 
         ##############################
         # Add the perimeter          #
@@ -660,8 +713,8 @@ class AuxiliaryVisualizer:
             fill = False,
             ec = 'white',
             linewidth = 10,
-            zorder = 101)
-        ax.add_patch(bounding_box)
+            zorder = 14)
+        self.vis.ax.add_patch(bounding_box)
 
 
         ##############################
@@ -675,9 +728,9 @@ class AuxiliaryVisualizer:
                             fill = True,
                             hatch = '.....',
                             alpha = 0.8,
-                            zorder = 100
+                            zorder = 13
                         )
-        ax.add_patch(rect)
+        self.vis.ax.add_patch(rect)
 
         rect = Rectangle((1.9, -0.2),
                             width = 0.6,
@@ -687,9 +740,9 @@ class AuxiliaryVisualizer:
                             fill = True,
                             hatch = '.....',
                             alpha = 0.8,
-                            zorder = 100
+                            zorder = 13
                         )
-        ax.add_patch(rect)
+        self.vis.ax.add_patch(rect)
 
         rect = Rectangle((1.9, -1.4),
                             width = 0.6,
@@ -699,9 +752,9 @@ class AuxiliaryVisualizer:
                             fill = True,
                             hatch = '.....',
                             alpha = 0.8,
-                            zorder = 100
+                            zorder = 13
                         )
-        ax.add_patch(rect)        
+        self.vis.ax.add_patch(rect)        
         
 
         # INTERNAL OBSTACLES
@@ -714,9 +767,9 @@ class AuxiliaryVisualizer:
                             fill = True,
                             hatch = '.....',
                             alpha = 0.8,
-                            zorder = 100
+                            zorder = 13
                         )
-        ax.add_patch(rect)
+        self.vis.ax.add_patch(rect)
 
         rect = Rectangle((-0.5, 0.0),
                             width = 0.4,
@@ -726,9 +779,9 @@ class AuxiliaryVisualizer:
                             fill = True,
                             hatch = '.....',
                             alpha = 0.8,
-                            zorder = 100
+                            zorder = 13
                         )
-        ax.add_patch(rect)        
+        self.vis.ax.add_patch(rect)        
 
         rect = Rectangle((0.3, 0.0),
                             width = 0.8,
@@ -738,9 +791,9 @@ class AuxiliaryVisualizer:
                             fill = True,
                             hatch = '.....',
                             alpha = 0.8,
-                            zorder = 100
+                            zorder = 13
                         )
-        ax.add_patch(rect)
+        self.vis.ax.add_patch(rect)
 
         rect = Rectangle((-1.7, -0.6),
                             width = 2.8,
@@ -750,6 +803,8 @@ class AuxiliaryVisualizer:
                             fill = True,
                             hatch = '.....',
                             alpha = 0.8,
-                            zorder = 100
+                            zorder = 13
                         )
-        ax.add_patch(rect)        
+        self.vis.ax.add_patch(rect)
+
+
