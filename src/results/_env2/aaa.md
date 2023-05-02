@@ -432,3 +432,184 @@ Academic license - for non-commercial use only - expires 2024-04-24
   - ng = 1486 	 nc = 1166 	 nb = 160
   - Compute and plot BRS-INNER took: 387.6132510440075 seconds
 - Total time: 838.5946917629917 seconds
+
+
+
+
+
+
+
+
+
+
+
+### HORIZON N: 54
+- OUTER ROAD:
+Set parameter Username
+Academic license - for non-commercial use only - expires 2024-04-24
+  - ng = 1514 	 nc = 1188 	 nb = 163
+  - Compute and plot BRS-OUTER took: 542.7128077439847 seconds
+- INNER ROAD:
+  - ng = 1514 	 nc = 1188 	 nb = 163
+  - Compute and plot BRS-INNER took: 472.5071023509954 seconds
+- Total time: 1015.2200708059827 seconds
+### HORIZON N: 59
+- OUTER ROAD:
+  - ng = 1654 	 nc = 1298 	 nb = 178
+  - Compute and plot BRS-OUTER took: 686.8337752619991 seconds
+- INNER ROAD:
+  - ng = 1654 	 nc = 1298 	 nb = 178
+  - Compute and plot BRS-INNER took: 610.9177899190108 seconds
+- Total time: 1297.7518955340202 seconds
+### HORIZON N: 64
+- OUTER ROAD:
+  - ng = 1794 	 nc = 1408 	 nb = 193
+  - Compute and plot BRS-OUTER took: 869.5672792740224 seconds
+- INNER ROAD:
+  - ng = 1794 	 nc = 1408 	 nb = 193
+  - Compute and plot BRS-INNER took: 804.3343313509831 seconds
+- Total time: 1673.9017429740052 seconds
+### HORIZON N: 69
+- OUTER ROAD:
+  - ng = 1934 	 nc = 1518 	 nb = 208
+  - Compute and plot BRS-OUTER took: 1108.897654690023 seconds
+- INNER ROAD:
+  - ng = 1934 	 nc = 1518 	 nb = 208
+  - Compute and plot BRS-INNER took: 1073.9994348299806 seconds
+- Total time: 2182.8975344400096 seconds
+### HORIZON N: 55
+- OUTER ROAD:
+Set parameter Username
+Academic license - for non-commercial use only - expires 2024-04-24
+  - ng = 1542 	 nc = 1210 	 nb = 166
+  - Compute and plot BRS-OUTER took: 570.7989490370092 seconds
+- INNER ROAD:
+  - ng = 1542 	 nc = 1210 	 nb = 166
+  - Compute and plot BRS-INNER took: 500.7676802710048 seconds
+- Total time: 1071.5667699039914 seconds
+### HORIZON N: 60
+- OUTER ROAD:
+  - ng = 1682 	 nc = 1320 	 nb = 181
+  - Compute and plot BRS-OUTER took: 722.0678003859939 seconds
+- INNER ROAD:
+  - ng = 1682 	 nc = 1320 	 nb = 181
+  - Compute and plot BRS-INNER took: 630.4343297430023 seconds
+- Total time: 1352.502595835016 seconds
+### HORIZON N: 65
+- OUTER ROAD:
+  - ng = 1822 	 nc = 1430 	 nb = 196
+  - Compute and plot BRS-OUTER took: 927.1311802020064 seconds
+- INNER ROAD:
+  - ng = 1822 	 nc = 1430 	 nb = 196
+  - Compute and plot BRS-INNER took: 807.3066755989857 seconds
+- Total time: 1734.4383300910122 seconds
+### HORIZON N: 70
+- OUTER ROAD:
+  - ng = 1962 	 nc = 1540 	 nb = 211
+  - Compute and plot BRS-OUTER took: 1204.9445039480051 seconds
+- INNER ROAD:
+  - ng = 1962 	 nc = 1540 	 nb = 211
+  - Compute and plot BRS-INNER took: 1081.036532647995 seconds
+- Total time: 2285.9814772410027 seconds
+### HORIZON N: 56
+- OUTER ROAD:
+Set parameter Username
+Academic license - for non-commercial use only - expires 2024-04-24
+  - ng = 1570 	 nc = 1232 	 nb = 169
+  - Compute and plot BRS-OUTER took: 592.0794746500032 seconds
+- INNER ROAD:
+  - ng = 1570 	 nc = 1232 	 nb = 169
+  - Compute and plot BRS-INNER took: 515.7274166290008 seconds
+- Total time: 1107.8070399060089 seconds
+### HORIZON N: 61
+- OUTER ROAD:
+  - ng = 1710 	 nc = 1342 	 nb = 184
+  - Compute and plot BRS-OUTER took: 749.3865489620075 seconds
+- INNER ROAD:
+  - ng = 1710 	 nc = 1342 	 nb = 184
+  - Compute and plot BRS-INNER took: 642.7852413380169 seconds
+- Total time: 1392.1719487709925 seconds
+### HORIZON N: 66
+- OUTER ROAD:
+  - ng = 1850 	 nc = 1452 	 nb = 199
+  - Compute and plot BRS-OUTER took: 968.1335474909865 seconds
+- INNER ROAD:
+  - ng = 1850 	 nc = 1452 	 nb = 199
+  - Compute and plot BRS-INNER took: 815.911892662989 seconds
+- Total time: 1784.0458727380028 seconds
+### HORIZON N: 71
+- OUTER ROAD:
+  - ng = 1990 	 nc = 1562 	 nb = 214
+  - Compute and plot BRS-OUTER took: 1285.6249210929964 seconds
+- INNER ROAD:
+  - ng = 1990 	 nc = 1562 	 nb = 214
+  - Compute and plot BRS-INNER took: 1058.5865824680077 seconds
+- Total time: 2344.211631860002 seconds
+### HORIZON N: 57
+- OUTER ROAD:
+Set parameter Username
+Academic license - for non-commercial use only - expires 2024-04-24
+  - ng = 1598 	 nc = 1254 	 nb = 172
+  - Compute and plot BRS-OUTER took: 623.2751620670024 seconds
+- INNER ROAD:
+  - ng = 1598 	 nc = 1254 	 nb = 172
+  - Compute and plot BRS-INNER took: 542.4630919060146 seconds
+- Total time: 1165.738390657003 seconds
+### HORIZON N: 62
+- OUTER ROAD:
+  - ng = 1738 	 nc = 1364 	 nb = 187
+  - Compute and plot BRS-OUTER took: 791.3929778040037 seconds
+- INNER ROAD:
+  - ng = 1738 	 nc = 1364 	 nb = 187
+  - Compute and plot BRS-INNER took: 666.0892713019857 seconds
+- Total time: 1457.482417074003 seconds
+### HORIZON N: 67
+- OUTER ROAD:
+  - ng = 1878 	 nc = 1474 	 nb = 202
+  - Compute and plot BRS-OUTER took: 1032.5507964699937 seconds
+- INNER ROAD:
+  - ng = 1878 	 nc = 1474 	 nb = 202
+  - Compute and plot BRS-INNER took: 826.0142224080046 seconds
+- Total time: 1858.5655002229905 seconds
+### HORIZON N: 72
+- OUTER ROAD:
+  - ng = 2018 	 nc = 1584 	 nb = 217
+  - Compute and plot BRS-OUTER took: 1395.149066810991 seconds
+- INNER ROAD:
+  - ng = 2018 	 nc = 1584 	 nb = 217
+  - Compute and plot BRS-INNER took: 1043.8078269010002 seconds
+- Total time: 2438.957322055998 seconds
+### HORIZON N: 58
+- OUTER ROAD:
+Set parameter Username
+Academic license - for non-commercial use only - expires 2024-04-24
+  - ng = 1626 	 nc = 1276 	 nb = 175
+  - Compute and plot BRS-OUTER took: 653.5035385750234 seconds
+- INNER ROAD:
+  - ng = 1626 	 nc = 1276 	 nb = 175
+  - Compute and plot BRS-INNER took: 565.450785011024 seconds
+- Total time: 1218.954641032993 seconds
+### HORIZON N: 63
+- OUTER ROAD:
+  - ng = 1766 	 nc = 1386 	 nb = 190
+  - Compute and plot BRS-OUTER took: 832.1192585059907 seconds
+- INNER ROAD:
+  - ng = 1766 	 nc = 1386 	 nb = 190
+  - Compute and plot BRS-INNER took: 691.0470427210093 seconds
+- Total time: 1523.1664514549775 seconds
+### HORIZON N: 68
+- OUTER ROAD:
+  - ng = 1906 	 nc = 1496 	 nb = 205
+  - Compute and plot BRS-OUTER took: 1096.826258850022 seconds
+- INNER ROAD:
+  - ng = 1906 	 nc = 1496 	 nb = 205
+  - Compute and plot BRS-INNER took: 847.85760647399 seconds
+- Total time: 1944.6843021739915 seconds
+### HORIZON N: 73
+- OUTER ROAD:
+  - ng = 2046 	 nc = 1606 	 nb = 220
+  - Compute and plot BRS-OUTER took: 1499.886140165996 seconds
+- INNER ROAD:
+  - ng = 2046 	 nc = 1606 	 nb = 220
+  - Compute and plot BRS-INNER took: 1056.4743464689818 seconds
+- Total time: 2556.3638916049968 seconds

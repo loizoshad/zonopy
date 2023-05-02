@@ -42,7 +42,7 @@ colors = [colors_1[0], colors_2[0], colors_1[1], colors_2[1]]
 ##############################################################################
 is_parking = [False, False, True, True]
 
-for N in range(31, 101):
+for N in range(78, 151, 5):
 
     start_time_total = time.perf_counter()
 
@@ -77,4 +77,4 @@ for N in range(31, 101):
 
 
     aux_vis.vis_patches()
-    vis_1.vis_result(N = N, save = False)
+    vis_1.vis_result(N = N, save = True)

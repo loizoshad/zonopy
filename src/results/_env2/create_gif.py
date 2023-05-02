@@ -21,7 +21,7 @@ if __name__ == "__main__":
     os.chdir(results_dir)
 
     filenames = []
-    for N in range(0, 54):
+    for N in range(0, 74):
         filename = f'brs_N_{N}.pdf'
         filenames.append(filename)
 
