@@ -483,12 +483,12 @@ class ZonoOperations:
             start_time = time.perf_counter()
             T = self.one_step_brs_hz(X, T, D)
             end_time = time.perf_counter()
-            print(f'  - COMPUTING BRS took {end_time - start_time} seconds')
+            # print(f'  - COMPUTING BRS took {end_time - start_time} seconds')
             if self.visualizer is not None and visualize:
                 start_time = time.perf_counter()
                 self.visualizer.vis_hz_brs(T, title = 'BRS', legend_labels=['$\mathscr{BRS}$'], add_legend=True)
                 end_time = time.perf_counter()
-                print(f'  - VISUALIZING BRS took {end_time - start_time} seconds')
+                # print(f'  - VISUALIZING BRS took {end_time - start_time} seconds')
         return T
 
     def decompose_hz(self, hz: HybridZonotope):
@@ -546,12 +546,12 @@ class ZonoOperations:
         # Disable verbose output
         model.Params.OutputFlag = 0
 
-        # # Set MIPFocus = 1 (Focus more on finding feasible solutions)
-        # model.Params.MIPFocus = 1
-        # # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately)
-        # model.Params.ImproveStartTime = 0   # seconds
-        # # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
-        # model.Params.SolutionLimit = 1
+        # Set MIPFocus = 1 (Focus more on finding feasible solutions)
+        model.Params.MIPFocus = 1
+        # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately)
+        model.Params.ImproveStartTime = 0   # seconds
+        # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
+        model.Params.SolutionLimit = 1
 
         ## Step 2: Create the variables
         x_c = model.addMVar(shape = (hz.ng, ),
@@ -572,7 +572,6 @@ class ZonoOperations:
 
         # Compute the infinity norm of x_c
         norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
-
 
         ## Step 4: Add constraints  # TODO: Check what can be done about making it into a sparse matrix
         # Add the constraints
@@ -595,13 +594,13 @@ class ZonoOperations:
         ## Step 3: Set the objective function
         model.setObjective(norm_inf, gp.GRB.MINIMIZE)  
 
-
         # # Set the warm start
         # if self.warm_start is not None:
         #     for i in range(hz.ng):
         #         x_c[i].start = self.warm_start[f'x_c[{i}]']
         #     for i in range(hz.nb):
         #         x_b[i].start = self.warm_start[f'x_b[{i}]']
+
 
         ## Step 5: Solve the model
         model.optimize()
@@ -621,7 +620,7 @@ class ZonoOperations:
 
             return True
         else:
-            # self.warm_start = None
+            self.warm_start = None
             # print(f'Point {z.T} is NOT inside the hybrid zonotope')
             return False
 

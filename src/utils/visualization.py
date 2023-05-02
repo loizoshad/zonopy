@@ -63,7 +63,7 @@ class ZonoVisualizer:
         # Set the figure size
         if save:
             self.fig.set_size_inches(15, 8)
-            self.fig.savefig(f'./results/env2/{name}.pdf', dpi=300)
+            self.fig.savefig(f'./results/_env2/{name}.pdf', dpi=300)
 
         # Delete current fig, ax, manager and create new ones
         plt.cla()
@@ -312,9 +312,6 @@ class ZonoVisualizer:
         is_close_enough_total = 0.0
         already_contained_checks_total = 0.0
 
-        print(f'size of x_space = {self.x_space.shape}')
-        print(f'size of y_space = {self.y_space.shape}')
-
         start_time_loop = time.perf_counter()
         for x_i, x in enumerate(self.x_space):
             for y_i, y in enumerate(self.y_space):
@@ -374,12 +371,19 @@ class ZonoVisualizer:
                         self.already_contained_points = np.append(self.already_contained_points, p.reshape(1, -1), axis = 0)
 
                         # # Add to the plot a circle of radius 'step'
-                        # plt.scatter(p[0], p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
-                        self.ax.scatter(p[0], p[1], marker = '.', s = 350, color = '#66B2FF', alpha = 0.9, zorder = 11)
+                        # self.ax.scatter(p[0], p[1], marker = '.', s = 350, color = '#66B2FF', alpha = 0.9, zorder = 11)
+                        
+                        marker_size = 0.2 * 39.36           # 0.2m in inches
+                        marker_size = marker_size**2        # area of the marker
 
-                        # # Just to fill in the gaps between the circles
-                        # plt.scatter(p[0], p[1] + self.y_step/3, marker = '.', s = 400, color = '#4783FC', alpha = 1.0) 
-                        # plt.scatter(p[0] - self.x_step/3, p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
+                        # Offset to the center of the cell
+                        px = p[0] + self.x_step/2
+                        py = p[1]
+                        self.ax.scatter(px, py, marker = 's', s = marker_size, color = '#66B2FF', alpha = 0.9, zorder = 11)
+
+
+
+
                 end_time_is_close_enough = time.perf_counter()
 
                 is_close_enough_total += end_time_is_close_enough - start_time_is_close_enough
@@ -391,13 +395,13 @@ class ZonoVisualizer:
         portion_already_contained = (already_contained_checks_total)/(full_loop_total)*100
         portion = (is_close_enough_total)/(full_loop_total)*100
         
-        print(f'############################################################')
-        print(f'Full Loop time = {full_loop_total}')
-        print(f'is_close_enough total time = {is_close_enough_total}')
-        print(f'already_contained_checks total time = {already_contained_checks_total}')
-        print(f'is_close_enough portion = {portion:.2f}%')
-        print(f'already_contained_checks portion = {portion_already_contained:.2f}%')
-        print(f'############################################################')
+        # print(f'############################################################')
+        # print(f'Full Loop time = {full_loop_total}')
+        # print(f'is_close_enough total time = {is_close_enough_total}')
+        # print(f'already_contained_checks total time = {already_contained_checks_total}')
+        # print(f'is_close_enough portion = {portion:.2f}%')
+        # print(f'already_contained_checks portion = {portion_already_contained:.2f}%')
+        # print(f'############################################################')
 
 
     # Auxiliary methods:

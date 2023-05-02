@@ -249,6 +249,17 @@ class ParkEnv2:
         self.zono_op = ZonoOperations()
         self.road_type = road
 
+        # Dynamic Model
+        self.A = np.array([
+            [1.0, 0.0],
+            [0.0, 1.0]
+        ])
+
+        self.B = np.array([
+            [0.05, 0.0],
+            [0.0, 0.05]
+        ])        
+
         # Define the dynamics model in here (Create a separate class for this which this env can take)
         if road == 'full':
             self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4
@@ -274,16 +285,15 @@ class ParkEnv2:
 
             self.initial_points = np.array(self.initial_points)
         elif road == 'outer':
-            coarse = 60
-            self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4
-            self.samples_x = int(coarse*self.x_max); self.samples_y = int(coarse*self.y_max); self.max_dist = 0.5
-            self.x_step = (self.x_max - self.x_min) / (self.samples_x)
-            self.y_step = (self.y_max - self.y_min) / (self.samples_y)
-            self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
-            self.max_dist_y = math.ceil(self.max_dist / self.y_step) # Maximum number of steps in the y direction
-            self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)
-            self.p1_ = np.array([ [ 1.90,  0.6],[ 1.90,  0.6] ])
-            self.p2_ = np.array([ [ 1.90, -0.2],[ 1.90, -0.6] ])
+            self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4                # Bounds
+            self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
+            self.samples_x = int( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
+            self.samples_y = int( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
+            self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
+            self.p1_ = np.array([ [ 1.90,  0.2],[ 1.90,  0.6] ])                                    # Parking spot 1 vertices
+            self.p2_ = np.array([ [ 1.90, -0.6],[ 1.90, -0.2] ])                                    # Parking spot 2 vertices
 
             # Create a list of all (x, y) points between the two points in p1_, p2_,
             self.initial_points = []
@@ -293,16 +303,15 @@ class ParkEnv2:
 
             self.initial_points = np.array(self.initial_points)
         elif road == 'inner':
-            coarse = 60
-            self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0
-            self.samples_x = int(coarse*self.x_max); self.samples_y = int(coarse*self.y_max); self.max_dist = 0.5
-            self.x_step = (self.x_max - self.x_min) / (self.samples_x)
-            self.y_step = (self.y_max - self.y_min) / (self.samples_y)
-            self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
-            self.max_dist_y = math.ceil(self.max_dist / self.y_step) # Maximum number of steps in the y direction
-            self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)
-            self.p3_ = np.array([ [-0.9,  0.6],[-0.5,  0.6] ])
-            self.p4_ = np.array([ [-0.1,  0.6],[ 0.3,  0.6] ])
+            self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
+            self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
+            self.samples_x = int( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
+            self.samples_y = int( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
+            self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
+            self.p3_ = np.array([ [-0.9,  0.6],[-0.5,  0.6] ])                                      # Parking spot 3 vertices
+            self.p4_ = np.array([ [-0.1,  0.6],[ 0.3,  0.6] ])                                      # Parking spot 4 vertices
 
             # Create a list of all (x, y) points between the two points in p1_, p2_, p3_, p4_
             self.initial_points = []
@@ -480,7 +489,7 @@ class ParkEnv2:
         b_park = np.zeros((nc, 1))        
 
         parking = HybridZonotope(Gc_park, Gb_park, c_park, Ac_park, Ab_park, b_park)
-        parking_color = (0.000001,  0.000001,  0.000001, 0.6)  
+        parking_color = (0.4,  0.4,  0.4, 1.0)  
 
         return parking, parking, parking_color
     
