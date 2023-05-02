@@ -47,7 +47,7 @@ colors = [colors_1[0], colors_2[0], colors_1[1], colors_2[1]]
 ##############################################################################
 is_parking = [False, False, True, True]
 
-for N in range(0, 101):
+for N in range(0, 3):
 
     start_time_total = time.perf_counter()
 

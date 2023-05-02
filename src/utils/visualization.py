@@ -54,15 +54,16 @@ class ZonoVisualizer:
         self.ax.set_ylim(-1.4, 1.4)
 
 
-    def vis_result(self, N):
+    def vis_result(self, N, save = False):
         self.ax.grid(False)
 
         # Save the figure
         name = f'brs_N_{N}'
         # Saave the figure
         # Set the figure size
-        self.fig.set_size_inches(15, 8)
-        self.fig.savefig(f'./results/env2/{name}.pdf', dpi=300)      
+        if save:
+            self.fig.set_size_inches(15, 8)
+            self.fig.savefig(f'./results/env2/{name}.pdf', dpi=300)
 
         # Delete current fig, ax, manager and create new ones
         plt.cla()
@@ -308,11 +309,18 @@ class ZonoVisualizer:
 
         self.zono_op.warm_start = None
 
+        is_close_enough_total = 0.0
+        already_contained_checks_total = 0.0
+
+        print(f'size of x_space = {self.x_space.shape}')
+        print(f'size of y_space = {self.y_space.shape}')
+
+        start_time_loop = time.perf_counter()
         for x_i, x in enumerate(self.x_space):
             for y_i, y in enumerate(self.y_space):
-                p = np.array([[x], [y]])
+                already_contained_checks_time = time.perf_counter()
 
-                # print(f'x = {x}, y = {y}')
+                p = np.array([[x], [y]])
 
                 # Check if the point 'p' is contained in any of the constrained zonotopes
                 if self.is_already_contained[y_i, x_i] == 1:
@@ -324,6 +332,7 @@ class ZonoVisualizer:
                 Therefore, it redundant to check points that are too far away from the brs from last iteration
                 as the evolution of the brs is limited by the model dynamics.
                 '''
+
                 close_enough = False
                 if 1 in self.is_already_contained[y_i, max(0, x_i - self.max_dist_y):x_i ]:
                     close_enough = True
@@ -350,9 +359,15 @@ class ZonoVisualizer:
                         if self.is_already_contained[ max(0, y_i - q),   min(self.samples_x - 1, x_i + q)]:
                             close_enough = True
                             break
-                    
+                
+                already_contained_checks_end = time.perf_counter()
+                already_contained_checks_total = already_contained_checks_total + (already_contained_checks_end - already_contained_checks_time)
+
+
+                start_time_is_close_enough = time.perf_counter()
                 if close_enough:
                     # If the point made it until here, it means it needs to be checked
+                    start_time = time.perf_counter()
                     if self.zono_op.is_inside_hz(hz, p):
                         self.is_already_contained[y_i, x_i] = 1
                         # Add the point p in the list of already contained points
@@ -365,8 +380,24 @@ class ZonoVisualizer:
                         # # Just to fill in the gaps between the circles
                         # plt.scatter(p[0], p[1] + self.y_step/3, marker = '.', s = 400, color = '#4783FC', alpha = 1.0) 
                         # plt.scatter(p[0] - self.x_step/3, p[1], marker = '.', s = 400, color = '#4783FC', alpha = 1.0)
+                end_time_is_close_enough = time.perf_counter()
 
+                is_close_enough_total += end_time_is_close_enough - start_time_is_close_enough
 
+        end_time_loop = time.perf_counter()
+
+        full_loop_total = end_time_loop - start_time_loop
+
+        portion_already_contained = (already_contained_checks_total)/(full_loop_total)*100
+        portion = (is_close_enough_total)/(full_loop_total)*100
+        
+        print(f'############################################################')
+        print(f'Full Loop time = {full_loop_total}')
+        print(f'is_close_enough total time = {is_close_enough_total}')
+        print(f'already_contained_checks total time = {already_contained_checks_total}')
+        print(f'is_close_enough portion = {portion:.2f}%')
+        print(f'already_contained_checks portion = {portion_already_contained:.2f}%')
+        print(f'############################################################')
 
 
     # Auxiliary methods:
