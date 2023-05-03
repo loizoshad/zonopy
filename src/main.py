@@ -77,4 +77,4 @@ for N in range(78, 151, 5):
 
 
     aux_vis.vis_patches()
-    vis_1.vis_result(N = N, save = True)
+    vis_1.vis_result(N = N, save = False)

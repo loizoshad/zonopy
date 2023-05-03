@@ -63,7 +63,7 @@ class ZonoVisualizer:
         # Set the figure size
         if save:
             self.fig.set_size_inches(15, 8)
-            self.fig.savefig(f'./results/_env2/{name}.pdf', dpi=300)
+            self.fig.savefig(f'./results/__env2/{name}.pdf', dpi=300)
 
         # Delete current fig, ax, manager and create new ones
         plt.cla()
