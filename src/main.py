@@ -2,13 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-from utils.environments.environments import SamplesHZ, SamplesVis, ParkEnv1, ParkEnv2, ParkEnv3
+from utils.environments.env3 import ParkEnv3, ParamBRS
 from utils.visualization import ZonoVisualizer, AuxiliaryVisualizer
 from utils.operations.operations import ZonoOperations
 
-'''
-Run this script to test the first environment
-'''
 
 ##############################################################################
 #                               Initialize                                   #
@@ -17,69 +14,40 @@ Run this script to test the first environment
 
 
 
-vis_1 = ZonoVisualizer()
-env_1 = ParkEnv3(road='outer')
+# vis_1 = ZonoVisualizer()
+env = ParkEnv3()
 
-aux_vis = AuxiliaryVisualizer(visualizer = vis_1)
-op_1 = ZonoOperations(visualizer = vis_1)
-
-
-D = np.block([env_1.A, env_1.B])
+# aux_vis = AuxiliaryVisualizer(visualizer = vis_1)
+op = ZonoOperations()
 
 
-hz_1, hz_vis_1, colors_1 = env_1.get_sets()
-road_1 = hz_1[0]; parking_1 = hz_1[1]
-
-env_2 = ParkEnv3(road='inner')
-
-hz_2, hz_vis_2, colors_2 = env_2.get_sets()
-road_2 = hz_2[0]; parking_2 = hz_2[1]
-
-hz_vis = [hz_vis_1[0], hz_vis_2[0], hz_vis_1[1], hz_vis_2[1]]
-colors = [colors_1[0], colors_2[0], colors_1[1], colors_2[1]]
-##############################################################################
-#                                  BRS                                       #
-##############################################################################
-is_parking = [False, False, True, True]
-
-for N in range(0, 2):
-
-#     start_time_total = time.perf_counter()
-
-#     # OUTER ROAD
-#     print(f'### HORIZON N: {N}')
-#     print(f'- OUTER ROAD:')
-#     start_time = time.perf_counter()
-#     brs_1 = op_1.brs_hz(X = road_1, T = parking_1, D = D, N = N, visualize = True, env = env_1)
-#     end_time = time.perf_counter()
-#     print(f'  - ng = {brs_1.ng} \t nc = {brs_1.nc} \t nb = {brs_1.nb}')
-#     print(f'  - Compute and plot BRS-OUTER took: {end_time - start_time} seconds')
-
-#     # INNER ROAD
-#     print(f'- INNER ROAD:')
-#     start_time = time.perf_counter()
-#     brs_2 = op_1.brs_hz(X = road_2, T = parking_2, D = D, N = N, visualize = True, env = env_2)
-#     end_time = time.perf_counter()
-#     print(f'  - ng = {brs_2.ng} \t nc = {brs_2.nc} \t nb = {brs_2.nb}')
-#     print(f'  - Compute and plot BRS-INNER took: {end_time - start_time} seconds')
-
-#     end_time_total = time.perf_counter()
-#     print(f'- Total time: {end_time_total - start_time_total} seconds')
+D = np.block([env.A, env.B])
 
 
-#     # Visualize Environment
-#     vis_1.vis_hz(hz_vis,
-#             title = 'Environment', 
-#             colors = colors, 
-#             is_parking = is_parking,
-#             legend_labels=['$\mathscr{O}$', '$\mathscr{x}$', '$\mathscr{P}$'],
-#             add_legend=False)
+road_park_1, road_park_1_vis, road_park_1_colors = env.road_park_1
+road_park_2, road_park_2_vis, road_park_2_colors = env.road_park_2
+road_inner, road_inner_vis, road_inner_colors = env.road_inner
 
+road_park = op.union_hz_hz(road_park_1, road_park_2)
+inner_space = op.union_hz_hz(road_inner, road_park)
 
-#     aux_vis.vis_patches()
-    aux_vis.vis_env()
-    vis_1.vis_result(N = N, save = True, env = 'env3')
+target, park_2_vis, park_2_colors = env.park_2
 
+# Compute BRS starting from the inner space and target set the parking spot 2
+# Initialize BRS plot parameters
+brs_plot_params = ParamBRS(space = 'inner')
+env.vis.init_brs_plot(brs_plot_params)
 
+N = 10
+for i in range(N):
+    target = op.one_step_brs_hz(X = inner_space, T = target, D = D)
 
+# Visualize this time step and save the figure
+env.vis_background()
+env.vis.vis_hz_brs(
+    hz = target,
+    colors = [(0.835, 0.909, 0.831, 0.5)],
+    add_legend = False
+)
 plt.show()
+

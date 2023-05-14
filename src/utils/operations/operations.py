@@ -479,16 +479,9 @@ class ZonoOperations:
             self.visualizer.init_brs_plot(env)
 
         for i in range(N):
-            # print(f'BRS for {i}-steps')
-            start_time = time.perf_counter()
             T = self.one_step_brs_hz(X, T, D)
-            end_time = time.perf_counter()
-            # print(f'  - COMPUTING BRS took {end_time - start_time} seconds')
             if self.visualizer is not None and visualize:
-                start_time = time.perf_counter()
                 self.visualizer.vis_hz_brs(T, title = 'BRS', legend_labels=['$\mathscr{BRS}$'], add_legend=True)
-                end_time = time.perf_counter()
-                # print(f'  - VISUALIZING BRS took {end_time - start_time} seconds')
         return T
 
     def decompose_hz(self, hz: HybridZonotope):

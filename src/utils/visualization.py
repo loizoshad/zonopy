@@ -30,7 +30,7 @@ class ZonoVisualizer:
 
     min_x = 0; max_x = 0; min_y = 0; max_y = 0  # Plot limits
 
-    def __init__(self) -> None:
+    def __init__(self, fig, ax) -> None:
         
         self.colors = [
             (0.423, 0.556, 0.749, 0.5),
@@ -41,18 +41,18 @@ class ZonoVisualizer:
         self.zono_op = ZonoOperations()         # Initialize the zonotope operations class
 
 
-        self.fig, self.ax = plt.subplots()        # Initialize the plot
-        self.manager = plt.get_current_fig_manager()
-        self.manager.window.attributes('-zoomed', True)        
-        self.ax.grid()                          # Add a grid
-        self.ax.spines['left'].set_edgecolor('white')
-        self.ax.spines['bottom'].set_edgecolor('white')
-        self.ax.spines['right'].set_visible(False)
-        self.ax.spines['top'].set_visible(False)
-
-
-        self.ax.set_xlim(-2.5, 2.5)
-        self.ax.set_ylim(-1.4, 1.4)
+        if ax is None:
+            self.fig, self.ax = plt.subplots()        # Initialize the plot
+            self.manager = plt.get_current_fig_manager()
+            self.manager.window.attributes('-zoomed', True)        
+            self.ax.grid()                          # Add a grid
+            self.ax.spines['left'].set_edgecolor('white')
+            self.ax.spines['bottom'].set_edgecolor('white')
+            self.ax.spines['right'].set_visible(False)
+            self.ax.spines['top'].set_visible(False)
+        else:
+            self.fig = fig
+            self.ax = ax
 
 
 
@@ -210,7 +210,7 @@ class ZonoVisualizer:
         
         # plt.show()
 
-    def vis_cz(self, czonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', colors = [(0.423, 0.556, 0.749, 0.5)], is_parking = False, legend_labels = [], add_legend = True):
+    def vis_cz(self, czonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', colors = [(0.423, 0.556, 0.749, 0.5)], zorder = None, legend_labels = [], add_legend = True):
         '''
         Visualizes the exact shape of a list of constrained zonotopes
         '''
@@ -218,11 +218,7 @@ class ZonoVisualizer:
         assert all([cz.dim == 2 for cz in czonotopes]), f'Constrained Zonotope(s) must be 2D (i.e., cz.dim = 2)'    
 
         for cz in czonotopes:
-            # start_time = time.perf_counter()
             vertices, _, empty = cz.g2v()
-            # end_time = time.perf_counter()
-
-            # print(f'time = {end_time - start_time}')
 
             if empty:
                 continue
@@ -240,20 +236,10 @@ class ZonoVisualizer:
             colors = np.array(colors).reshape(-1, 4)            
             random_index = np.random.randint(0, len(colors))   # Set color
             color = colors[random_index]
-            if is_parking: 
-                zorder = 12
-            else:
-                zorder = 10
+            zorder = 1 if zorder is None else zorder
+
             poly = Polygon(vertices, closed = True, fill = True, facecolor = (color[0], color[1], color[2]),  alpha = color[3], zorder = zorder)
             self.ax.add_patch(poly)
-
-        #     # Find the min and max of the vertices of all zonotopes to set the axis limits
-        #     self.min_x = min(np.min(vertices[:, 0]), self.min_x); self.max_x = max(np.max(vertices[:, 0]), self.max_x)
-        #     self.min_y = min(np.min(vertices[:, 1]), self.min_y); self.max_y = max(np.max(vertices[:, 1]), self.max_y)
-
-        # x_margin = 0.2 * (self.max_x - self.min_x); y_margin = 0.2 * (self.max_y - self.min_y)
-        # ax.set_xlim(self.min_x - x_margin, self.max_x + x_margin)
-        # ax.set_ylim(self.min_y - y_margin, self.max_y + y_margin)       
 
         # Add legend
         if add_legend:
@@ -261,9 +247,8 @@ class ZonoVisualizer:
 
         self.ax.set_title(title)    
 
-        # plt.show()
 
-    def vis_hz(self, hzonotopes: list, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], is_parking = None, legend_labels = [], add_legend = True):
+    def vis_hz(self, hzonotopes: list, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], zorder = None, legend_labels = [], add_legend = True):
         '''
         Visualizes a list of hybrid zonotoped
 
@@ -276,38 +261,31 @@ class ZonoVisualizer:
         '''
         assert all([hz.dim == 2 for hz in hzonotopes]), f'Hybrid Zonotope(s) must be 2D (i.e., hz.dim = 2)'
 
-        # cz = [] # List that will hold all the constrained zonotopes
         i = 0
         for hz in hzonotopes:
             cz = [] # List that will hold all the constrained zonotopes
 
-            # Step 1: Enumerate all possible binary combinations for the binary generators hz.nb
-            b_combs = np.array(list(itertools.product([-1, 1], repeat = hz.nb)))
-            # weights = np.array([-1 if x == -1 else 1 for x in b_combs[i]]).reshape(-1, 1)
-            
+            b_combs = np.array(list(itertools.product([-1, 1], repeat = hz.nb)))    # Step 1: Enumerate all possible binary combinations
+
             # Iterate over all the binary combinations
-            # start_time = time.perf_counter()
             for b in b_combs:
                 b = b.reshape(-1, 1)
                 # Step 2.1: Create a constrained zonotope object out of the binary combination
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
-            if is_parking is not None:
-                self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], is_parking = is_parking[i], legend_labels = legend_labels, add_legend = add_legend)
-            else:
-                self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], is_parking = False, legend_labels = legend_labels, add_legend = add_legend)
-            # end_time = time.perf_counter()
-            # print(f'Decomp+Vis time = {end_time - start_time}')
-            i = i + 1
+ 
+            self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], zorder = zorder, legend_labels = legend_labels, add_legend = add_legend)
+            
 
-            # Just making the plots a bit more beautiful
-            vert1 = np.array([[-11, 9], [-11, 10], [11, 10], [11, 9]])
-            vert2 = np.array([[-11, -9], [-11, -10], [11, -10], [11, -9]])
-            poly = Polygon(vert1, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
-            self.ax.add_patch(poly)
-            poly = Polygon(vert2, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
-            self.ax.add_patch(poly)
+            # # Just making the plots a bit more beautiful
+            # vert1 = np.array([[-11, 9], [-11, 10], [11, 10], [11, 9]])
+            # vert2 = np.array([[-11, -9], [-11, -10], [11, -10], [11, -9]])
+            # poly = Polygon(vert1, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
+            # self.ax.add_patch(poly)
+            # poly = Polygon(vert2, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
+            # self.ax.add_patch(poly)
 
-        plt.show()
+            i += 1
+
 
     def vis_hz_brs(self, hz, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], legend_labels = [], add_legend = True):
         '''
@@ -371,6 +349,7 @@ class ZonoVisualizer:
 
                 start_time_is_close_enough = time.perf_counter()
                 if close_enough:
+                    print(f'CLOSE ENOUGH')
                     # If the point made it until here, it means it needs to be checked
                     start_time = time.perf_counter()
                     if self.zono_op.is_inside_hz(hz, p):

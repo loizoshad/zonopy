@@ -7,7 +7,7 @@ from utils.visualization import ZonoVisualizer, AuxiliaryVisualizer
 from utils.operations.operations import ZonoOperations
 
 '''
-Run this script to test the first environment
+Run this script to test the second environment
 '''
 
 ##############################################################################
