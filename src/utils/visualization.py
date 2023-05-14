@@ -5,6 +5,7 @@ from scipy.spatial import ConvexHull
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon, FancyArrowPatch, FancyArrow, FancyBboxPatch, Rectangle
 import matplotlib.pyplot as plt
+import matplotlib.image as image
 import itertools
 import pypoman
 
@@ -54,7 +55,8 @@ class ZonoVisualizer:
         self.ax.set_ylim(-1.4, 1.4)
 
 
-    def vis_result(self, N, save = False):
+
+    def vis_result(self, N, save = False, env = 'env0'):
         self.ax.grid(False)
 
         # Save the figure
@@ -63,7 +65,7 @@ class ZonoVisualizer:
         # Set the figure size
         if save:
             self.fig.set_size_inches(15, 8)
-            self.fig.savefig(f'./results/__env2/{name}.pdf', dpi=300)
+            self.fig.savefig(f'./results/env3/{name}.pdf', dpi=300)
 
         # Delete current fig, ax, manager and create new ones
         plt.cla()
@@ -82,6 +84,7 @@ class ZonoVisualizer:
 
         self.ax.set_xlim(-2.5, 2.5)
         self.ax.set_ylim(-1.4, 1.4)
+
 
 
     def init_brs_plot(self, env):
@@ -288,7 +291,10 @@ class ZonoVisualizer:
                 b = b.reshape(-1, 1)
                 # Step 2.1: Create a constrained zonotope object out of the binary combination
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
-            self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], is_parking = is_parking[i], legend_labels = legend_labels, add_legend = add_legend)
+            if is_parking is not None:
+                self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], is_parking = is_parking[i], legend_labels = legend_labels, add_legend = add_legend)
+            else:
+                self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], is_parking = False, legend_labels = legend_labels, add_legend = add_legend)
             # end_time = time.perf_counter()
             # print(f'Decomp+Vis time = {end_time - start_time}')
             i = i + 1
@@ -300,6 +306,8 @@ class ZonoVisualizer:
             self.ax.add_patch(poly)
             poly = Polygon(vert2, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
             self.ax.add_patch(poly)
+
+        plt.show()
 
     def vis_hz_brs(self, hz, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], legend_labels = [], add_legend = True):
         '''
@@ -520,6 +528,25 @@ class AuxiliaryVisualizer:
 
     def __init__(self, visualizer) -> None:
         self.vis = visualizer
+
+    def vis_env(self):
+        '''
+        Add to the figure the park_env.pdf file
+        '''
+
+        # Read the park_env.png image
+        env = image.imread('./utils/park_env.png')
+
+        print(f'env.shape = {env.shape}')
+        print(f'env = {env}')
+
+        # Find any zero values in the env
+        zero_indices = np.where(env == 0)
+        print(f'zero_indices = {zero_indices}')
+
+        # Add the image to the figure
+        self.vis.ax.imshow(env, extent = [-2.1, 1.5, -1.0, 1.0], zorder = 1000000)
+
 
     def vis_patches(self):
         '''
