@@ -56,6 +56,11 @@ class ZonoVisualizer:
 
 
 
+    def create_figure(self, fig, ax):
+        self.fig = fig
+        self.ax = ax
+
+
     def vis_result(self, N, save = False, env = 'env0'):
         self.ax.grid(False)
 
@@ -98,9 +103,11 @@ class ZonoVisualizer:
             self.x_step = env.x_step; self.y_step = env.y_step
             self.max_dist_x = env.max_dist_x; self.max_dist_y = env.max_dist_y; self.max_dist_diag = env.max_dist_diag
 
-            # Discretize the x-y state space
-            self.x_space = np.linspace(x_min, x_max, self.samples_x)
-            self.y_space = np.linspace(y_min, y_max, self.samples_y)          
+            # # Discretize the x-y state space
+            # self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            # self.y_space = np.linspace(y_min, y_max, self.samples_y)
+            self.x_space = np.arange(x_min, x_max, self.x_step)
+            self.y_space = np.arange(y_min, y_max, self.y_step)      
 
             # Associated flag for already contained points
             self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
@@ -110,6 +117,12 @@ class ZonoVisualizer:
                 x_idx = np.argmin(np.abs(self.x_space - p[0]))
                 y_idx = np.argmin(np.abs(self.y_space - p[1]))
                 self.is_already_contained[y_idx, x_idx] = 1
+
+
+            # # Print the entire x-y grid
+            # for i in range(self.samples_y):
+            #     for j in range(self.samples_x):
+            #         self.ax.scatter(self.x_space[j], self.y_space[i], color = 'black', s = 1, alpha = 0.5, zorder = 10)
 
 
         else:   # Default environment
@@ -349,7 +362,6 @@ class ZonoVisualizer:
 
                 start_time_is_close_enough = time.perf_counter()
                 if close_enough:
-                    print(f'CLOSE ENOUGH')
                     # If the point made it until here, it means it needs to be checked
                     start_time = time.perf_counter()
                     if self.zono_op.is_inside_hz(hz, p):
@@ -360,14 +372,16 @@ class ZonoVisualizer:
                         # # Add to the plot a circle of radius 'step'
                         # self.ax.scatter(p[0], p[1], marker = '.', s = 350, color = '#66B2FF', alpha = 0.9, zorder = 11)
                         
-                        marker_size = 0.2 * 39.36           # 0.2m in inches
+                        marker_size = 0.5 * 39.36           # 0.2m in inches
                         marker_size = marker_size**2        # area of the marker
 
                         # Offset to the center of the cell
                         px = p[0] + self.x_step/2
                         py = p[1]
-                        self.ax.scatter(px, py, marker = 's', s = marker_size, color = '#66B2FF', alpha = 0.9, zorder = 11)
-
+                        # self.ax.scatter(px, py, marker = 's', s = marker_size, color = '#66B2FF', alpha = 0.9, zorder = 11)
+                        self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11,
+                                        edgecolors = 'face'
+                                        )
 
 
 

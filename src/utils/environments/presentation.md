@@ -24,6 +24,61 @@
 
 
 
+- (Make sure that you are clearly showcasing all the sets in the environment)
+
+
+- Motivation:
+    - ...
+
+- Contributions:
+    - Briefly mention what our contributions are.
+        - This will also prepare the audience for the background material
+
+    - Make sure to clearly define where our work stops.
+
+
+
+- Background:
+    - Temporal logic
+    - Temporal logic trees
+    - Automata vs Temporal logic trees
+    - Reachability analysis
+        - Define what kind of reachability and robust control invariant sets we are computing
+        - Only need to mention union and intersection
+        - Show plots of different variations of zonotopes and how they can or can not deal with these operations.
+        - Mention that you are computing the exact sets, and why do you want to compute the exact sets
+          - Because it is a multi-stage reachability analysis problem, if we were to compute approximations,
+          the errors would accumulate and we could end up being over-conservative.
+
+- Problem Statement:
+    - Slide 1:
+        - Add the temporal logic specification
+            - Change the specification to first compute each BRS and then their union
+        - Add the temporal logic tree
+        - Add the environment
+        
+        - Have multiple instances of this slide, where you are showing the different sets in the temporal logic tree
+            - You do not need to actually compute the real sets, you can just draw some by hand to properly show
+            the BRS, and RCI sets.
+        
+        - Also, change the temporal logic tree to first compute the BRS of each parking spot and then compute their union
+
+
+
+- Results
+    - Add the temporal logic tree on the side,
+    - Compute each BRS separately while showing which node of the TLT is being computed
+    - Verbally mention how in this simplistic scenario the RCI does not really contribute anything
+        - This will help motivate the need for developing BRS algorithms for nonlinear models using hybrid zonotopes.
+
+- Conclusions and Future remarks
+    - ...
+
+
+
+
+
+
 
 
 

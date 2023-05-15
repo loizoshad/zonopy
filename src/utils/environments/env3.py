@@ -22,22 +22,39 @@ class ParamBRS:
         ])  
                 
         if space == 'inner':
-            self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
+            # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
+            self.x_min = -2.05; self.x_max = 1.55; self.y_min = -0.95; self.y_max = 1.05                # Bounds
             self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
-            self.samples_x = int( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
-            self.samples_y = int( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
+            self.samples_x = math.ceil( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
+            self.samples_y = math.ceil( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
             self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
             self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
             self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
-            self.p3_ = np.array([ [0.3,  0.1],[0.7,  0.1] ])                                        # Parking spot 2 vertices
+            # self.p3_ = np.array([ [0.3,  0.1],[0.7,  0.1] ])                                        # Parking spot 2 vertices
+            self.p3_ = np.array([ [0.3,  -0.1],[0.7,  -0.1] ])                                        # Parking spot 2 vertices
 
             # Create a list of all (x, y) points between the two points in p1_, p2_, p3_, p4_
             self.initial_points = []
-            for i in range(int(abs(self.p3_[1][0] - self.p3_[0][0])/self.x_step) + 1):    # These are the horizontal lines
+            for i in range(int(abs(self.p3_[1][0] - self.p3_[0][0])/self.x_step) + 2):    # These are the horizontal lines
                 self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
 
             self.initial_points = np.array(self.initial_points)             
            
+        if space == 'outer':
+            # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
+            self.x_min = -2.45; self.x_max = 1.85; self.y_min = -1.35; self.y_max = 1.45                # Bounds
+            self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
+            self.samples_x = math.ceil( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
+            self.samples_y = math.ceil( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
+            self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
+            self.p1_ = np.array([ [1.9,  0.2],[1.9,  -0.2] ])                                        # Parking spot 2 vertices
+
+            # Create a list of all (x, y) points between the two points in p1_, p2_,
+            self.initial_points = []
+            for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 1):    # These are the vertical lines
+                self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
 
 
 
@@ -48,6 +65,8 @@ class ParkEnv3:
 
         if ax is None:
             self.fig, self.ax = plt.subplots()        # Initialize the plot
+            self.manager = plt.get_current_fig_manager()
+            self.manager.window.attributes('-zoomed', True)             
             # self.ax.grid()                          # Add a grid
             # self.ax.spines['left'].set_edgecolor('white')
             # self.ax.spines['bottom'].set_edgecolor('white')
@@ -74,6 +93,22 @@ class ParkEnv3:
             [0.0, 0.1]
         ])     
 
+    def create_figure(self):
+        self.fig, self.ax = plt.subplots()        # Initialize the plot
+        # self.ax.grid()                          # Add a grid
+        # self.ax.spines['left'].set_edgecolor('white')
+        # self.ax.spines['bottom'].set_edgecolor('white')
+        self.ax.spines['left'].set_visible(False)
+        self.ax.spines['bottom'].set_visible(False)
+        self.ax.spines['right'].set_visible(False)
+        self.ax.spines['top'].set_visible(False)
+        self.ax.get_xaxis().set_visible(False)
+        self.ax.get_yaxis().set_visible(False)
+        self.ax.set_xlim(-2.5, 2.5)
+        self.ax.set_ylim(-1.4, 1.4)
+
+        # Update visualizer figure:
+        self.vis.create_figure(self.fig, self.ax)
 
 
         # Define the dynamics model in here (Create a separate class for this which this env can take)
