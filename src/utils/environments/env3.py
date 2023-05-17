@@ -38,8 +38,8 @@ class ParamBRS:
             for i in range(int(abs(self.p3_[1][0] - self.p3_[0][0])/self.x_step) + 2):    # These are the horizontal lines
                 self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
 
-            self.initial_points = np.array(self.initial_points)             
-           
+            self.initial_points = np.array(self.initial_points)     
+
         if space == 'outer':
             # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
             self.x_min = -2.45; self.x_max = 1.85; self.y_min = -1.35; self.y_max = 1.45                # Bounds
@@ -56,8 +56,28 @@ class ParamBRS:
             for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 1):    # These are the vertical lines
                 self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
 
+            self.initial_points = np.array(self.initial_points)             
 
 
+        if space == 'full':
+            self.x_min = -2.45; self.x_max = 1.85; self.y_min = -1.35; self.y_max = 1.45                # Bounds
+            self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
+            self.samples_x = math.ceil( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
+            self.samples_y = math.ceil( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
+            self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
+            self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
+            self.p1_ = np.array([ [1.9,  0.2],[1.9,  -0.2] ])                                        # Parking spot 2 vertices
+            self.p3_ = np.array([ [0.3,  -0.1],[0.7,  -0.1] ])                                        # Parking spot 2 vertices
+
+            # Create a list of all (x, y) points between the two points in p1_, p2_,
+            self.initial_points = []
+            for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 1):    # These are the vertical lines
+                self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
+            for i in range(int(abs(self.p3_[1][0] - self.p3_[0][0])/self.x_step) + 2):    # These are the horizontal lines
+                self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
+
+            self.initial_points = np.array(self.initial_points)
 
 class ParkEnv3:
     def __init__(self, ax = None) -> None:

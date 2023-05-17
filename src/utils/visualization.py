@@ -30,7 +30,7 @@ class ZonoVisualizer:
 
     min_x = 0; max_x = 0; min_y = 0; max_y = 0  # Plot limits
 
-    def __init__(self, fig, ax) -> None:
+    def __init__(self, fig = None, ax = None) -> None:
         
         self.colors = [
             (0.423, 0.556, 0.749, 0.5),
@@ -45,11 +45,37 @@ class ZonoVisualizer:
             self.fig, self.ax = plt.subplots()        # Initialize the plot
             self.manager = plt.get_current_fig_manager()
             self.manager.window.attributes('-zoomed', True)        
-            self.ax.grid()                          # Add a grid
-            self.ax.spines['left'].set_edgecolor('white')
-            self.ax.spines['bottom'].set_edgecolor('white')
-            self.ax.spines['right'].set_visible(False)
-            self.ax.spines['top'].set_visible(False)
+            # self.ax.grid()                          # Add a grid
+            # self.ax.spines['left'].set_edgecolor('white')
+            # self.ax.spines['bottom'].set_edgecolor('white')
+            # self.ax.spines['right'].set_visible(False)
+            # self.ax.spines['top'].set_visible(False)
+
+            # Set the spine colors to black and its width to 1
+            self.ax.spines['left'].set_color('black')
+            self.ax.spines['bottom'].set_color('black')
+            self.ax.spines['right'].set_color('black')
+            self.ax.spines['top'].set_color('black')
+            self.ax.spines['left'].set_linewidth(2)
+            self.ax.spines['bottom'].set_linewidth(2)
+            self.ax.spines['right'].set_linewidth(2)
+            self.ax.spines['top'].set_linewidth(2)
+            
+            # Remove numbers from the axis but keep the grid
+            self.ax.set_xticklabels([])
+            self.ax.set_yticklabels([])
+
+
+            # Set the grid color to black and its width to 0.5 and style to dashed with a gap between dashes of 2pt
+            linestyle = (0, (10, 10)) # on-off linestyle
+            self.ax.grid(color='black', linestyle=linestyle, linewidth=0.5, alpha = 0.5)
+
+            # Set the x and y ticks color to black
+            self.ax.tick_params(axis='x', colors='black')
+
+            self.ax.set_xlim(-12, 12)
+            self.ax.set_ylim(-10, 10)
+
         else:
             self.fig = fig
             self.ax = ax
@@ -223,7 +249,7 @@ class ZonoVisualizer:
         
         # plt.show()
 
-    def vis_cz(self, czonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', colors = [(0.423, 0.556, 0.749, 0.5)], zorder = None, legend_labels = [], add_legend = True):
+    def vis_cz(self, czonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', colors = [(0.423, 0.556, 0.749, 1.0)], zorder = None, legend_labels = [], add_legend = True):
         '''
         Visualizes the exact shape of a list of constrained zonotopes
         '''
@@ -237,19 +263,22 @@ class ZonoVisualizer:
                 continue
 
             # # Plot the vertices
-            # ax.scatter(vertices[:, 0], vertices[:, 1], color='red')
+            # self.ax.scatter(vertices[:, 0], vertices[:, 1], color='red')
 
-            # # Plot the edges
-            # hull = ConvexHull(vertices)
-            # for simplex in hull.simplices:
-            #     ax.plot(vertices[simplex, 0], vertices[simplex, 1], 'k-')
+            # Plot the edges
+            hull = ConvexHull(vertices)
+            for simplex in hull.simplices:
+                self.ax.plot(vertices[simplex, 0], vertices[simplex, 1], 'k-')
 
 
-            # Fill the interior of the Polytope
-            colors = np.array(colors).reshape(-1, 4)            
-            random_index = np.random.randint(0, len(colors))   # Set color
-            color = colors[random_index]
+            # # Fill the interior of the Polytope
+            # colors = np.array(colors).reshape(-1, 4)            
+            # random_index = np.random.randint(0, len(colors))   # Set color
+            # color = colors[random_index]
             zorder = 1 if zorder is None else zorder
+
+            # color = [0.423, 0.556, 0.749, 1.0]
+            color = colors
 
             poly = Polygon(vertices, closed = True, fill = True, facecolor = (color[0], color[1], color[2]),  alpha = color[3], zorder = zorder)
             self.ax.add_patch(poly)

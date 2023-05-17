@@ -1004,6 +1004,64 @@ class SamplesHZ:
 
 
     @property
+    def set_5(self):
+        n = 2; ng = 3; nc = 0; nb = 0
+        Gc = 1.4*np.array([
+            [1.5, -1.5, 0.5],
+            [1.0, 0.5, -1.0]
+        ])
+        Gb = np.zeros((n, nb))
+        C = np.array([ [0.0], [0.0] ])
+        Ac = np.zeros((nc, ng))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+    @property
+    def set_6(self):
+        n = 2; ng = 3; nc = 1; nb = 0
+        Gc = 1.4*np.array([
+            [1.5, -1.5, 0.5],
+            [1.0, 0.5, -1.0]
+        ])
+        Gb = np.zeros((n, nb))
+        C = np.array([ [0.0], [0.0] ])
+        Ac = np.array([
+            [1.0, 2.0, 2.0]
+        ])
+        Ab = np.zeros((nc, nb))
+        b = np.array([
+            [1.0]
+        ])
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+    @property
+    def set_7(self):
+        n = 2; ng = 3; nc = 1; nb = 2
+        Gc = 1.4*np.array([
+            [1.5, -1.5, 0.5],
+            [1.0, 0.5, -1.0]
+        ])
+        Gb = np.array([
+            [3.5, -3.5],
+            [2.5, 2.5]
+        ])
+        C = np.array([ [0.0], [0.0] ])
+        Ac = np.array([
+            [1.0, 2.0, 2.0]
+        ])
+        Ab = np.zeros((nc, nb))
+        b = np.array([
+            [1.0]
+        ])
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+
+
+    @property
     def space_old(self):
         '''
         Returns a Hybrid zonotope that represents the position dimensions of entire state space
