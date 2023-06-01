@@ -57,7 +57,7 @@ target_outer, park_1_vis, park_1_colors = env.park_1
 env.vis.init_brs_plot(brs_plot_params)
 
 
-N = 1
+N = 100
 for i in range(N):
     # print(f'N: {i}')
     target = op.one_step_brs_hz(X = space, T = target, D = D)
@@ -71,7 +71,6 @@ for i in range(N):
     #     env.ax.scatter(0.45, -0.15, marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11, edgecolors = 'face')
     #     env.ax.scatter(0.55, -0.15, marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11, edgecolors = 'face')
     #     env.ax.scatter(0.65, -0.15, marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11, edgecolors = 'face')
-        
     #     env.ax.scatter(1.85, 0.15, marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11, edgecolors = 'face')
     #     env.ax.scatter(1.85, 0.05, marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11, edgecolors = 'face')
     #     env.ax.scatter(1.85, -0.05, marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11, edgecolors = 'face')

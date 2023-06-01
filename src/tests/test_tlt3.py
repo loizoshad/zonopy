@@ -77,14 +77,14 @@ print(f'Elapsed time: {end_time - start_time} seconds')
 # visualize the OR tree
 tree_vis.vis_tree(tlt_true_until_p1orp2)
 
-# vis.vis_hz([obs,
-#             road_vis,
-#             tlt_true_until_p1orp2.root.set],
-#             title = 'Original Trees', 
-#             colors = colors, 
-#             legend_labels=['$Obs', 'Road', 'Tree'],
-#             add_legend=True)
-# plt.show()
+vis.vis_hz([obs,
+            road_vis,
+            tlt_true_until_p1orp2.root.set],
+            title = 'Original Trees', 
+            colors = colors, 
+            legend_labels=['$Obs', 'Road', 'Tree'],
+            add_legend=True)
+plt.show()
 
 
 
