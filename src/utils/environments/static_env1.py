@@ -9,17 +9,10 @@ from utils.visualization import ZonoVisualizer
 
 
 class ParamBRS:
-    def __init__(self, space = None):
-        # Dynamic Model
-        self.A = np.array([
-            [1.0, 0.0],
-            [0.0, 1.0]
-        ])
-
-        self.B = np.array([
-            [0.1, 0.0],
-            [0.0, 0.1]
-        ])  
+    def __init__(self, dynamics, space = None):
+        # Dynamics Model
+        self.A = dynamics.A
+        self.B = dynamics.B
                 
         if space == 'inner':
             # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
@@ -38,7 +31,26 @@ class ParamBRS:
             for i in range(int(abs(self.p3_[1][0] - self.p3_[0][0])/self.x_step) + 2):    # These are the horizontal lines
                 self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
 
-            self.initial_points = np.array(self.initial_points)     
+            self.initial_points = np.array(self.initial_points)   
+            self.already_contained_points = self.initial_points 
+
+            # # Discretize the x-y state space
+            # self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            # self.y_space = np.linspace(y_min, y_max, self.samples_y)
+            self.x_space = np.arange(self.x_min, self.x_max, self.x_step)
+            self.y_space = np.arange(self.y_min, self.y_max, self.y_step)      
+
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1    
+
+
+
 
         if space == 'outer':
             # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
@@ -56,8 +68,23 @@ class ParamBRS:
             for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 1):    # These are the vertical lines
                 self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
 
-            self.initial_points = np.array(self.initial_points)             
+            self.initial_points = np.array(self.initial_points)  
+            self.already_contained_points = self.initial_points
 
+            # # Discretize the x-y state space
+            # self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            # self.y_space = np.linspace(y_min, y_max, self.samples_y)
+            self.x_space = np.arange(self.x_min, self.x_max, self.x_step)
+            self.y_space = np.arange(self.y_min, self.y_max, self.y_step)      
+
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1                         
 
         if space == 'full':
             self.x_min = -2.45; self.x_max = 1.85; self.y_min = -1.35; self.y_max = 1.45                # Bounds
@@ -78,80 +105,30 @@ class ParamBRS:
                 self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
 
             self.initial_points = np.array(self.initial_points)
+            self.already_contained_points = self.initial_points 
 
-class ParkEnv3:
-    def __init__(self, ax = None) -> None:
-        self.zono_op = ZonoOperations()
+            # # Discretize the x-y state space
+            # self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            # self.y_space = np.linspace(y_min, y_max, self.samples_y)
+            self.x_space = np.arange(self.x_min, self.x_max, self.x_step)
+            self.y_space = np.arange(self.y_min, self.y_max, self.y_step)      
 
-        if ax is None:
-            self.fig, self.ax = plt.subplots()        # Initialize the plot
-            self.manager = plt.get_current_fig_manager()
-            self.manager.window.attributes('-zoomed', True)             
-            # self.ax.grid()                          # Add a grid
-            # self.ax.spines['left'].set_edgecolor('white')
-            # self.ax.spines['bottom'].set_edgecolor('white')
-            self.ax.spines['left'].set_visible(False)
-            self.ax.spines['bottom'].set_visible(False)
-            self.ax.spines['right'].set_visible(False)
-            self.ax.spines['top'].set_visible(False)
-            self.ax.get_xaxis().set_visible(False)
-            self.ax.get_yaxis().set_visible(False)
-            self.ax.set_xlim(-2.5, 2.5)
-            self.ax.set_ylim(-1.4, 1.4)
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1   
 
 
-        self.vis = ZonoVisualizer(fig = self.fig, ax = self.ax)
-
-        # Dynamic Model
-        self.A = np.array([
-            [1.0, 0.0],
-            [0.0, 1.0]
-        ])
-
-        self.B = np.array([
-            [0.1, 0.0],
-            [0.0, 0.1]
-        ])     
-
-    def create_figure(self):
-        self.fig, self.ax = plt.subplots()        # Initialize the plot
-        # self.ax.grid()                          # Add a grid
-        # self.ax.spines['left'].set_edgecolor('white')
-        # self.ax.spines['bottom'].set_edgecolor('white')
-        self.ax.spines['left'].set_visible(False)
-        self.ax.spines['bottom'].set_visible(False)
-        self.ax.spines['right'].set_visible(False)
-        self.ax.spines['top'].set_visible(False)
-        self.ax.get_xaxis().set_visible(False)
-        self.ax.get_yaxis().set_visible(False)
-        self.ax.set_xlim(-2.5, 2.5)
-        self.ax.set_ylim(-1.4, 1.4)
-
-        # Update visualizer figure:
-        self.vis.create_figure(self.fig, self.ax)
-
-
-        # Define the dynamics model in here (Create a separate class for this which this env can take)
-
-    def brs_plot_settings(self):
-        self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4                # Bounds
-        self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
-        self.samples_x = int( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
-        self.samples_y = int( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
-        self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
-        self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
-        self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
-        self.p1_ = np.array([ [ 1.90,  0.2],[ 1.90,  0.6] ])                                    # Parking spot 1 vertices
-        self.p2_ = np.array([ [ 1.90, -0.6],[ 1.90, -0.2] ])                                    # Parking spot 2 vertices
-
-        # Create a list of all (x, y) points between the two points in p1_, p2_,
-        self.initial_points = []
-        for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 2):    # These are the vertical lines
-            self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
-            self.initial_points.append([self.p2_[0][0], self.p2_[0][1] - i*self.y_step])            
-
-        self.initial_points = np.array(self.initial_points)        
-
+class StaticEnv1:
+    def __init__(self, zono_op, dynamics, visualizer) -> None:
+        self.zono_op = zono_op      # Class for Zonotope operations
+        self.vis = visualizer       # Class for visualizing the results
+        self.A = dynamics.A         # System dynamics
+        self.B = dynamics.B         # System dynamics
 
     def get_sets(self):
         '''
@@ -702,14 +679,12 @@ class ParkEnv3:
     def vis_background(self):
         # Visualize background
         img = mpimg.imread('./images/park_env.png')
-        self.ax.imshow(img, extent=[-2.5, 2.5, -1.4, 1.4], zorder = 1)
+        self.vis.ax.imshow(img, extent=[-2.5, 2.5, -1.4, 1.4], zorder = 1)
 
     def vis_sets(self):
         # Visualize hybrid zonotopes
-        hz, hz_vis, colors = self.get_sets()
+        _, hz_vis, colors = self.get_sets()
         self.vis.vis_hz(
             hzonotopes = hz_vis,
             colors = colors,
-            zorder = 2,
-            legend_labels = ['AAA'],
-            add_legend = False)
+            zorder = 2)

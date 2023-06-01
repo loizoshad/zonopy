@@ -30,7 +30,7 @@ class ZonoVisualizer:
 
     min_x = 0; max_x = 0; min_y = 0; max_y = 0  # Plot limits
 
-    def __init__(self, fig = None, ax = None) -> None:
+    def __init__(self, zono_op) -> None:
         
         self.colors = [
             (0.423, 0.556, 0.749, 0.5),
@@ -38,177 +38,31 @@ class ZonoVisualizer:
             (0.882, 0.835, 0.905, 0.5),
             (1.000, 0.901, 0.800, 0.5)
         ]
-        self.zono_op = ZonoOperations()         # Initialize the zonotope operations class
+        self.zono_op = zono_op
 
-
-        if ax is None:
-            self.fig, self.ax = plt.subplots()        # Initialize the plot
-            self.manager = plt.get_current_fig_manager()
-            self.manager.window.attributes('-zoomed', True)        
-            # self.ax.grid()                          # Add a grid
-            # self.ax.spines['left'].set_edgecolor('white')
-            # self.ax.spines['bottom'].set_edgecolor('white')
-            # self.ax.spines['right'].set_visible(False)
-            # self.ax.spines['top'].set_visible(False)
-
-            # Set the spine colors to black and its width to 1
-            self.ax.spines['left'].set_color('black')
-            self.ax.spines['bottom'].set_color('black')
-            self.ax.spines['right'].set_color('black')
-            self.ax.spines['top'].set_color('black')
-            self.ax.spines['left'].set_linewidth(2)
-            self.ax.spines['bottom'].set_linewidth(2)
-            self.ax.spines['right'].set_linewidth(2)
-            self.ax.spines['top'].set_linewidth(2)
-            
-            # Remove numbers from the axis but keep the grid
-            self.ax.set_xticklabels([])
-            self.ax.set_yticklabels([])
-
-
-            # Set the grid color to black and its width to 0.5 and style to dashed with a gap between dashes of 2pt
-            linestyle = (0, (10, 10)) # on-off linestyle
-            self.ax.grid(color='black', linestyle=linestyle, linewidth=0.5, alpha = 0.5)
-
-            # Set the x and y ticks color to black
-            self.ax.tick_params(axis='x', colors='black')
-
-            self.ax.set_xlim(-12, 12)
-            self.ax.set_ylim(-10, 10)
-
-        else:
-            self.fig = fig
-            self.ax = ax
-
-
-
-    def create_figure(self, fig, ax):
-        self.fig = fig
-        self.ax = ax
-
-
-    def vis_result(self, N, save = False, env = 'env0'):
-        self.ax.grid(False)
-
-        # Save the figure
-        name = f'brs_N_{N}'
-        # Saave the figure
-        # Set the figure size
-        if save:
-            self.fig.set_size_inches(15, 8)
-            self.fig.savefig(f'./results/env3/{name}.pdf', dpi=300)
-
-        # Delete current fig, ax, manager and create new ones
-        plt.cla()
-        plt.clf()
-        plt.close()
-
-        self.fig, self.ax = plt.subplots()        # Initialize the plot
+        self.fig, self.ax = plt.subplots()
         self.manager = plt.get_current_fig_manager()
-        self.manager.window.attributes('-zoomed', True)        
-        self.ax.grid()                          # Add a grid
-        self.ax.spines['left'].set_edgecolor('white')
-        self.ax.spines['bottom'].set_edgecolor('white')
-        self.ax.spines['right'].set_visible(False)
-        self.ax.spines['top'].set_visible(False)
+        self.manager.window.attributes('-zoomed', True)
+        self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
+        self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
+        self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
 
-        self.ax.set_xlim(-2.5, 2.5)
-        self.ax.set_ylim(-1.4, 1.4)
+    def save(self, path: str) -> None:
+        self.fig.savefig(path, dpi=300)
+
+    def brs_plot_settings(self, settings):
+        self.brs_sett = settings
 
 
-
-    def init_brs_plot(self, env):
-        #####################################################################
-        #                           Initialization                          #
-        #####################################################################        
-        if env is not None:
-            x_min = env.x_min; x_max = env.x_max; y_min = env.y_min; y_max = env.y_max
-            self.samples_x = env.samples_x; self.samples_y = env.samples_y
-            self.already_contained_points = env.initial_points
-            self.x_step = env.x_step; self.y_step = env.y_step
-            self.max_dist_x = env.max_dist_x; self.max_dist_y = env.max_dist_y; self.max_dist_diag = env.max_dist_diag
-
-            # # Discretize the x-y state space
-            # self.x_space = np.linspace(x_min, x_max, self.samples_x)
-            # self.y_space = np.linspace(y_min, y_max, self.samples_y)
-            self.x_space = np.arange(x_min, x_max, self.x_step)
-            self.y_space = np.arange(y_min, y_max, self.y_step)      
-
-            # Associated flag for already contained points
-            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
-
-            # Update the flag for already contained points
-            for p in self.already_contained_points:
-                x_idx = np.argmin(np.abs(self.x_space - p[0]))
-                y_idx = np.argmin(np.abs(self.y_space - p[1]))
-                self.is_already_contained[y_idx, x_idx] = 1
-
-
-            # # Print the entire x-y grid
-            # for i in range(self.samples_y):
-            #     for j in range(self.samples_x):
-            #         self.ax.scatter(self.x_space[j], self.y_space[i], color = 'black', s = 1, alpha = 0.5, zorder = 10)
-
-
-        else:   # Default environment
-            x_min = -7.9; x_max = 7.9; y_min = -8.9; y_max = 8.9; self.samples_x = 79; self.samples_y = 89
-
-            # Discretize the x-y state space
-            self.x_space = np.linspace(x_min, x_max, self.samples_x)
-            self.y_space = np.linspace(y_min, y_max, self.samples_y)
-            self.x_step = (x_max - x_min) / (self.samples_x)
-            self.y_step = (y_max - y_min) / (self.samples_y)
-
-            # Associated flag for already contained points
-            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
-
-            # Initialize vertex list
-            # TODO: First implement the functionality to obtain the vertices of the target sets (i.e., the parking spots)
-            self.already_contained_points = np.array([
-                [8.0, 9.0],
-                [8.0, 6.5],
-                [8.0, -9.0],
-                [8.0, -6.5]
-            ])        
-            # Update the flag for already contained points
-            for p in self.already_contained_points:
-                x_idx = np.argmin(np.abs(self.x_space - p[0]))
-                y_idx = np.argmin(np.abs(self.y_space - p[1]))
-                self.is_already_contained[y_idx, x_idx] = 1
-
-            # Add all the points between points [8.0, 9.0] and [8.0, 6.5] as already contained
-            for i in range(1, 6):
-                x_idx = np.argmin(np.abs(self.x_space - 8.0))
-                y_idx = np.argmin(np.abs(self.y_space - (9.0 - i * 0.5)))
-                self.is_already_contained[y_idx, x_idx] = 1
-
-            # Add all the points between points [8.0, -9.0] and [8.0, -6.5] as already contained
-            for i in range(1, 6):
-                x_idx = np.argmin(np.abs(self.x_space - 8.0))
-                y_idx = np.argmin(np.abs(self.y_space - (-9.0 + i * 0.5)))
-                self.is_already_contained[y_idx, x_idx] = 1
-
-            # Auxiliary variables
-            self.max_dist = 1.0  # Assumed maximum possible propagation distance of the brs in a single iteration
-            self.max_dist_x = math.ceil(self.max_dist / self.x_step) # Maximum number of steps in the x direction
-            self.max_dist_y = math.ceil(self.max_dist / self.y_step) # Maximum number of steps in the y direction
-            self.max_dist_diag = math.ceil( 1.1 * self.max_dist_x)
-
-
-
-
-    def vis_z(self, zonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', legend_labels = [], add_legend = True):
+    def vis_z(self, zonotopes: list):
         '''
         Visualizes a list of zonotopes
         '''
         # Assert that the zonotopes are 2D
         assert all([z.dim == 2 for z in zonotopes]), f'Zonotope(s) must be 2D (i.e., z.dim = 2)'
         
-        # self.ax.set_title(title)                # Add the title
-        # self.ax.set_xlabel(f'State - {xlabel}') # Add the x label
-        # self.ax.set_ylabel(f'State - {ylabel}') # Add the y label
-        # self.ax.grid()                          # Add a grid        
 
         # Initialize the list of patches
         patches = []
@@ -216,17 +70,7 @@ class ZonoVisualizer:
         # Add the patches to the list        
         for z in zonotopes:
             vertices = z.g2v()
-            polygon = Polygon([(vertices[0, i], vertices[1, i]) for i in range(vertices.shape[1])], closed=True)
-            patches.append(polygon)
-
-            # Find the min and max of the vertices of all zonotopes to set the axis limits
-            self.min_x = min(np.min(vertices[0, :]), self.min_x); self.max_x = max(np.max(vertices[0, :]), self.max_x)
-            self.min_y = min(np.min(vertices[1, :]), self.min_y); self.max_y = max(np.max(vertices[1, :]), self.max_y)
-
-        x_margin = 0.2 * (self.max_x - self.min_x); y_margin = 0.2 * (self.max_y - self.min_y)
-        ax.set_xlim(self.min_x - x_margin, self.max_x + x_margin)
-        ax.set_ylim(self.min_y - y_margin, self.max_y + y_margin)
-
+            patches.append(Polygon([(vertices[0, i], vertices[1, i]) for i in range(vertices.shape[1])], closed=True))
 
         # Choose 'len(patches)' random colors from the list of colors with replacement
         colors = []
@@ -235,21 +79,15 @@ class ZonoVisualizer:
             colors.append(self.colors[random_index])
 
         # Add the patches to the plot
-        i = 0; labels = []; handles = []
+        i = 0; handles = []
         for p in patches:
             p.set_facecolor(colors[i]); p.set_edgecolor('black')
-            ax.add_patch(p)
-            if add_legend:
-                labels.append(legend_labels[i])
+            self.ax.add_patch(p)
             handles.append(p)  # For the legend
             i += 1
 
-        if add_legend:
-            ax.legend(handles, labels, loc='upper left')    # Add the legend
-        
-        # plt.show()
 
-    def vis_cz(self, czonotopes: list, title = '', xlabel = r'$x_1$', ylabel = r'$x_2$', colors = [(0.423, 0.556, 0.749, 1.0)], zorder = None, legend_labels = [], add_legend = True):
+    def vis_cz(self, czonotopes: list, colors = [(0.423, 0.556, 0.749, 1.0)], zorder = None, show_edges = False):
         '''
         Visualizes the exact shape of a list of constrained zonotopes
         '''
@@ -266,31 +104,20 @@ class ZonoVisualizer:
             # self.ax.scatter(vertices[:, 0], vertices[:, 1], color='red')
 
             # Plot the edges
-            hull = ConvexHull(vertices)
-            for simplex in hull.simplices:
-                self.ax.plot(vertices[simplex, 0], vertices[simplex, 1], 'k-')
+            if show_edges:
+                hull = ConvexHull(vertices)
+                for simplex in hull.simplices:
+                    self.ax.plot(vertices[simplex, 0], vertices[simplex, 1], 'k-')
 
-
-            # # Fill the interior of the Polytope
-            # colors = np.array(colors).reshape(-1, 4)            
-            # random_index = np.random.randint(0, len(colors))   # Set color
-            # color = colors[random_index]
+            # Fill the interior of the Polytope
             zorder = 1 if zorder is None else zorder
-
-            # color = [0.423, 0.556, 0.749, 1.0]
-            color = colors
+            color = [0.423, 0.556, 0.749, 1.0]
 
             poly = Polygon(vertices, closed = True, fill = True, facecolor = (color[0], color[1], color[2]),  alpha = color[3], zorder = zorder)
             self.ax.add_patch(poly)
+ 
 
-        # Add legend
-        if add_legend:
-            self.ax.legend(legend_labels, loc='upper left')    
-
-        self.ax.set_title(title)    
-
-
-    def vis_hz(self, hzonotopes: list, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], zorder = None, legend_labels = [], add_legend = True):
+    def vis_hz(self, hzonotopes: list, colors = [(0.835, 0.909, 0.831, 0.5)], zorder = None):
         '''
         Visualizes a list of hybrid zonotoped
 
@@ -312,24 +139,13 @@ class ZonoVisualizer:
             # Iterate over all the binary combinations
             for b in b_combs:
                 b = b.reshape(-1, 1)
-                # Step 2.1: Create a constrained zonotope object out of the binary combination
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
  
-            self.vis_cz(cz, title = title, xlabel = r'qq', ylabel = r'yy', colors = colors[i], zorder = zorder, legend_labels = legend_labels, add_legend = add_legend)
-            
-
-            # # Just making the plots a bit more beautiful
-            # vert1 = np.array([[-11, 9], [-11, 10], [11, 10], [11, 9]])
-            # vert2 = np.array([[-11, -9], [-11, -10], [11, -10], [11, -9]])
-            # poly = Polygon(vert1, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
-            # self.ax.add_patch(poly)
-            # poly = Polygon(vert2, closed = True, fill = True, facecolor = 'white', alpha = 1.0)
-            # self.ax.add_patch(poly)
-
+            self.vis_cz(cz, colors = colors[i], zorder = zorder)
             i += 1
 
 
-    def vis_hz_brs(self, hz, title = '', xlabel = r'$x_{1}', ylabel = r'x_{2}', colors = [(0.835, 0.909, 0.831, 0.5)], legend_labels = [], add_legend = True):
+    def vis_hz_brs(self, hz, colors = [(0.835, 0.909, 0.831, 0.5)]):
         '''
         Visualizes a backward reachable set repsented by a hybrid zonotope
         '''
@@ -341,14 +157,14 @@ class ZonoVisualizer:
         already_contained_checks_total = 0.0
 
         start_time_loop = time.perf_counter()
-        for x_i, x in enumerate(self.x_space):
-            for y_i, y in enumerate(self.y_space):
+        for x_i, x in enumerate(self.brs_sett.x_space):
+            for y_i, y in enumerate(self.brs_sett.y_space):
                 already_contained_checks_time = time.perf_counter()
 
                 p = np.array([[x], [y]])
 
                 # Check if the point 'p' is contained in any of the constrained zonotopes
-                if self.is_already_contained[y_i, x_i] == 1:
+                if self.brs_sett.is_already_contained[y_i, x_i] == 1:
                     continue
                 
                 '''
@@ -359,29 +175,29 @@ class ZonoVisualizer:
                 '''
 
                 close_enough = False
-                if 1 in self.is_already_contained[y_i, max(0, x_i - self.max_dist_y):x_i ]:
+                if 1 in self.brs_sett.is_already_contained[y_i, max(0, x_i - self.brs_sett.max_dist_y):x_i ]:
                     close_enough = True
-                elif 1 in self.is_already_contained[y_i, x_i + 1:min(self.samples_y - 1, x_i + self.max_dist_y + 1)]:
+                elif 1 in self.brs_sett.is_already_contained[y_i, x_i + 1:min(self.brs_sett.samples_y - 1, x_i + self.brs_sett.max_dist_y + 1)]:
                     close_enough = True
-                elif 1 in self.is_already_contained[y_i + 1:min(self.samples_x - 1, y_i + self.max_dist_x + 1), x_i]:
+                elif 1 in self.brs_sett.is_already_contained[y_i + 1:min(self.brs_sett.samples_x - 1, y_i + self.brs_sett.max_dist_x + 1), x_i]:
                     close_enough = True
-                elif 1 in self.is_already_contained[max(0, y_i - self.max_dist_x):y_i, x_i]:
+                elif 1 in self.brs_sett.is_already_contained[max(0, y_i - self.brs_sett.max_dist_x):y_i, x_i]:
                     close_enough = True
                 else:
-                    for q in range(self.max_dist_diag):                    
-                        if self.is_already_contained[ min(self.samples_y - 1, y_i + q),   max(0, x_i - q)]:
+                    for q in range(self.brs_sett.max_dist_diag):                    
+                        if self.brs_sett.is_already_contained[ min(self.brs_sett.samples_y - 1, y_i + q),   max(0, x_i - q)]:
                             close_enough = True
                             break 
                         # Move top and to the right (diagonally) of the point 'p'
-                        if self.is_already_contained[ min(self.samples_y - 1, y_i + q),   min(self.samples_x - 1, x_i + q)]:
+                        if self.brs_sett.is_already_contained[ min(self.brs_sett.samples_y - 1, y_i + q),   min(self.brs_sett.samples_x - 1, x_i + q)]:
                             close_enough = True
                             break
                         # Move bottom and to the left (diagonally) of the point 'p'
-                        if self.is_already_contained[ max(0, y_i - q),   max(0, x_i - q)]:
+                        if self.brs_sett.is_already_contained[ max(0, y_i - q),   max(0, x_i - q)]:
                             close_enough = True
                             break
                         # Move bottom and to the right (diagonally) of the point 'p'
-                        if self.is_already_contained[ max(0, y_i - q),   min(self.samples_x - 1, x_i + q)]:
+                        if self.brs_sett.is_already_contained[ max(0, y_i - q),   min(self.brs_sett.samples_x - 1, x_i + q)]:
                             close_enough = True
                             break
                 
@@ -394,9 +210,9 @@ class ZonoVisualizer:
                     # If the point made it until here, it means it needs to be checked
                     start_time = time.perf_counter()
                     if self.zono_op.is_inside_hz(hz, p):
-                        self.is_already_contained[y_i, x_i] = 1
+                        self.brs_sett.is_already_contained[y_i, x_i] = 1
                         # Add the point p in the list of already contained points
-                        self.already_contained_points = np.append(self.already_contained_points, p.reshape(1, -1), axis = 0)
+                        self.brs_sett.already_contained_points = np.append(self.brs_sett.already_contained_points, p.reshape(1, -1), axis = 0)
 
                         # # Add to the plot a circle of radius 'step'
                         # self.ax.scatter(p[0], p[1], marker = '.', s = 350, color = '#66B2FF', alpha = 0.9, zorder = 11)
@@ -405,7 +221,7 @@ class ZonoVisualizer:
                         marker_size = marker_size**2        # area of the marker
 
                         # Offset to the center of the cell
-                        px = p[0] + self.x_step/2
+                        px = p[0] + self.brs_sett.x_step/2
                         py = p[1]
                         # self.ax.scatter(px, py, marker = 's', s = marker_size, color = '#66B2FF', alpha = 0.9, zorder = 11)
                         self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11,
@@ -567,7 +383,7 @@ class AuxiliaryVisualizer:
         print(f'zero_indices = {zero_indices}')
 
         # Add the image to the figure
-        self.vis.ax.imshow(env, extent = [-2.1, 1.5, -1.0, 1.0], zorder = 1000000)
+        self.vis.self.ax.imshow(env, extent = [-2.1, 1.5, -1.0, 1.0], zorder = 1000000)
 
 
     def vis_patches(self):
@@ -584,7 +400,7 @@ class AuxiliaryVisualizer:
 
         # Create a line between the first two vertices
         road_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 4)
-        self.vis.ax.add_patch(road_line)
+        self.vis.self.ax.add_patch(road_line)
 
         # Parking spot 1 line
         vertices = np.array([
@@ -594,7 +410,7 @@ class AuxiliaryVisualizer:
             [1.910, 0.2]
         ])
         parking_spot_1_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
-        self.vis.ax.add_patch(parking_spot_1_line)
+        self.vis.self.ax.add_patch(parking_spot_1_line)
         # Parking spot 2 line
         vertices = np.array([
             [1.910, -0.2],
@@ -603,7 +419,7 @@ class AuxiliaryVisualizer:
             [1.910, -0.6]
         ])
         parking_spot_2_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
-        self.vis.ax.add_patch(parking_spot_2_line)
+        self.vis.self.ax.add_patch(parking_spot_2_line)
 
         # Parking spot 3 line
         vertices = np.array([
@@ -613,7 +429,7 @@ class AuxiliaryVisualizer:
             [-0.9, 0.6]
         ])
         parking_spot_3_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
-        self.vis.ax.add_patch(parking_spot_3_line)
+        self.vis.self.ax.add_patch(parking_spot_3_line)
         
         # Parking spot 4 line
         vertices = np.array([
@@ -623,13 +439,13 @@ class AuxiliaryVisualizer:
             [0.305, 0.6]
         ])
         parking_spot_4_line = Polygon(vertices, closed = True, fill = False, zorder = 12, color = 'white', linestyle = '--', linewidth = 2)
-        self.vis.ax.add_patch(parking_spot_4_line)     
+        self.vis.self.ax.add_patch(parking_spot_4_line)     
 
         # Add text to the parking spots
-        self.vis.ax.text( 2.2,  0.4, r'$\mathbb{P}_{1}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
-        self.vis.ax.text( 2.2, -0.4, r'$\mathbb{P}_{2}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
-        self.vis.ax.text(-0.7,  0.3, r'$\mathbb{P}_{3}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
-        self.vis.ax.text( 0.1,  0.3, r'$\mathbb{P}_{4}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+        self.vis.self.ax.text( 2.2,  0.4, r'$\mathbb{P}_{1}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        self.vis.self.ax.text( 2.2, -0.4, r'$\mathbb{P}_{2}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center')
+        self.vis.self.ax.text(-0.7,  0.3, r'$\mathbb{P}_{3}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
+        self.vis.self.ax.text( 0.1,  0.3, r'$\mathbb{P}_{4}$', fontsize = 30, zorder = 12, color = 'white', horizontalalignment = 'center', verticalalignment = 'center', rotation = 90)
 
         ##############################
         # Add the road arrows        #
@@ -643,7 +459,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (1.7, 0.45), # Start point
             (1.7, 0.75), # End point
@@ -654,7 +470,7 @@ class AuxiliaryVisualizer:
             zorder = 11
         )
         #
-        self.vis.ax.add_patch(arrow)     
+        self.vis.self.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-2.3, -0.45), # Start point
             (-2.3, -0.75), # End point
@@ -664,7 +480,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (-2.3, 0.75), # Start point
             (-2.3, 0.45), # End point
@@ -674,9 +490,9 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)          
+        self.vis.self.ax.add_patch(arrow)          
         #
-        self.vis.ax.add_patch(arrow)     
+        self.vis.self.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.45, -1.2), # Start point
             (-1.15, -1.2), # End point
@@ -686,7 +502,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.55, -1.2), # Start point
             (0.85, -1.2), # End point
@@ -696,9 +512,9 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)    
+        self.vis.self.ax.add_patch(arrow)    
         #      
-        self.vis.ax.add_patch(arrow)     
+        self.vis.self.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.45, 0.8), # Start point
             (-1.15, 0.8), # End point
@@ -708,7 +524,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.55, 0.8), # Start point
             (0.85, 0.8), # End point
@@ -718,9 +534,9 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)  
+        self.vis.self.ax.add_patch(arrow)  
         #
-        self.vis.ax.add_patch(arrow)     
+        self.vis.self.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.15, 1.2), # Start point
             (-1.45, 1.2), # End point
@@ -730,7 +546,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.85, 1.2), # Start point
             (0.55, 1.2), # End point
@@ -740,9 +556,9 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow) 
+        self.vis.self.ax.add_patch(arrow) 
         #
-        self.vis.ax.add_patch(arrow)     
+        self.vis.self.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.15, -0.8), # Start point
             (-1.45, -0.8), # End point
@@ -752,7 +568,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (0.85, -0.8), # Start point
             (0.55, -0.8), # End point
@@ -762,9 +578,9 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)  
+        self.vis.self.ax.add_patch(arrow)  
         #
-        self.vis.ax.add_patch(arrow)     
+        self.vis.self.ax.add_patch(arrow)     
         arrow = FancyArrowPatch(
             (-1.9, -0.15), # Start point
             (-1.9,  0.15), # End point
@@ -774,7 +590,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
         arrow = FancyArrowPatch(
             (1.3,  0.15), # Start point
             (1.3, -0.15), # End point
@@ -784,7 +600,7 @@ class AuxiliaryVisualizer:
             linewidth = 2, # Width of the arrow
             zorder = 11
         )
-        self.vis.ax.add_patch(arrow)
+        self.vis.self.ax.add_patch(arrow)
 
         ##############################
         # Add the perimeter          #
@@ -798,7 +614,7 @@ class AuxiliaryVisualizer:
             ec = 'white',
             linewidth = 10,
             zorder = 14)
-        self.vis.ax.add_patch(bounding_box)
+        self.vis.self.ax.add_patch(bounding_box)
 
 
         ##############################
@@ -814,7 +630,7 @@ class AuxiliaryVisualizer:
                             alpha = 0.8,
                             zorder = 13
                         )
-        self.vis.ax.add_patch(rect)
+        self.vis.self.ax.add_patch(rect)
 
         rect = Rectangle((1.9, -0.2),
                             width = 0.6,
@@ -826,7 +642,7 @@ class AuxiliaryVisualizer:
                             alpha = 0.8,
                             zorder = 13
                         )
-        self.vis.ax.add_patch(rect)
+        self.vis.self.ax.add_patch(rect)
 
         rect = Rectangle((1.9, -1.4),
                             width = 0.6,
@@ -838,7 +654,7 @@ class AuxiliaryVisualizer:
                             alpha = 0.8,
                             zorder = 13
                         )
-        self.vis.ax.add_patch(rect)        
+        self.vis.self.ax.add_patch(rect)        
         
 
         # INTERNAL OBSTACLES
@@ -853,7 +669,7 @@ class AuxiliaryVisualizer:
                             alpha = 0.8,
                             zorder = 13
                         )
-        self.vis.ax.add_patch(rect)
+        self.vis.self.ax.add_patch(rect)
 
         rect = Rectangle((-0.5, 0.0),
                             width = 0.4,
@@ -865,7 +681,7 @@ class AuxiliaryVisualizer:
                             alpha = 0.8,
                             zorder = 13
                         )
-        self.vis.ax.add_patch(rect)        
+        self.vis.self.ax.add_patch(rect)        
 
         rect = Rectangle((0.3, 0.0),
                             width = 0.8,
@@ -877,7 +693,7 @@ class AuxiliaryVisualizer:
                             alpha = 0.8,
                             zorder = 13
                         )
-        self.vis.ax.add_patch(rect)
+        self.vis.self.ax.add_patch(rect)
 
         rect = Rectangle((-1.7, -0.6),
                             width = 2.8,
@@ -889,6 +705,6 @@ class AuxiliaryVisualizer:
                             alpha = 0.8,
                             zorder = 13
                         )
-        self.vis.ax.add_patch(rect)
+        self.vis.self.ax.add_patch(rect)
 
 

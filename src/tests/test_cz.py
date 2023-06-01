@@ -14,41 +14,68 @@ TODO: Add a test for set membership
 '''
 
 
+
+
 ##############################################################################
 #                              Original Sets                                 #
 ##############################################################################
+vis = ZonoVisualizer()
+vis.ax.set_xlim(-10, 10); vis.ax.set_ylim(-10, 10)
+vis.ax.spines['right'].set_visible(True); vis.ax.spines['left'].set_visible(True)
+vis.ax.spines['top'].set_visible(True); vis.ax.spines['bottom'].set_visible(True)
+vis.ax.get_xaxis().set_visible(True); vis.ax.get_yaxis().set_visible(True)
+vis.ax.grid(True)
+
 cz1 = SamplesCZ().set_1
 cz2 = SamplesCZ().set_2
-vis = ZonoVisualizer()
-vis.vis_cz([cz1, cz2], title = 'Original Constrained Zonotopes', legend_labels=['$CZ_{1}$', '$CZ_{2}$'], add_legend=True)
+vis.vis_cz([cz1, cz2], show_edges = True)
 plt.show()
+
 
 ##############################################################################
 #                              Minkowski Sum                                 #
 ##############################################################################
-cz3 = ZonoOperations().ms_cz_cz(cz1, cz2)
 vis = ZonoVisualizer()
-vis.vis_cz([cz1, cz2, cz3], title = 'Minkowski Sum', legend_labels=['$CZ_{1}$', '$CZ_{2}$', '$CZ_{1} \oplus CZ_{2}$'], add_legend=True)
+vis.ax.set_xlim(-10, 10); vis.ax.set_ylim(-10, 10)
+vis.ax.spines['right'].set_visible(True); vis.ax.spines['left'].set_visible(True)
+vis.ax.spines['top'].set_visible(True); vis.ax.spines['bottom'].set_visible(True)
+vis.ax.get_xaxis().set_visible(True); vis.ax.get_yaxis().set_visible(True)
+vis.ax.grid(True)
+
+cz3 = ZonoOperations().ms_cz_cz(cz1, cz2)
+vis.vis_cz([cz1, cz2, cz3], show_edges = True)
 plt.show()
 
 ##############################################################################
 #                            Linear Transformation                           #
 ##############################################################################
+vis = ZonoVisualizer()
+vis.ax.set_xlim(-10, 10); vis.ax.set_ylim(-10, 10)
+vis.ax.spines['right'].set_visible(True); vis.ax.spines['left'].set_visible(True)
+vis.ax.spines['top'].set_visible(True); vis.ax.spines['bottom'].set_visible(True)
+vis.ax.get_xaxis().set_visible(True); vis.ax.get_yaxis().set_visible(True)
+vis.ax.grid(True)
+
 M = np.array([
     [1.0, 1.0],
     [0.0, 1.0]
 ])
 cz4 = ZonoOperations().lt_cz(M, cz1)
-vis = ZonoVisualizer()
-vis.vis_cz([cz1, cz4], title = 'Linear Transformation', legend_labels=['$CZ_{1}$', '$M CZ_{1}$'], add_legend=True)
+vis.vis_cz([cz1, cz4], show_edges = True)
 plt.show()
 
 ##############################################################################
 #                              Intersection                                  #
 ##############################################################################
-cz5 = ZonoOperations().intersection_cz_cz(cz1, cz2)
 vis = ZonoVisualizer()
-vis.vis_cz([cz1, cz2, cz5], title = 'Intersection', legend_labels=['$CZ_{1}$', '$CZ_{2}$', '$CZ_{1} \cap CZ_{2}$'], add_legend=True)
+vis.ax.set_xlim(-10, 10); vis.ax.set_ylim(-10, 10)
+vis.ax.spines['right'].set_visible(True); vis.ax.spines['left'].set_visible(True)
+vis.ax.spines['top'].set_visible(True); vis.ax.spines['bottom'].set_visible(True)
+vis.ax.get_xaxis().set_visible(True); vis.ax.get_yaxis().set_visible(True)
+vis.ax.grid(True)
+
+cz5 = ZonoOperations().intersection_cz_cz(cz1, cz2)
+vis.vis_cz([cz1, cz2, cz5], show_edges = True)
 plt.show()
 
 

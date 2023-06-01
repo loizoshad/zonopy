@@ -1,7 +1,3 @@
-import sys
-sys.path.append('.../')      # TODO: GET RID OF THIS!!!
-sys.path.append('..')        # TODO: GET RID OF THIS!!!
-
 ALWAYS_SYMBOL = '\u25A1'
 EVENTUALLY_SYMBOL = '\u25CA'
 OR_SYMBOL = '\u2228'
@@ -30,11 +26,10 @@ import scipy.sparse as sp
 from utils.sets.zonotopes import Zonotope
 from utils.sets.constrained_zonotopes import ConstrainedZonotope
 from utils.sets.hybrid_zonotopes import HybridZonotope
-from utils.tlt.nodes import OR, AND, UNTIL, set_node, WUNTIL
+from utils.tlt.nodes import OR, AND, UNTIL, set_node
 from utils.tlt.tree import Tree
 
 '''
-
 
 References:
 
@@ -476,7 +471,7 @@ class ZonoOperations:
         Computes the N-step backward reachable set using the hybrid zonotope representation
         '''
         if self.visualizer is not None and visualize and env is not None:
-            self.visualizer.init_brs_plot(env)
+            self.visualizer.brs_plot_settings(env)
 
         for i in range(N):
             T = self.one_step_brs_hz(X, T, D)

@@ -585,33 +585,76 @@ class ParkEnv2:
         return [obs, obs, obs_color]
 
 
+class SamplesVis:
+    '''
+    This class contains some shapes that are used in this project
+    just for visualization purposes
+    '''
+    @property
+    def road_line(self):
+        # Define a polygon
+        vertices = np.array([
+            [-2.1,  1.0],
+            [ 1.5,  1.0],
+            [ 1.5, -1.0],
+            [-2.1, -1.0]
+        ])
+
+        # Create a line between the first two vertices
+        line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 4)
+        
+        return line
 
 
+class SamplesZ:
+    def __init__(self) -> None:
+        pass
 
+    @property
+    def set_1(self):
+        c = np.array([  [0],
+                        [0]
+                    ])
+        G = np.array([  [1, 0],
+                        [0, 1]
+                    ]) 
 
+        return Zonotope(c, G)
 
+    @property
+    def set_2(self):
+        c = np.array([  [0],
+                        [0]
+                    ])
+        G = np.array([  [1, 0],
+                        [1, 1]
+                    ])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return Zonotope(c, G)      
 
 
 class SamplesCZ:
     def __init__(self) -> None:
         self.zono_op = ZonoOperations()
+
+    @property
+    def set_learning(self):
+        G = np.array([
+            [1.5, -1.5, 0.5],
+            [1.0, 0.5, -1.0]
+        ])
+        C = np.array([
+            [0.0],
+            [0.0]
+        ])
+        A = np.array([
+            [1.0, 1.0, 1.0]
+        ])
+        b = np.array([
+            [-1.0]
+        ])        
+
+        return ConstrainedZonotope(G, C, A, b)
 
     @property
     def set_1(self):
@@ -651,27 +694,6 @@ class SamplesCZ:
 
         return ConstrainedZonotope(G, C, A, b)        
 
-
-
-class SamplesVis:
-    '''
-    This class contains some shapes that are used in this project
-    just for visualization purposes
-    '''
-    @property
-    def road_line(self):
-        # Define a polygon
-        vertices = np.array([
-            [-2.1,  1.0],
-            [ 1.5,  1.0],
-            [ 1.5, -1.0],
-            [-2.1, -1.0]
-        ])
-
-        # Create a line between the first two vertices
-        line = Polygon(vertices, closed = True, fill = False, color = 'white', linestyle = '--', linewidth = 4)
-        
-        return line
 
 class SamplesHZ:
     def __init__(self) -> None:
@@ -953,6 +975,46 @@ class SamplesHZ:
         ])
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+
+    @property
+    def set_learning(self):
+        n = 6; ng = 4; nc = 4; nb = 0
+        Gc = np.array([
+            [2.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 2.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 2.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 2.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 2.0]
+        ])
+        Gb = np.zeros((n, nb))
+        C = np.array([  [0.0], 
+                        [0.0],
+                        [0.0],
+                        [0.0],
+                        [0.0],
+                        [0.0] ])
+        # Ac = np.zeros((nc, ng))
+        Ac = np.array([
+            [ 1.0,  0.0,  1.0,  0.0, 0.0,  0.0],
+            [-1.0,  0.0,  0.0,  1.0, 0.0,  0.0],
+            [ 0.0,  1.0,  0.0,  0.0, 1.0,  0.0],
+            [ 0.0, -1.0,  0.0,  0.0, 0.0,  1.0]
+        ])
+        Ab = np.zeros((nc, nb))  
+        # b = np.zeros((nc, 1))
+        b = np.array([
+            [ 0.1],
+            [ 0.7],
+            [ 0.7],
+            [ 0.1]
+        ])
+
+        hz = HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+        # Return only first two dimensions
+        return HybridZonotope(hz.Gc[0:2, :], hz.Gb[0:2, :], hz.C[0:2, :], hz.Ac, hz.Ab, hz.b)
 
     @property
     def set_3(self):
