@@ -311,6 +311,48 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
 
+    def intersection_hz_R_hz(self, hz1: HybridZonotope, hz2: HybridZonotope, R: np.ndarray) -> HybridZonotope:
+        '''
+        Computes the generalized intersection of two hybrid zonotopes
+        
+        hz1 inters_R hz2 = (Gc, Gb, C, Ac, Ab, b), where
+
+        C = hz1.C
+        Gc = [hz1.Gc, 0]
+        Gb = [hz1.Gb, 0]
+        Ac = [
+            [hz1.Ac,       0],
+            [     0,  hz2.Ac],
+            [R*hz1.Gc, -hz2.Gc]
+            ]
+        Ab = [
+            [hz1.Ab,      0],
+            [     0,  hz2.Ab],
+            [R*hz1.Gb, -hz2.Gb]
+            ]
+        b = [
+            hz1.b,
+            hz2.b,
+            hz2.C - R*hz1.C
+            ]
+        '''
+
+        C = hz1.C
+        Gc = np.hstack( (hz1.Gc, np.zeros((hz1.dim, hz2.ng))) )
+        Gb = np.hstack( (hz1.Gb, np.zeros((hz1.dim, hz2.nb))) )
+
+        Ac = np.vstack((np.hstack( (hz1.Ac, np.zeros((hz1.nc, hz2.ng))) ),
+                        np.hstack( (np.zeros((hz2.nc, hz1.ng)), hz2.Ac) ),
+                        np.hstack( (R @ hz1.Gc, -hz2.Gc))
+                        ))
+        Ab = np.vstack((np.hstack( (hz1.Ab, np.zeros((hz1.nc, hz2.nb))) ),
+                        np.hstack( (np.zeros((hz2.nc, hz1.nb)), hz2.Ab) ),
+                        np.hstack( (R @ hz1.Gb, -hz2.Gb))
+                        ))
+        b = np.vstack((hz1.b, hz2.b, hz2.C - R @ hz1.C))
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
     def union_hz_hz(self, hz1: HybridZonotope, hz2: HybridZonotope) -> HybridZonotope:
         '''
         Computes the union of two hybrid zonotopes. This function supports disjoint sets as well
@@ -612,7 +654,127 @@ class ZonoOperations:
             # print(f'Point {z.T} is NOT inside the hybrid zonotope')
             return False
 
+    def ms_hz_hz(self, hz1: HybridZonotope, hz2: HybridZonotope) -> HybridZonotope:
+        '''
+        Computes the minkowski sum of two hybrid zonotopes.
+        '''
+        
+        c = hz1.C + hz2.C
 
+        Gc = np.block([
+            hz1.Gc, hz2.Gc
+        ])
+
+        Gb = np.block([
+            hz1.Gb, hz2.Gb
+        ])
+
+        Ac = np.block([
+            [hz1.Ac, np.zeros((hz1.nc, hz2.ng))],
+            [np.zeros((hz2.nc, hz1.ng)), hz2.Ac]
+        ])
+
+        Ab = np.block([
+            [hz1.Ab, np.zeros((hz1.nc, hz2.nb))],
+            [np.zeros((hz2.nc, hz1.nb)), hz2.Ab]
+        ])
+
+        b = np.block([
+            [hz1.b], 
+            [hz2.b]
+        ])
+
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+    def md_hz_z(self, hz: HybridZonotope, z: Zonotope) -> HybridZonotope:
+        '''
+        Computes the minkowski difference of a hybrid zonotope minuend and a zonotope subtrahend.
+        '''
+
+        hz_i = HybridZonotope(hz.Gc, hz.Gb, hz.C - z.C, hz.Ac, hz.Ab, hz.b) # hz_0
+        
+        for i, g in enumerate(z.G):
+            hz_i = self.intersection_hz_hz(
+                hz1 = HybridZonotope(hz_i.Gc, hz_i.Gb, hz_i.C + g, hz_i.Ac, hz_i.Ab, hz_i.b),
+                hz2 = HybridZonotope(hz_i.Gc, hz_i.Gb, hz_i.C - g, hz_i.Ac, hz_i.Ab, hz_i.b)
+            )
+
+        return hz_i
+    
+
+    def one_step_brs_hz_w(self, X: HybridZonotope, U: HybridZonotope, T: HybridZonotope, A: np.ndarray, B: np.ndarray, W: Zonotope) -> HybridZonotope:
+        n = X.dim   # Dimension of the state space
+
+        # Step 1: Compute the minkowski difference T - W
+        T_minus_W = self.md_hz_z(T, W)
+
+        # Step 2: Compute the minkowski sum (T - W) + (-BU)
+        BU = self.lt_hz(-B, U)
+        T_minus_W_plus_BU = self.ms_hz_hz(
+            hz1 = T_minus_W,
+            hz2 = BU
+        )
+
+        # Step 3: Multiply by the inverse of A
+        A_inv = np.linalg.inv(A)
+        A_inv_T_minus_W_plus_BU = self.lt_hz(A_inv, T_minus_W_plus_BU)
+
+        return A_inv_T_minus_W_plus_BU
+
+
+
+
+    def not_working_one_step_brs_hz_w(self, X: HybridZonotope, U: HybridZonotope, T: HybridZonotope, A: np.ndarray, B: np.ndarray, W: Zonotope) -> HybridZonotope:
+        n = X.dim   # Dimension of the state space
+        R1 = np.block([
+            np.eye(n), np.zeros((n, n))
+        ])
+        R2 = np.block([
+            np.zeros((n, n)), np.eye(n)
+        ])
+
+        # Step 1: Compute minkoski difference T - W
+        T_minus_W = self.md_hz_z(T, W)
+
+        # Step 2: Compute the minkowski sum AX + BU
+        AX = self.lt_hz(A, X)
+        BU = self.lt_hz(B, U)
+
+        AX_plus_BU = self.ms_hz_hz(
+            hz1 = AX,
+            hz2 = BU
+        )
+
+        print('AX_plus_BU:')
+        print(f'shape of Gc: {AX_plus_BU.Gc.shape}')
+        print(f'shape of Gb: {AX_plus_BU.Gb.shape}')
+        print(f'shape of C: {AX_plus_BU.C.shape}')
+        print(f'shape of Ac: {AX_plus_BU.Ac.shape}')
+        print(f'shape of Ab: {AX_plus_BU.Ab.shape}')
+        print(f'shape of b: {AX_plus_BU.b.shape}')
+
+        print(f'T_minus_W:')
+        print(f'shape of Gc: {T_minus_W.Gc.shape}')
+        print(f'shape of Gb: {T_minus_W.Gb.shape}')
+        print(f'shape of C: {T_minus_W.C.shape}')
+        print(f'shape of Ac: {T_minus_W.Ac.shape}')
+        print(f'shape of Ab: {T_minus_W.Ab.shape}')
+        print(f'shape of b: {T_minus_W.b.shape}')
+
+        print(f'R:')
+        print(f'shape of R: {R2.shape}')
+
+        # Step 3: Compute the generalized intersection of (AX + BU) and (T - W)
+        AX_plus_BU_intersect_T_minus_W = self.intersection_hz_R_hz(
+            hz1 = AX_plus_BU,
+            hz2 = T_minus_W,
+            R = R2
+        )
+
+        # Step 4: Extract the first half of the hybrid zonotope
+        return self.lt_hz(R1, AX_plus_BU_intersect_T_minus_W)
+
+        
 
 
 class TreeOperations:

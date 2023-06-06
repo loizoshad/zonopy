@@ -3,9 +3,17 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import math
 
+from utils.sets.zonotopes import Zonotope
 from utils.sets.hybrid_zonotopes import HybridZonotope
 from utils.operations.operations import ZonoOperations
 from utils.visualization import ZonoVisualizer
+
+'''
+This environment includes disturbances
+
+This environment supports the second approach for computing backward reachable sets
+'''
+
 
 
 class ParamBRS:
@@ -25,7 +33,6 @@ class ParamBRS:
             self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
             # self.p3_ = np.array([ [0.3,  0.1],[0.7,  0.1] ])                                        # Parking spot 2 vertices
             self.p3_ = np.array([ [0.3,  -0.1],[0.7,  -0.1] ])                                        # Parking spot 2 vertices
-
 
             # Create a list of all (x, y) points between the two points in p1_, p2_, p3_, p4_
             self.initial_points = []
@@ -50,17 +57,9 @@ class ParamBRS:
                 y_idx = np.argmin(np.abs(self.y_space - p[1]))
                 self.is_already_contained[y_idx, x_idx] = 1    
 
-
-
-
         if space == 'outer':
             # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
             self.x_min = -2.45; self.x_max = 1.85; self.y_min = -1.35; self.y_max = 1.45                # Bounds
-
-            # TEMP
-            self.x_min = -0.35; self.x_max = 0.35; self.y_min = -0.25; self.y_max = 0.25                # Bounds
-
-
             self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
             self.samples_x = math.ceil( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
             self.samples_y = math.ceil( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
@@ -68,10 +67,6 @@ class ParamBRS:
             self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
             self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
             self.p1_ = np.array([ [1.9,  0.2],[1.9,  -0.2] ])                                        # Parking spot 2 vertices
-
-            # TEMP
-            self.p1_ = np.array([ [-0.32,  0.0],[0.32,  0.0] ])                                        # Parking spot 2 vertices
-
 
             # Create a list of all (x, y) points between the two points in p1_, p2_,
             self.initial_points = []
@@ -133,12 +128,94 @@ class ParamBRS:
                 self.is_already_contained[y_idx, x_idx] = 1   
 
 
-class StaticEnv1:
+class StaticEnv2:
     def __init__(self, zono_op, dynamics, visualizer) -> None:
         self.zono_op = zono_op      # Class for Zonotope operations
         self.vis = visualizer       # Class for visualizing the results
+        self.dynamics = dynamics    # Class for dynamics of the system
         self.A = dynamics.A         # System dynamics
         self.B = dynamics.B         # System dynamics
+        self.W = self.get_disturbance_z()        
+
+    def get_disturbance_z(self):
+        '''
+        This function returns the disturbance zonotope.
+        '''
+
+        max_w = self.dynamics.max_w   # Vector containing Maximum disturbance for each dimension
+
+        # Create the disturbance zonotope
+
+        c = np.zeros((self.A.shape[0], 1))
+        G = np.eye(self.A.shape[0]) @ max_w
+
+        return Zonotope(c, G)
+
+    def get_state_space_outer(self):
+        '''
+        This function returns the state space X for the outer section
+        '''
+
+        # Extract only the dimensions that are relevant to the state space
+        # Only the first 'ns' dimensions are relevant to the state space
+
+        ns = 2  # Number of states
+        ni = 2  # Number of control inputs
+
+        space_outer, _, _ = self.road_outer
+
+        ng = space_outer.Gc.shape[1]
+        nc = space_outer.Ac.shape[0]
+        nb = space_outer.Ab.shape[1]
+
+        Gc = space_outer.Gc[:ns, :ns]
+        Gb = space_outer.Gb[:ns, :]
+        c = space_outer.C[:ns]
+        Ac = np.zeros((nc, ns))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))
+
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+
+    def get_target_space_outer(self):
+        '''
+        This function returns the target space T for the outer section.
+        The outer target space T contains the free parking spots of the outer section
+        '''
+
+        target_outer, _, _ = self.park_1
+
+        return target_outer
+
+
+    def get_input_space_outer(self):
+        '''
+        This function returns the input space U for the outer section.
+        '''
+
+        space_outer, _, _ = self.road_outer
+
+        # Extract only the dimensions that are relevant to the input space
+        # Only the last 'ni' dimensions are relevant to the input space
+        
+        ns = 2  # Number of states
+        ni = 2  # Number of control inputs
+
+        ng = space_outer.Gc.shape[1]
+        nc = space_outer.Ac.shape[0]
+        nb = space_outer.Ab.shape[1]
+
+        Gc = space_outer.Gc[ns:4, ns:4]
+        Gb = space_outer.Gb[ns:4, :]
+        c = space_outer.C[2:4]
+        Ac = np.zeros((nc, ni))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))
+
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+
 
     def get_sets(self):
         '''
@@ -223,7 +300,6 @@ class StaticEnv1:
         env['sets'].append(occ_2[0]); env['vis'].append(occ_2[1]); env['colors'].append(occ_2[2])
 
         return env['sets'], env['vis'], env['colors']
-
 
     @property
     def road_outer(self):
@@ -552,7 +628,6 @@ class StaticEnv1:
     
         return [obs, obs_vis, color]
 
-
     @property
     def occupied_1(self):
         '''
@@ -648,7 +723,6 @@ class StaticEnv1:
     
         return [occ, occ_vis, color]
 
-
     @property
     def parking_lot(self):
         '''
@@ -677,6 +751,12 @@ class StaticEnv1:
         color = (0.949, 0.262, 0.227, 0.6)  # Red
 
         return [park_lot, park_lot_vis, color]        
+
+
+
+
+
+
 
 
     def vis_env(self):

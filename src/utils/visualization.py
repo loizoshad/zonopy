@@ -117,7 +117,7 @@ class ZonoVisualizer:
             self.ax.add_patch(poly)
  
 
-    def vis_hz(self, hzonotopes: list, colors = [(0.835, 0.909, 0.831, 0.5)], zorder = None):
+    def vis_hz(self, hzonotopes: list, colors = [(0.835, 0.909, 0.831, 0.5)], zorder = None, show_edges = False):
         '''
         Visualizes a list of hybrid zonotoped
 
@@ -141,7 +141,7 @@ class ZonoVisualizer:
                 b = b.reshape(-1, 1)
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
  
-            self.vis_cz(cz, colors = colors[i], zorder = zorder)
+            self.vis_cz(cz, colors = colors[i], zorder = zorder, show_edges = show_edges)
             i += 1
 
 
