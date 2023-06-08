@@ -10,7 +10,11 @@ from utils.environments.static_env1 import StaticEnv1
 from utils.dynamics_model import DynamicsModel
 from utils.environments.static_env1 import StaticEnv1, ParamBRS
 
-def reduce_constraints_hz(hz: HybridZonotope) -> HybridZonotope:
+def reduce_constraints_hz_v1(hz: HybridZonotope) -> HybridZonotope:
+    '''
+    In this version we are first obtaining the reduced row echelon form of the matrix in order
+    to remove any linearly dependent constraints. This is done using the sympy library.
+    '''
     # Convert the matrix to a sympy Matrix object
     sympy_matrix = Matrix(np.block([
         hz.Ac, hz.Ab, hz.b
@@ -26,9 +30,59 @@ def reduce_constraints_hz(hz: HybridZonotope) -> HybridZonotope:
     b = rref[:, -1]
     b = b.reshape((b.shape[0], 1))  # Reshape b to be a column vector
 
+def reduce_constraints_hz_v2(hz: HybridZonotope) -> HybridZonotope:
+    '''
+    In this version we are removing the following constraints:
+        - Any constraint whose constraint matrix component (the particular row in [Ac Ab]) is all zeros
+        - Any constraint that there is another constraint that is equivalent to it
+            e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
+    '''
+    
+    threshold = 1e-7
 
+    A = np.block([hz.Ac, hz.Ab, hz.b])
 
+    nc = A.shape[0]; ng = hz.Gc.shape[1]
 
+    ## Remove redundant continuous generators
+
+    # Loop through all the columns of Gc
+
+    i = 0; j = 0; k = 0
+
+    while i < nc - k:
+        c1 = A[i, :].T
+        c1 = c1.reshape((c1.shape[0], 1))
+        c1_mag = np.linalg.norm(c1)    # Magnitude of c1
+        
+        if np.abs(c1_mag) <= threshold:        
+            A = np.delete(A, i, axis=0)
+            k += 1
+            continue
+
+        j = 0
+        while j < nc - k:
+            if i == j:
+                j += 1
+                continue
+
+            c2 = A[j, :].T
+            c2 = c2.reshape((c2.shape[0], 1))
+
+            dot_product = np.dot(c1.T, c2)  # Dot product between c1 and c2
+            c2_mag = np.linalg.norm(c2)     # Magnitude of c2
+
+            if np.abs(np.abs(dot_product) - c1_mag*c2_mag) <= threshold or (c2_mag <= threshold):
+                A = np.delete(A, j, axis=0)   # Remove the second constraint
+                k += 1
+
+            j += 1
+
+        i +=1
+
+    Ac = A[:, :hz.Ac.shape[1]]
+    Ab = A[:, hz.Ac.shape[1]:-1]
+    b = A[:, -1].reshape((A.shape[0], 1))
 
     return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
     
@@ -59,8 +113,6 @@ def reduce_generators_hz(hz: HybridZonotope) -> HybridZonotope:
 
         j = 0
         while j < ng - k:
-            print(f'********************************************************')
-            print(f'i = {i}\t j = {j}')
 
             if i == j:
                 j += 1
@@ -80,21 +132,8 @@ def reduce_generators_hz(hz: HybridZonotope) -> HybridZonotope:
 
 
             if np.abs(np.abs(dot_product) - g1_mag*g2_mag) <= threshold:
-                print(f'BELOW THRESHOLD DETECTED:')
-                print(f'dot_product = {dot_product}')
-                print(f'g1_mag = {g1_mag}\t g2_mag = {g2_mag}')
-                print(f'np.abs(np.abs(dot_product) - g1_mag*g2_mag) = {np.abs(np.abs(dot_product) - g1_mag*g2_mag)}')
-                print(f'before removal')
-                # print(f'Detected redundant generator')
-                print(f'g1 = {g1.T}\t g2 = {g2.T}')
-                print(f'Gc = \n{Gc}')
-                # Gc[:, i] = g1 + g2              # Add the second generator to the first
                 Gc[:, i] = g1.reshape((n,)) + g2.reshape((n,))  # Add the second generator to the first
                 Gc = np.delete(Gc, j, axis=1)   # Remove the second generator
-
-                print(f'after removal')
-                print(f'Gc = \n{Gc}')
-
                 '''
                 Since the constraints depend on the number of continuous generators we need to adjust the Ac matrix as well.
                 '''
@@ -102,9 +141,7 @@ def reduce_generators_hz(hz: HybridZonotope) -> HybridZonotope:
                 Ac = np.delete(Ac, j, axis=1)   # Remove the second generator constraint coefficients
 
                 k += 1
-                break
 
-            print(f'--------------------------------------------------------')
             j += 1
 
         i +=1
@@ -128,8 +165,6 @@ def reduce_generators_hz(hz: HybridZonotope) -> HybridZonotope:
 
         j = 0
         while j < nb - k:
-            print(f'********************************************************')
-            print(f'i = {i}\t j = {j}')
 
             if i == j:
                 j += 1
@@ -149,34 +184,19 @@ def reduce_generators_hz(hz: HybridZonotope) -> HybridZonotope:
 
 
             if np.abs(np.abs(dot_product) - g1_mag*g2_mag) <= threshold:
-                print(f'BELOW THRESHOLD DETECTED:')
-                print(f'dot_product = {dot_product}')
-                print(f'g1_mag = {g1_mag}\t g2_mag = {g2_mag}')
-                print(f'np.abs(np.abs(dot_product) - g1_mag*g2_mag) = {np.abs(np.abs(dot_product) - g1_mag*g2_mag)}')
-                print(f'before removal')
-                # print(f'Detected redundant generator')
-                print(f'g1 = {g1.T}\t g2 = {g2.T}')
-                print(f'Gb = \n{Gb}')
-                # Gb[:, i] = g1 + g2              # Add the second generator to the first
                 Gb[:, i] = g1.reshape((n,)) + g2.reshape((n,))  # Add the second generator to the first
                 Gb = np.delete(Gb, j, axis=1)   # Remove the second generator
-
-                print(f'after removal')
-                print(f'Gb = \n{Gb}')
-
                 '''
                 Since the constraints depend on the number of continuous generators we need to adjust the Ac matrix as well.
                 '''
                 Ab[:, i] = Ab[:, i] + Ab[:, j]  # Add the second generator constraint coefficients to the first
                 Ab = np.delete(Ab, j, axis=1)   # Remove the second generator constraint coefficients
-
                 k += 1
-                break
 
-            print(f'--------------------------------------------------------')
             j += 1
 
         i +=1
+
 
 
 
@@ -221,7 +241,7 @@ def reduce_generators_hz(hz: HybridZonotope) -> HybridZonotope:
 
 def reduce_hz(hz :HybridZonotope) -> HybridZonotope:
     hz = reduce_generators_hz(hz)
-    # hz = reduce_constraints_hz(hz)
+    # hz = reduce_constraints_hz_v2(hz)
     return hz
 
 colors = [
@@ -249,9 +269,10 @@ hz_e = SamplesHZ().set_e
 hz_f = SamplesHZ().set_f
 hz_g = SamplesHZ().set_g
 
-param = 'original'
+param = 'non-reduced'
 param = 'reduced'
-hz = zono_op.union_hz_hz(hz_a, hz_b)
+hz = hz_f
+# hz = zono_op.union_hz_hz(hz_a, hz_b)
 # hz_abc = zono_op.union_hz_hz(hz_ab, hz_c)
 # hz = zono_op.union_hz_hz(hz_abc, hz_d)
 
@@ -281,17 +302,19 @@ print(f'b = \n{hz.b}')
 # plt.show()
 
 vis.brs_plot_settings(brs_plot_params)
-vis.ax.set_xlim(-0.75, 0.75); vis.ax.set_ylim(-0.4, 0.4)
+vis.ax.set_xlim(-5.0, 5.0); vis.ax.set_ylim(-6, 6)
 vis.ax.spines['right'].set_visible(True); vis.ax.spines['left'].set_visible(True)
 vis.ax.spines['top'].set_visible(True); vis.ax.spines['bottom'].set_visible(True)
 vis.ax.get_xaxis().set_visible(True); vis.ax.get_yaxis().set_visible(True)
 vis.ax.grid(True)
-# vis.vis_hz([hz], colors = colors, show_edges=True)
 vis.ax.set_title(f'{param}', fontsize=16)
-vis.vis_hz_brs(
-    hz = hz,
-    colors = [(0.835, 0.909, 0.831, 0.5)]
-)
+
+vis.vis_hz([hz], colors = colors, show_edges=True)
+# vis.vis_hz_brs(
+#     hz = hz,
+#     colors = [(0.835, 0.909, 0.831, 0.5)]
+# )
+
 plt.show()
 
 

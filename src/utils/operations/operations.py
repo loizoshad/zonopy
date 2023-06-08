@@ -706,18 +706,24 @@ class ZonoOperations:
         n = X.dim   # Dimension of the state space
 
         # Step 1: Compute the minkowski difference T - W
-        T_minus_W = self.md_hz_z(T, W)
+        # T_minus_W = self.md_hz_z(T, W)
+
+        # T_minus_W = self.reduce_constraints_hz(T_minus_W)
 
         # Step 2: Compute the minkowski sum (T - W) + (-BU)
         BU = self.lt_hz(-B, U)
-        T_minus_W_plus_BU = self.ms_hz_hz(
-            hz1 = T_minus_W,
-            hz2 = BU
-        )
+        # T_minus_W_plus_BU = self.ms_hz_hz(
+        #     hz1 = T_minus_W,
+        #     hz2 = BU
+        # )
+
+        T_minus_W_plus_BU = self.ms_hz_hz(hz1 = T, hz2 = BU)
 
         # Step 3: Multiply by the inverse of A
         A_inv = np.linalg.inv(A)
         A_inv_T_minus_W_plus_BU = self.lt_hz(A_inv, T_minus_W_plus_BU)
+
+        # A_inv_T_minus_W_plus_BU = self.reduce_constraints_hz(A_inv_T_minus_W_plus_BU)
 
         return A_inv_T_minus_W_plus_BU
 
@@ -774,7 +780,56 @@ class ZonoOperations:
         # Step 4: Extract the first half of the hybrid zonotope
         return self.lt_hz(R1, AX_plus_BU_intersect_T_minus_W)
 
+
+    def reduce_constraints_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        In this method we are removing the following constraints:
+            - Any constraint whose constraint matrix component (the particular row in [Ac Ab]) is all zeros
+            - Any constraint that there is another constraint that is equivalent to it
+                e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
+        '''
         
+        threshold = 1e-7
+        A = np.block([hz.Ac, hz.Ab, hz.b])
+        nc = A.shape[0]; ng = hz.Gc.shape[1]
+
+        i = 0; j = 0; k = 0
+
+        while i < nc - k:
+            c1 = A[i, :].T
+            c1 = c1.reshape((c1.shape[0], 1))
+            c1_mag = np.linalg.norm(c1)    # Magnitude of c1
+            
+            if np.abs(c1_mag) <= threshold:        
+                A = np.delete(A, i, axis=0)
+                k += 1
+                continue
+
+            j = 0
+            while j < nc - k:
+                if i == j:
+                    j += 1
+                    continue
+
+                c2 = A[j, :].T
+                c2 = c2.reshape((c2.shape[0], 1))
+
+                dot_product = np.dot(c1.T, c2)  # Dot product between c1 and c2
+                c2_mag = np.linalg.norm(c2)     # Magnitude of c2
+
+                if np.abs(np.abs(dot_product) - c1_mag*c2_mag) <= threshold or (c2_mag <= threshold):
+                    A = np.delete(A, j, axis=0)   # Remove the second constraint
+                    k += 1
+
+                j += 1
+
+            i +=1
+
+        Ac = A[:, :hz.Ac.shape[1]]
+        Ab = A[:, hz.Ac.shape[1]:-1]
+        b = A[:, -1].reshape((A.shape[0], 1))
+
+        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)      
 
 
 class TreeOperations:

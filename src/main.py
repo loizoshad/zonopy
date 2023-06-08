@@ -70,9 +70,8 @@ if params == 'full':
 env.vis.brs_plot_settings(brs_plot_params)
 
 
-N = 4
+N = 11
 for i in range(N):
-    # print(f'N: {i}')
 
     target = zono_op.one_step_brs_hz_w(X = space, U = u_space, T = target, A = env.A, B = env.B, W = env.W)
 
@@ -80,17 +79,8 @@ for i in range(N):
         target.Ac, target.Ab, target.b
     ])
 
-    print(f'**********************************************************************************************************************************')
-    print(f'i: {i}')
+    print(f'i = {i}\t g = {target.ng}\t nc = {target.nc}\t nb = {target.nb}')
 
-    print(f'Before Removing Redundant Rows')
-    print(f'shape of A_b: {A_b.shape}')
-
-    print(f'**********************************************************************')
-
-    print(f'After Removing Redundant Rows')
-    print(f'shape of A_b: {A_b.shape}')
-    
     ## Remove reduntant rows
 
     # Convert the matrix to a sympy Matrix object
@@ -161,7 +151,7 @@ for i in range(N):
     name = f'brs_N_{i}'
     plt.show()
     # env.vis.fig.savefig(f'./results/static1/{params}/{name}.pdf', dpi=300)
-    env.vis.fig.savefig(f'./results/testing/{params}/zero_reduced/{name}.pdf', dpi=300)
+    env.vis.fig.savefig(f'./results/testing/{params}/{name}.pdf', dpi=300)
 
     plt.close(env.vis.fig)
 
