@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 from utils.environments.env3 import ParkEnv3, ParamBRS
-from utils.visualization import ZonoVisualizer, AuxiliaryVisualizer
+from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 
 
@@ -19,7 +19,6 @@ first_time = True
 # vis_1 = ZonoVisualizer()
 env = ParkEnv3()
 
-# aux_vis = AuxiliaryVisualizer(visualizer = vis_1)
 op = ZonoOperations()
 params = 'full'
 
@@ -82,11 +81,7 @@ for i in range(N):
     # for j in range(len(brs_plot_params.initial_points)):
     #     env.ax.scatter( brs_plot_params.initial_points[j][0], brs_plot_params.initial_points[j][1], color = 'black', marker = 'x', s = 10, zorder = 10)
         
-    # env.vis.vis_hz_brs(
-    #     hz = target,
-    #     colors = [(0.835, 0.909, 0.831, 0.5)],
-    #     add_legend = False
-    # )
+    # env.vis.vis_hz_brs(hz = target)
 
     # Save and clear figure
     name = f'brs_N_{i}'

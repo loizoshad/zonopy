@@ -43,9 +43,6 @@ class ZonoOperations:
 
         self.visualizer = visualizer
 
-        # Set the warm start as an undefined GRB constant
-        self.warm_start = None
-
     def ms_z_z(self, z1: Zonotope, z2: Zonotope) -> Zonotope:
         '''
         Computes Minkowski sum of two zonotopes.
@@ -72,8 +69,6 @@ class ZonoOperations:
                                                     whereas A.shape = [{M.shape[0]}, {M.shape[1]}] and z.dim = {z.dim}.'
 
         return Zonotope(M @ z.C , M @ z.G)
-
-
 
     def lt_cz(self, M: np.ndarray, cz: ConstrainedZonotope) -> ConstrainedZonotope:
         '''
@@ -164,93 +159,6 @@ class ZonoOperations:
         res = linprog(c, A_eq=A_eq, b_eq=b_eq, method = method, options = options, bounds = bounds)
 
         return res.success
-
-    def md_cz_z(self, cz: ConstrainedZonotope, z: Zonotope) -> ConstrainedZonotope:
-        '''
-        TODO:
-
-        Given a constrained zonotope minuend cz = (Gm, Cm, Am, bm) and a zonotope subtrahend z = (Cs, Gs)
-        compute an under-approximation of the Minkowski difference of the two sets.
-        
-        Output is a cosntrained zonotope CZd:
-
-        CZd = ( Gm @ diag(ones(cz.ng, 1) - \bar{sigma}), 
-                Cm - Cs,
-                Am @ diag(ones(cz.ng, 1) - \bar{sigma}),
-                bm
-            )
-
-        \bar{sigma} = |Γ| ones(z.ng, 1)
-        
-        min_{Γ} || |Γ| ones(z.ng , 1) ||_1
-        s.t.    [Gm; Am]Γ = [Gs; zeros(Gm.nc , Gs.ng)],
-                |Γ| ones(z.ng, 1) <= ones(z.ng, 1)
-
-
-        where Γ of dimensionality ( cz.ng X z.ng )                
-
-        For more details see the work in [2]
-        '''
-        assert cz.dim == z.dim, f'Both constrained zonotopes must have the same dimensionality, \
-                                whereas cz.dimension = {cz.dimension} and z.dimension = {z.dimension}.'
-        
-
-        # gamma = ca.MX.sym('gamma', cz.ng, z.ng) # Γ variables
-
-        # gamma_abs = []
-        # for i in range(cz.ng):
-        #     gamma_abs_ = []
-        #     for j in range(z.ng):
-        #         # print(f'i = {i} \t j = {j}')
-        #         gamma_abs_ = ca.horzcat(gamma_abs_, ca.fabs(gamma[i, j]))
-        #         # print(f'gamma_abs_ = {gamma_abs_}')
-        #     gamma_abs = ca.vertcat(gamma_abs, gamma_abs_)
-        #     # print(f'gamma_abs = {gamma_abs}')
-
-        # # gamma_abs = ca.reshape(gamma_abs_, (cz.ng, z.ng))
-
-        # # Objective function
-        # obj = ca.mtimes(gamma_abs, np.ones((z.ng, 1)))
-
-        # # Constraints
-        # constr1 = ca.mtimes(cz.G, gamma) == ca.mtimes(z.G, np.eye(z.ng))
-        # constr2 = ca.mtimes(cz.A, gamma) == np.zeros((cz.A.shape[0], z.ng))
-        # constr3 = ca.mtimes(gamma_abs, np.ones((z.ng, 1))) <= np.ones((cz.ng, 1))
-
-        # constr = ca.vertcat(ca.reshape(constr1, -1, 1), ca.reshape(constr2, -1, 1), ca.reshape(constr3, -1, 1))
-
-
-        ## OPTI
-
-        opti = ca.Opti()
-
-        gamma = opti.variable(cz.ng, z.ng)
-
-        gamma_abs = []
-        for i in range(cz.ng):
-            gamma_abs_ = []
-            for j in range(z.ng):
-                gamma_abs_ = ca.horzcat(gamma_abs_, ca.fabs(gamma[i, j]))
-            gamma_abs = ca.vertcat(gamma_abs, gamma_abs_)
-
-        print(f'shape of gamma_abs = {gamma_abs.shape}')
-        print(f'shape of np.ones((z.ng, 1)) = {np.ones((z.ng, 1)).shape})')
-
-        # Add one by one all the objectives in the opti stack
-        for i in range(cz.ng):
-            for j in range(z.ng):
-                opti.minimize( ca.fabs(gamma[i, j]) )
-
-        opti.subject_to( ca.mtimes(cz.G, gamma) == ca.mtimes(z.G, np.eye(z.ng)) )
-        opti.subject_to( ca.mtimes(cz.A, gamma) == np.zeros((cz.A.shape[0], z.ng)) )
-        opti.subject_to( ca.mtimes(gamma_abs, np.ones((z.ng, 1))) <= np.ones((cz.ng, 1)) )
-        
-        opti.solver('ipopt')
-        sol = opti.solve()
-
-        # sol.value(x)
-        # sol.value(y)
-
 
 
     def lt_hz(self, M: np.ndarray, hz: HybridZonotope) -> HybridZonotope:
@@ -518,7 +426,7 @@ class ZonoOperations:
         for i in range(N):
             T = self.one_step_brs_hz(X, T, D)
             if self.visualizer is not None and visualize:
-                self.visualizer.vis_hz_brs(T, title = 'BRS', legend_labels=['$\mathscr{BRS}$'], add_legend=True)
+                self.visualizer.vis_hz_brs(T)
         return T
 
     def decompose_hz(self, hz: HybridZonotope):
@@ -624,13 +532,6 @@ class ZonoOperations:
         ## Step 3: Set the objective function
         model.setObjective(norm_inf, gp.GRB.MINIMIZE)  
 
-        # # Set the warm start
-        # if self.warm_start is not None:
-        #     for i in range(hz.ng):
-        #         x_c[i].start = self.warm_start[f'x_c[{i}]']
-        #     for i in range(hz.nb):
-        #         x_b[i].start = self.warm_start[f'x_b[{i}]']
-
 
         ## Step 5: Solve the model
         model.optimize()
@@ -638,21 +539,16 @@ class ZonoOperations:
 
         ## Step 6: Check if the solution is feasible
         if model.status == gp.GRB.OPTIMAL or model.status == gp.GRB.SUBOPTIMAL:
-            # print(f'Point {z.T} is inside the hybrid zonotope')
-            
-            # # Update the warm start
-            # self.warm_start = {}
-
-            # for i in range(hz.ng):
-            #     self.warm_start[f'x_c[{i}]'] = x_c[i].X
-            # for i in range(hz.nb):
-            #     self.warm_start[f'x_b[{i}]'] = x_b[i].X
-
             return True
         else:
-            self.warm_start = None
-            # print(f'Point {z.T} is NOT inside the hybrid zonotope')
             return False
+
+    def is_inside_hz_space(self, hz: HybridZonotope):
+        '''
+        Given a grid of points, checks if each point is inside the hybrid zonotope hz
+        '''
+        pass
+
 
     def ms_hz_hz(self, hz1: HybridZonotope, hz2: HybridZonotope) -> HybridZonotope:
         '''
@@ -701,135 +597,19 @@ class ZonoOperations:
 
         return hz_i
     
-
-    def one_step_brs_hz_w(self, X: HybridZonotope, U: HybridZonotope, T: HybridZonotope, A: np.ndarray, B: np.ndarray, W: Zonotope) -> HybridZonotope:
-        n = X.dim   # Dimension of the state space
-
-        # Step 1: Compute the minkowski difference T - W
-        # T_minus_W = self.md_hz_z(T, W)
-
-        # T_minus_W = self.reduce_constraints_hz(T_minus_W)
-
-        # Step 2: Compute the minkowski sum (T - W) + (-BU)
+    def one_step_brs_hz_v2(self, X: HybridZonotope, U: HybridZonotope, T: HybridZonotope, A: np.ndarray, B: np.ndarray) -> HybridZonotope:
         BU = self.lt_hz(-B, U)
-        # T_minus_W_plus_BU = self.ms_hz_hz(
-        #     hz1 = T_minus_W,
-        #     hz2 = BU
-        # )
-
-        T_minus_W_plus_BU = self.ms_hz_hz(hz1 = T, hz2 = BU)
-
-        # Step 3: Multiply by the inverse of A
+        T_plus_BU = self.ms_hz_hz(hz1 = T, hz2 = BU)
         A_inv = np.linalg.inv(A)
-        A_inv_T_minus_W_plus_BU = self.lt_hz(A_inv, T_minus_W_plus_BU)
+        A_inv_T_W_plus_BU = self.lt_hz(A_inv, T_plus_BU)
 
-        # A_inv_T_minus_W_plus_BU = self.reduce_constraints_hz(A_inv_T_minus_W_plus_BU)
+        # Compute intersection with safe space X
+        X_intersection_A_inv_T_W_plus_BU = self.intersection_hz_hz(hz1 = X, hz2 = A_inv_T_W_plus_BU)
 
-        return A_inv_T_minus_W_plus_BU
-
-
-
-
-    def not_working_one_step_brs_hz_w(self, X: HybridZonotope, U: HybridZonotope, T: HybridZonotope, A: np.ndarray, B: np.ndarray, W: Zonotope) -> HybridZonotope:
-        n = X.dim   # Dimension of the state space
-        R1 = np.block([
-            np.eye(n), np.zeros((n, n))
-        ])
-        R2 = np.block([
-            np.zeros((n, n)), np.eye(n)
-        ])
-
-        # Step 1: Compute minkoski difference T - W
-        T_minus_W = self.md_hz_z(T, W)
-
-        # Step 2: Compute the minkowski sum AX + BU
-        AX = self.lt_hz(A, X)
-        BU = self.lt_hz(B, U)
-
-        AX_plus_BU = self.ms_hz_hz(
-            hz1 = AX,
-            hz2 = BU
-        )
-
-        print('AX_plus_BU:')
-        print(f'shape of Gc: {AX_plus_BU.Gc.shape}')
-        print(f'shape of Gb: {AX_plus_BU.Gb.shape}')
-        print(f'shape of C: {AX_plus_BU.C.shape}')
-        print(f'shape of Ac: {AX_plus_BU.Ac.shape}')
-        print(f'shape of Ab: {AX_plus_BU.Ab.shape}')
-        print(f'shape of b: {AX_plus_BU.b.shape}')
-
-        print(f'T_minus_W:')
-        print(f'shape of Gc: {T_minus_W.Gc.shape}')
-        print(f'shape of Gb: {T_minus_W.Gb.shape}')
-        print(f'shape of C: {T_minus_W.C.shape}')
-        print(f'shape of Ac: {T_minus_W.Ac.shape}')
-        print(f'shape of Ab: {T_minus_W.Ab.shape}')
-        print(f'shape of b: {T_minus_W.b.shape}')
-
-        print(f'R:')
-        print(f'shape of R: {R2.shape}')
-
-        # Step 3: Compute the generalized intersection of (AX + BU) and (T - W)
-        AX_plus_BU_intersect_T_minus_W = self.intersection_hz_R_hz(
-            hz1 = AX_plus_BU,
-            hz2 = T_minus_W,
-            R = R2
-        )
-
-        # Step 4: Extract the first half of the hybrid zonotope
-        return self.lt_hz(R1, AX_plus_BU_intersect_T_minus_W)
+        return X_intersection_A_inv_T_W_plus_BU
 
 
-    def reduce_constraints_hz(self, hz: HybridZonotope) -> HybridZonotope:
-        '''
-        In this method we are removing the following constraints:
-            - Any constraint whose constraint matrix component (the particular row in [Ac Ab]) is all zeros
-            - Any constraint that there is another constraint that is equivalent to it
-                e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
-        '''
-        
-        threshold = 1e-7
-        A = np.block([hz.Ac, hz.Ab, hz.b])
-        nc = A.shape[0]; ng = hz.Gc.shape[1]
 
-        i = 0; j = 0; k = 0
-
-        while i < nc - k:
-            c1 = A[i, :].T
-            c1 = c1.reshape((c1.shape[0], 1))
-            c1_mag = np.linalg.norm(c1)    # Magnitude of c1
-            
-            if np.abs(c1_mag) <= threshold:        
-                A = np.delete(A, i, axis=0)
-                k += 1
-                continue
-
-            j = 0
-            while j < nc - k:
-                if i == j:
-                    j += 1
-                    continue
-
-                c2 = A[j, :].T
-                c2 = c2.reshape((c2.shape[0], 1))
-
-                dot_product = np.dot(c1.T, c2)  # Dot product between c1 and c2
-                c2_mag = np.linalg.norm(c2)     # Magnitude of c2
-
-                if np.abs(np.abs(dot_product) - c1_mag*c2_mag) <= threshold or (c2_mag <= threshold):
-                    A = np.delete(A, j, axis=0)   # Remove the second constraint
-                    k += 1
-
-                j += 1
-
-            i +=1
-
-        Ac = A[:, :hz.Ac.shape[1]]
-        Ab = A[:, hz.Ac.shape[1]:-1]
-        b = A[:, -1].reshape((A.shape[0], 1))
-
-        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)      
 
 
 class TreeOperations:

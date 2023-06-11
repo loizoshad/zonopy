@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
-from utils.environments.environments import SamplesZ
+from utils.environments.samples import SamplesZ
 
 
 op = ZonoOperations()

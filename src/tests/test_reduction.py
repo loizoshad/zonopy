@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sympy import Matrix
 
-from utils.environments.environments import SamplesHZ
+from utils.environments.samples import SamplesHZ
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 from utils.sets.hybrid_zonotopes import HybridZonotope
@@ -310,10 +310,7 @@ vis.ax.grid(True)
 vis.ax.set_title(f'{param}', fontsize=16)
 
 vis.vis_hz([hz], colors = colors, show_edges=True)
-# vis.vis_hz_brs(
-#     hz = hz,
-#     colors = [(0.835, 0.909, 0.831, 0.5)]
-# )
+# vis.vis_hz_brs(hz = hz)
 
 plt.show()
 

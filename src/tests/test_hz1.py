@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from utils.environments.environments import SamplesHZ
+from utils.environments.samples import SamplesHZ
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 

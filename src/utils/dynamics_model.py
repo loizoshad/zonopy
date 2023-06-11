@@ -12,7 +12,13 @@ class DynamicsModel:
     def __init__(self) -> None:
         self.vx_max = 1.0   # m/s Maximum permissible velocity in x-axis
         self.vy_max = 1.0   # m/s Maximum permissible velocity in y-axis
-        self.dt = 0.025       # [s] Time step
+        self.v_max = np.array([
+            [self.vx_max],
+            [self.vy_max]
+        ])
+        self.v_min = -self.v_max
+        self.dt = 0.1       # [s] Time step
+        
         self.A = np.array([
             [1.0, 0.0],     # x - position
             [0.0, 1.0],     # y - position

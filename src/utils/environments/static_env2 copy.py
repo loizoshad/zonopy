@@ -3,34 +3,37 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import math
 
+from utils.sets.zonotopes import Zonotope
 from utils.sets.hybrid_zonotopes import HybridZonotope
 from utils.operations.operations import ZonoOperations
 from utils.visualization import ZonoVisualizer
 
+'''
+This environment includes disturbances
+
+This environment supports the second approach for computing backward reachable sets
+'''
+
+
 
 class ParamBRS:
-    def __init__(self, space = None):
-        # Dynamic Model
-        self.A = np.array([
-            [1.0, 0.0],
-            [0.0, 1.0]
-        ])
-
-        self.B = np.array([
-            [0.1, 0.0],
-            [0.0, 0.1]
-        ])  
+    def __init__(self, dynamics, space = None):
+        # Dynamics Model
+        self.A = dynamics.A
+        self.B = dynamics.B
                 
         if space == 'inner':
-            # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
-            self.x_min = -2.05; self.x_max = 1.55; self.y_min = -0.95; self.y_max = 1.05                # Bounds
-            self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
+            self.x_min = -2.05              # Min x bound
+            self.x_max = 1.55               # Max x bound
+            self.y_min = -0.95              # Min y bound
+            self.y_max = 1.05               # Max y bound
+            self.x_step = self.B[0][0]      # Step size for discretization in x axis
+            self.y_step = self.B[1][1]      # Step size for discretization in y axis
             self.samples_x = math.ceil( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
             self.samples_y = math.ceil( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
             self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
             self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
             self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
-            # self.p3_ = np.array([ [0.3,  0.1],[0.7,  0.1] ])                                        # Parking spot 2 vertices
             self.p3_ = np.array([ [0.3,  -0.1],[0.7,  -0.1] ])                                        # Parking spot 2 vertices
 
             # Create a list of all (x, y) points between the two points in p1_, p2_, p3_, p4_
@@ -38,7 +41,21 @@ class ParamBRS:
             for i in range(int(abs(self.p3_[1][0] - self.p3_[0][0])/self.x_step) + 2):    # These are the horizontal lines
                 self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
 
-            self.initial_points = np.array(self.initial_points)     
+            self.initial_points = np.array(self.initial_points)   
+            self.already_contained_points = self.initial_points 
+
+            # Discretize the x-y state space
+            self.x_space = np.arange(self.x_min, self.x_max, self.x_step)
+            self.y_space = np.arange(self.y_min, self.y_max, self.y_step)      
+
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1    
 
         if space == 'outer':
             # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
@@ -56,8 +73,23 @@ class ParamBRS:
             for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 1):    # These are the vertical lines
                 self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
 
-            self.initial_points = np.array(self.initial_points)             
+            self.initial_points = np.array(self.initial_points)  
+            self.already_contained_points = self.initial_points
 
+            # # Discretize the x-y state space
+            # self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            # self.y_space = np.linspace(y_min, y_max, self.samples_y)
+            self.x_space = np.arange(self.x_min, self.x_max, self.x_step)
+            self.y_space = np.arange(self.y_min, self.y_max, self.y_step)      
+
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1                         
 
         if space == 'full':
             self.x_min = -2.45; self.x_max = 1.85; self.y_min = -1.35; self.y_max = 1.45                # Bounds
@@ -78,79 +110,99 @@ class ParamBRS:
                 self.initial_points.append([self.p3_[0][0] + i*self.x_step, self.p3_[0][1]])
 
             self.initial_points = np.array(self.initial_points)
+            self.already_contained_points = self.initial_points 
 
-class ParkEnv3:
-    def __init__(self, ax = None) -> None:
-        self.zono_op = ZonoOperations()
+            # # Discretize the x-y state space
+            # self.x_space = np.linspace(x_min, x_max, self.samples_x)
+            # self.y_space = np.linspace(y_min, y_max, self.samples_y)
+            self.x_space = np.arange(self.x_min, self.x_max, self.x_step)
+            self.y_space = np.arange(self.y_min, self.y_max, self.y_step)      
 
-        if ax is None:
-            self.fig, self.ax = plt.subplots()        # Initialize the plot
-            self.manager = plt.get_current_fig_manager()
-            self.manager.window.attributes('-zoomed', True)             
-            # self.ax.grid()                          # Add a grid
-            # self.ax.spines['left'].set_edgecolor('white')
-            # self.ax.spines['bottom'].set_edgecolor('white')
-            self.ax.spines['left'].set_visible(False)
-            self.ax.spines['bottom'].set_visible(False)
-            self.ax.spines['right'].set_visible(False)
-            self.ax.spines['top'].set_visible(False)
-            self.ax.get_xaxis().set_visible(False)
-            self.ax.get_yaxis().set_visible(False)
-            self.ax.set_xlim(-2.5, 2.5)
-            self.ax.set_ylim(-1.4, 1.4)
+            # Associated flag for already contained points
+            self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+
+            # Update the flag for already contained points
+            for p in self.already_contained_points:
+                x_idx = np.argmin(np.abs(self.x_space - p[0]))
+                y_idx = np.argmin(np.abs(self.y_space - p[1]))
+                self.is_already_contained[y_idx, x_idx] = 1   
 
 
-        self.vis = ZonoVisualizer(fig = self.fig, ax = self.ax)
+class StaticEnv2:
+    def __init__(self, zono_op, dynamics, visualizer) -> None:
+        self.zono_op = zono_op      # Class for Zonotope operations
+        self.vis = visualizer       # Class for visualizing the results
+        self.dynamics = dynamics    # Class for dynamics of the system
+        self.A = dynamics.A         # System dynamics
+        self.B = dynamics.B         # System dynamics
 
-        # Dynamic Model
-        self.A = np.array([
-            [1.0, 0.0],
-            [0.0, 1.0]
-        ])
+    def get_state_space_outer(self):
+        '''
+        This function returns the state space X for the outer section
+        '''
 
-        self.B = np.array([
-            [0.1, 0.0],
-            [0.0, 0.1]
-        ])     
+        # Extract only the dimensions that are relevant to the state space
+        # Only the first 'ns' dimensions are relevant to the state space
 
-    def create_figure(self):
-        self.fig, self.ax = plt.subplots()        # Initialize the plot
-        # self.ax.grid()                          # Add a grid
-        # self.ax.spines['left'].set_edgecolor('white')
-        # self.ax.spines['bottom'].set_edgecolor('white')
-        self.ax.spines['left'].set_visible(False)
-        self.ax.spines['bottom'].set_visible(False)
-        self.ax.spines['right'].set_visible(False)
-        self.ax.spines['top'].set_visible(False)
-        self.ax.get_xaxis().set_visible(False)
-        self.ax.get_yaxis().set_visible(False)
-        self.ax.set_xlim(-2.5, 2.5)
-        self.ax.set_ylim(-1.4, 1.4)
+        ns = 2  # Number of states
+        ni = 2  # Number of control inputs
 
-        # Update visualizer figure:
-        self.vis.create_figure(self.fig, self.ax)
+        space_outer, _, _ = self.road_outer
+
+        ng = space_outer.Gc.shape[1]
+        nc = space_outer.Ac.shape[0]
+        nb = space_outer.Ab.shape[1]
+
+        Gc = space_outer.Gc[:ns, :]
+        Gb = space_outer.Gb[:ns, :]
+        c = space_outer.C[:ns]
+        Ac = np.zeros((nc, ng))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))
 
 
-        # Define the dynamics model in here (Create a separate class for this which this env can take)
 
-    def brs_plot_settings(self):
-        self.x_min = -2.5; self.x_max = 2.5; self.y_min = -1.4; self.y_max = 1.4                # Bounds
-        self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
-        self.samples_x = int( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
-        self.samples_y = int( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
-        self.max_dist_x = math.ceil(self.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
-        self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
-        self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
-        self.p1_ = np.array([ [ 1.90,  0.2],[ 1.90,  0.6] ])                                    # Parking spot 1 vertices
-        self.p2_ = np.array([ [ 1.90, -0.6],[ 1.90, -0.2] ])                                    # Parking spot 2 vertices
 
-        # Create a list of all (x, y) points between the two points in p1_, p2_,
-        self.initial_points = []
-        for i in range(int(abs(self.p1_[1][1] - self.p1_[0][1])/self.y_step) + 2):    # These are the vertical lines
-            self.initial_points.append([self.p1_[0][0], self.p1_[0][1] - i*self.y_step])
-            self.initial_points.append([self.p2_[0][0], self.p2_[0][1] - i*self.y_step])            
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        self.initial_points = np.array(self.initial_points)        
+
+    def get_target_space_outer(self):
+        '''
+        This function returns the target space T for the outer section.
+        The outer target space T contains the free parking spots of the outer section
+        '''
+
+        target_outer, _, _ = self.park_1
+
+        return target_outer
+
+
+    def get_input_space_outer(self):
+        '''
+        This function returns the input space U for the outer section.
+        '''
+
+        space_outer, _, _ = self.road_outer
+
+        # Extract only the dimensions that are relevant to the input space
+        # Only the last 'ni' dimensions are relevant to the input space
+        
+        ns = 2  # Number of states
+        ni = 2  # Number of control inputs
+
+        ng = space_outer.Gc.shape[1]
+        nc = space_outer.Ac.shape[0]
+        nb = space_outer.Ab.shape[1]
+
+        Gc = space_outer.Gc[ns:4, ns:4]
+        Gb = space_outer.Gb[ns:4, :]
+        c = space_outer.C[2:4]
+        Ac = np.zeros((nc, ni))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))
+
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
 
 
     def get_sets(self):
@@ -236,7 +288,6 @@ class ParkEnv3:
         env['sets'].append(occ_2[0]); env['vis'].append(occ_2[1]); env['colors'].append(occ_2[2])
 
         return env['sets'], env['vis'], env['colors']
-
 
     @property
     def road_outer(self):
@@ -565,7 +616,6 @@ class ParkEnv3:
     
         return [obs, obs_vis, color]
 
-
     @property
     def occupied_1(self):
         '''
@@ -661,7 +711,6 @@ class ParkEnv3:
     
         return [occ, occ_vis, color]
 
-
     @property
     def parking_lot(self):
         '''
@@ -692,6 +741,12 @@ class ParkEnv3:
         return [park_lot, park_lot_vis, color]        
 
 
+
+
+
+
+
+
     def vis_env(self):
         # Visualize environment
         self.vis_background()
@@ -702,14 +757,12 @@ class ParkEnv3:
     def vis_background(self):
         # Visualize background
         img = mpimg.imread('./images/park_env.png')
-        self.ax.imshow(img, extent=[-2.5, 2.5, -1.4, 1.4], zorder = 1)
+        self.vis.ax.imshow(img, extent=[-2.5, 2.5, -1.4, 1.4], zorder = 1)
 
     def vis_sets(self):
         # Visualize hybrid zonotopes
-        hz, hz_vis, colors = self.get_sets()
+        _, hz_vis, colors = self.get_sets()
         self.vis.vis_hz(
             hzonotopes = hz_vis,
             colors = colors,
-            zorder = 2,
-            legend_labels = ['AAA'],
-            add_legend = False)
+            zorder = 2)

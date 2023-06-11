@@ -5,7 +5,7 @@ import numpy as np
 from utils.operations.operations import ZonoOperations
 from utils.operations.operations import TreeOperations
 from utils.sets.hybrid_zonotopes import HybridZonotope
-from utils.environments.environments import SamplesHZ
+from utils.environments.samples import SamplesHZ
 from utils.tlt.nodes import OR, AND, UNTIL, set_node, WUNTIL, NEXT
 from utils.tlt.tree import Tree
 from utils.visualization import ZonoVisualizer

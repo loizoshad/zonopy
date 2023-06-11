@@ -56,11 +56,6 @@ class ParamBRS:
         if space == 'outer':
             # self.x_min = -2.1; self.x_max = 1.5; self.y_min = -1.0; self.y_max = 1.0                # Bounds
             self.x_min = -2.45; self.x_max = 1.85; self.y_min = -1.35; self.y_max = 1.45                # Bounds
-
-            # TEMP
-            self.x_min = -0.35; self.x_max = 0.35; self.y_min = -0.25; self.y_max = 0.25                # Bounds
-
-
             self.x_step = self.B[0][0]; self.y_step = self.B[1][1]                                  # Step size
             self.samples_x = math.ceil( (self.x_max - self.x_min) / (self.x_step) )                       # Number of samples (x)
             self.samples_y = math.ceil( (self.y_max - self.y_min) / (self.y_step) )                       # Number of samples (y)
@@ -68,10 +63,6 @@ class ParamBRS:
             self.max_dist_y = math.ceil(self.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
             self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)
             self.p1_ = np.array([ [1.9,  0.2],[1.9,  -0.2] ])                                        # Parking spot 2 vertices
-
-            # TEMP
-            self.p1_ = np.array([ [-0.32,  0.0],[0.32,  0.0] ])                                        # Parking spot 2 vertices
-
 
             # Create a list of all (x, y) points between the two points in p1_, p2_,
             self.initial_points = []

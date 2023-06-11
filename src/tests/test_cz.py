@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from utils.sets.zonotopes import Zonotope
 from utils.sets.constrained_zonotopes import ConstrainedZonotope
-from utils.environments.environments import SamplesCZ
+from utils.environments.samples import SamplesCZ
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 
