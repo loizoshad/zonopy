@@ -145,71 +145,21 @@ class ZonoVisualizer:
             i += 1
 
 
-    def vis_hz_brs(self, hz):
+    def vis_hz_brs(self, hz, brs_settings):
         '''
         Visualizes a backward reachable set repsented by a hybrid zonotope
         '''
         assert hz.dim == 2, f'Hybrid Zonotope must be 2D (i.e., hz.dim = 2)'        
 
-        for x_i, x in enumerate(self.brs_sett.x_space):
-            for y_i, y in enumerate(self.brs_sett.y_space):
+        new_points = self.zono_op.is_inside_hz_space(hz, brs_settings)
+            
+        marker_size = 0.5 * 39.36           # 0.2m in inches
+        marker_size = marker_size**2        # area of the marker
 
-                p = np.array([[x], [y]])
-
-                # Check if the point 'p' is contained in any of the constrained zonotopes
-                if self.brs_sett.is_already_contained[y_i, x_i] == 1:
-                    continue
-                
-                '''
-                Check if the point 'p' is close enough to any of the points that where already contained during last iteration.
-                We do this because this method is used specifically for plotting backward reachable sets (brs).
-                Therefore, it redundant to check points that are too far away from the brs from last iteration
-                as the evolution of the brs is limited by the model dynamics.
-                '''
-
-                close_enough = False
-                if 1 in self.brs_sett.is_already_contained[y_i, max(0, x_i - self.brs_sett.max_dist_y):x_i ]:
-                    close_enough = True
-                elif 1 in self.brs_sett.is_already_contained[y_i, x_i + 1:min(self.brs_sett.samples_y - 1, x_i + self.brs_sett.max_dist_y + 1)]:
-                    close_enough = True
-                elif 1 in self.brs_sett.is_already_contained[y_i + 1:min(self.brs_sett.samples_x - 1, y_i + self.brs_sett.max_dist_x + 1), x_i]:
-                    close_enough = True
-                elif 1 in self.brs_sett.is_already_contained[max(0, y_i - self.brs_sett.max_dist_x):y_i, x_i]:
-                    close_enough = True
-                else:
-                    for q in range(self.brs_sett.max_dist_diag):                    
-                        if self.brs_sett.is_already_contained[ min(self.brs_sett.samples_y - 1, y_i + q),   max(0, x_i - q)]:
-                            close_enough = True
-                            break 
-                        # Move top and to the right (diagonally) of the point 'p'
-                        if self.brs_sett.is_already_contained[ min(self.brs_sett.samples_y - 1, y_i + q),   min(self.brs_sett.samples_x - 1, x_i + q)]:
-                            close_enough = True
-                            break
-                        # Move bottom and to the left (diagonally) of the point 'p'
-                        if self.brs_sett.is_already_contained[ max(0, y_i - q),   max(0, x_i - q)]:
-                            close_enough = True
-                            break
-                        # Move bottom and to the right (diagonally) of the point 'p'
-                        if self.brs_sett.is_already_contained[ max(0, y_i - q),   min(self.brs_sett.samples_x - 1, x_i + q)]:
-                            close_enough = True
-                            break
-                
-                if close_enough:
-                    # If the point made it until here, it means it needs to be checked
-                    if self.zono_op.is_inside_hz(hz, p):
-                        self.brs_sett.is_already_contained[y_i, x_i] = 1
-                        # Add the point p in the list of already contained points
-                        self.brs_sett.already_contained_points = np.append(self.brs_sett.already_contained_points, p.reshape(1, -1), axis = 0)
-                        
-                        marker_size = 0.5 * 39.36           # 0.2m in inches
-                        marker_size = marker_size**2        # area of the marker
-
-                        self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11,
-                                        edgecolors = 'face'
-                                        )
-
-
-
+        for p in new_points:
+            self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11,
+                            edgecolors = 'face'
+                            )
 
 
 

@@ -18,15 +18,12 @@ dynamics = DynamicsModel()
 zono_op = ZonoOperations()
 vis = ZonoVisualizer(zono_op = zono_op)
 env = StaticEnv2(zono_op = zono_op, dynamics = dynamics, visualizer = vis, options = options)
-params = ParamBRS(dynamics = dynamics, options = options)
+brs_settings = ParamBRS(dynamics = dynamics, options = options)
 
 # Create the space
 space = env.state_space
 target = env.target_space
 input = env.input_space
-env.vis.brs_plot_settings(params)
-
-
 
 
 N = 11
@@ -64,12 +61,13 @@ for i in range(N):
             first_time = False
 
 
-    env.vis.vis_hz_brs(hz = target)
+    env.grid = env.vis.vis_hz_brs(hz = target, brs_settings=brs_settings)
 
     # Save and clear figure
     name = f'brs_N_{i}'
     plt.show()
-    env.vis.fig.savefig(f'./results/static2/{options}/{name}.pdf', dpi=300)
+    # env.vis.fig.savefig(f'./results/static2/{options}/{name}.pdf', dpi=300)
+    env.vis.fig.savefig(f'./results/static2/v2/{name}.pdf', dpi=300)
 
     plt.close(env.vis.fig)
 

@@ -543,11 +543,66 @@ class ZonoOperations:
         else:
             return False
 
-    def is_inside_hz_space(self, hz: HybridZonotope):
-        '''
-        Given a grid of points, checks if each point is inside the hybrid zonotope hz
-        '''
-        pass
+    def is_inside_hz_space(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
+        new_points = []
+
+        for x_i, x in enumerate(brs_settings.x_space):
+            for y_i, y in enumerate(brs_settings.y_space):
+
+                p = np.array([[x], [y]])
+
+                # Check if the point 'p' is contained in any of the constrained zonotopes
+                if brs_settings.is_already_contained[y_i, x_i] == 1:
+                    continue
+                
+                '''
+                Check if the point 'p' is close enough to any of the points that where already contained during last iteration.
+                We do this because this method is used specifically for plotting backward reachable sets (brs).
+                Therefore, it redundant to check points that are too far away from the brs from last iteration
+                as the evolution of the brs is limited by the model dynamics.
+                '''
+
+                close_enough = False
+                if 1 in brs_settings.is_already_contained[y_i, max(0, x_i - brs_settings.max_dist_y):x_i ]:
+                    close_enough = True
+                elif 1 in brs_settings.is_already_contained[y_i, x_i + 1:min(brs_settings.samples_y - 1, x_i + brs_settings.max_dist_y + 1)]:
+                    close_enough = True
+                elif 1 in brs_settings.is_already_contained[y_i + 1:min(brs_settings.samples_x - 1, y_i + brs_settings.max_dist_x + 1), x_i]:
+                    close_enough = True
+                elif 1 in brs_settings.is_already_contained[max(0, y_i - brs_settings.max_dist_x):y_i, x_i]:
+                    close_enough = True
+                else:
+                    for q in range(brs_settings.max_dist_diag):                    
+                        if brs_settings.is_already_contained[ min(brs_settings.samples_y - 1, y_i + q),   max(0, x_i - q)]:
+                            close_enough = True
+                            break 
+                        # Move top and to the right (diagonally) of the point 'p'
+                        if brs_settings.is_already_contained[ min(brs_settings.samples_y - 1, y_i + q),   min(brs_settings.samples_x - 1, x_i + q)]:
+                            close_enough = True
+                            break
+                        # Move bottom and to the left (diagonally) of the point 'p'
+                        if brs_settings.is_already_contained[ max(0, y_i - q),   max(0, x_i - q)]:
+                            close_enough = True
+                            break
+                        # Move bottom and to the right (diagonally) of the point 'p'
+                        if brs_settings.is_already_contained[ max(0, y_i - q),   min(brs_settings.samples_x - 1, x_i + q)]:
+                            close_enough = True
+                            break
+                
+                if close_enough:
+                    # If the point made it until here, it means it needs to be checked
+                    if self.is_inside_hz(hz, p):
+                        print(f'{p.T}')
+                        brs_settings.is_already_contained[y_i, x_i] = 1
+
+                        # Add the point p in the list of new points
+                        new_points.append(p)
+
+                    
+        return np.array(new_points)                
+
+
+
 
 
     def ms_hz_hz(self, hz1: HybridZonotope, hz2: HybridZonotope) -> HybridZonotope:
@@ -607,7 +662,6 @@ class ZonoOperations:
         X_intersection_A_inv_T_W_plus_BU = self.intersection_hz_hz(hz1 = X, hz2 = A_inv_T_W_plus_BU)
 
         return X_intersection_A_inv_T_W_plus_BU
-
 
 
 
