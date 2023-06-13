@@ -15,46 +15,65 @@ This environment supports the second approach for computing backward reachable s
 '''
 
 
-
 class ParamBRS:
     def __init__(self, dynamics):
-        self.x_min = -2.45; self.x_max = 1.85                                                   # Bounds in x-direction
-        self.y_min = -1.35; self.y_max = 1.45                                                   # Bounds in y-direction
-        self.p1 = np.array([ [1.9,  0.2],[1.9,  -0.2] ])                                        # Vertices of outer parking spot
-        self.p2 = np.array([ [0.3,  -0.1],[0.7,  -0.1] ])                                       # Vertices of inner parking spot
 
-        self.x_step = dynamics.B[0][0]; self.y_step = dynamics.B[1][1]                                  # Step size
-        self.samples_x = math.ceil( (self.x_max - self.x_min) / (self.x_step) )                 # Number of samples (x)
-        self.samples_y = math.ceil( (self.y_max - self.y_min) / (self.y_step) )                 # Number of samples (y)
-        self.max_dist_x = math.ceil(dynamics.B[0][0] / self.x_step)                                 # Maximum distance it can travel in one step (x)
-        self.max_dist_y = math.ceil(dynamics.B[1][1] / self.y_step)                                 # Maximum distance it can travel in one step (x)
+        self.min = np.array([
+            -2.45,      # Minimum value for x-direction
+            -1.35       # Minimum value for y-direction
+        ])
+        self.max = np.array([
+            1.85,       # Maximum value for x-direction
+            1.45        # Maximum value for y-direction
+        ])
+        self.step = np.array([
+            dynamics.B[0][0],   # Step size for x-direction
+            dynamics.B[1][1]    # Step size for y-direction
+        ])
+
+        # Vertices of outer parking spot
+        self.p1 = np.array([[1.9,  0.2],        # x, y
+                            [1.9,  -0.2] ])     # x, y
+        # Vertices of inner parking spot
+        self.p2 = np.array([[0.3,  -0.1],       # x, y
+                            [0.7,  -0.1] ])     # x, y
+
+        self.samples_x = math.ceil( (self.max[1] - self.min[1]) / (self.step[1]) )              # Number of samples (x)
+        self.samples_y = math.ceil( (self.max[0] - self.min[0]) / (self.step[0]) )              # Number of samples (y)
+        self.max_dist_x = math.ceil(dynamics.B[1][1] / self.step[1])                            # Maximum distance it can travel in one step (x)
+        self.max_dist_y = math.ceil(dynamics.B[0][0] / self.step[0])                            # Maximum distance it can travel in one step (y)
         self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)                                     # Parking spot 2 vertices
 
         # Create a list of all (x, y) points between the two points in p1, p2
         self.initial_points = []
-        for i in range(int(abs(self.p1[1][1] - self.p1[0][1])/self.y_step) + 1):    # These are the vertical lines
-            self.initial_points.append([self.p1[0][0], self.p1[0][1] - i*self.y_step])
-        for i in range(int(abs(self.p2[1][0] - self.p2[0][0])/self.x_step) + 2):    # These are the horizontal lines
-            self.initial_points.append([self.p2[0][0] + i*self.x_step, self.p2[0][1]])
+        for i in range(int(abs(self.p1[1][1] - self.p1[0][1])/self.step[0]) + 1):    # These are the vertical lines (y-direction)
+            self.initial_points.append([self.p1[0][0], self.p1[0][1] - i*self.step[0]])
+        for i in range(int(abs(self.p2[1][0] - self.p2[0][0])/self.step[1]) + 2):    # These are the horizontal lines (x-direction)
+            self.initial_points.append([self.p2[0][0] + i*self.step[1], self.p2[0][1]])
 
-        self.initial_points = np.array(self.initial_points)
-        self.already_contained_points = self.initial_points 
+        self.initial_points = np.array(self.initial_points)         
 
-        # Discretize the x-y state space
-        self.x_space = np.arange(self.x_min, self.x_max, self.x_step)
-        self.y_space = np.arange(self.y_min, self.y_max, self.y_step)      
+        self.x_space = np.arange(self.min[1], self.max[1], self.step[1])
+        self.y_space = np.arange(self.min[0], self.max[0], self.step[0]) 
+
+
+        axis_ranges = [(min, max, step) for min, max, step in zip(self.min, self.max, self.step)]
+        meshgrid = np.meshgrid(*[np.arange(start, stop, step) for start, stop, step in axis_ranges])
+        self.space = np.stack(meshgrid, axis=-1)    # Stack the grids into a single n-dimensional space
+
 
         # Associated flag for already contained points
-        self.is_already_contained = np.zeros((self.samples_y, self.samples_x))
+        self.is_already_contained = np.zeros((self.space.shape[0], self.space.shape[1]))
 
         # Update the flag for already contained points
-        for p in self.already_contained_points:
-            x_idx = np.argmin(np.abs(self.x_space - p[0]))
-            y_idx = np.argmin(np.abs(self.y_space - p[1]))
-            self.is_already_contained[y_idx, x_idx] = 1   
+        for p in self.initial_points:
+            x_idx = math.floor( (p[1] - self.min[1]) / self.step[1] )
+            y_idx = math.floor( (p[0] - self.min[0]) / self.step[0] )
+            
+            self.is_already_contained[x_idx, y_idx] = 1   
 
 
-class StaticEnv2:
+class StaticEnv3:
     def __init__(self, zono_op, dynamics, visualizer, options) -> None:
 
         assert options in ['outer', 'inner', 'full'], 'Invalid option for state space, choose from "outer", "inner", "full"'

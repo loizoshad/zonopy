@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils.environments.static_env3 import StaticEnv3
+from utils.environments.static_env2 import StaticEnv2, ParamBRS
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 from utils.dynamics_model import DynamicsModel
@@ -17,7 +17,7 @@ options = 'outer'
 dynamics = DynamicsModel()
 zono_op = ZonoOperations()
 vis = ZonoVisualizer(zono_op = zono_op)
-env = StaticEnv3(zono_op = zono_op, dynamics = dynamics, visualizer = vis, options = options)
+env = StaticEnv2(zono_op = zono_op, dynamics = dynamics, visualizer = vis, options = options)
 
 # Create the space
 space = env.state_space
@@ -25,14 +25,8 @@ target = env.target_space
 input = env.input_space
 
 
-env.vis_background()
-
-
 N = 11
 for i in range(N):
-    print(f'*********************************************************')
-    print(f'Iteration {i}')
-
     target = zono_op.one_step_brs_hz_v2(X = space, T = target, U = input, A = env.A, B = env.B)
     
     env.vis_background()

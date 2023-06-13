@@ -481,28 +481,14 @@ class ZonoOperations:
         
         ## Step 1: Create a model
         model = gp.Model('is_inside_hz')
-        # Disable verbose output
-        model.Params.OutputFlag = 0
-
-        # Set MIPFocus = 1 (Focus more on finding feasible solutions)
-        model.Params.MIPFocus = 1
-        # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately)
-        model.Params.ImproveStartTime = 0   # seconds
-        # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
-        model.Params.SolutionLimit = 1
+        model.Params.OutputFlag = 0         # Disable verbose output
+        model.Params.MIPFocus = 1           # Set MIPFocus = 1 (Focus more on finding feasible solutions)
+        model.Params.ImproveStartTime = 0   # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately) (seconds)
+        model.Params.SolutionLimit = 1      # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
 
         ## Step 2: Create the variables
-        x_c = model.addMVar(shape = (hz.ng, ),
-                            lb = np.array([-1] * hz.ng),
-                            ub = np.array([ 1] * hz.ng),
-                            vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng),
-                            name = 'x_c')
-        
-        x_b = model.addMVar(shape = (hz.nb, ),
-                            lb = np.array([-1] * hz.nb),
-                            ub = np.array([ 1] * hz.nb),
-                            vtype = np.array([gp.GRB.INTEGER] * hz.nb),
-                            name = 'x_b')
+        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([ 1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
+        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([ 1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
 
         # Enforce that x_b only takes values in {-1, 1}^hz.nb
         for i in range(hz.nb):
@@ -512,38 +498,82 @@ class ZonoOperations:
         norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
 
         ## Step 4: Add constraints  # TODO: Check what can be done about making it into a sparse matrix
-        # Add the constraints
-        rhs = z - hz.C
-        lhs = hz.Gc @ x_c + hz.Gb @ x_b
-
+        rhs = z - hz.C                      # Right hand side of equality constraint equation
+        lhs = hz.Gc @ x_c + hz.Gb @ x_b     # Left hand side of equality constraint equation
         for left, right in zip(lhs, rhs):
             model.addConstr(left == right)
 
-        rhs = hz.b
-        lhs = hz.Ac @ x_c + hz.Ab @ x_b
-
+        rhs = hz.b                          # Right hand side of equality constraint equation
+        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
         for left, right in zip(lhs, rhs):
             model.addConstr(left == right)
         
-
-        # Use the 'norm' General constraint helper function from the gurobi API
-        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
 
         ## Step 3: Set the objective function
         model.setObjective(norm_inf, gp.GRB.MINIMIZE)  
 
 
-        ## Step 5: Solve the model
+        ## Step 4: Solve the model
         model.optimize()
 
-
-        ## Step 6: Check if the solution is feasible
+        ## Step 5: Check if the solution is feasible
         if model.status == gp.GRB.OPTIMAL or model.status == gp.GRB.SUBOPTIMAL:
             return True
         else:
             return False
 
+
+
+
+
     def is_inside_hz_space(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
+        new_points = []
+
+        avg_time = 0
+        total_time = 0
+        i = 0
+
+        for indices, flag in np.ndenumerate(brs_settings.is_already_contained):
+
+            # Check if the point 'p' is contained in any of the constrained zonotopes
+            if flag == 1:
+                continue            
+
+            p = brs_settings.space[tuple(indices)].reshape(-1, 1)
+
+
+            start_time = time.perf_counter()
+
+            if self.is_inside_hz(hz, p):
+                brs_settings.is_already_contained[tuple(indices)] = 1
+
+                # Add the point p in the list of new points
+                new_points.append(p)
+
+            end_time = time.perf_counter()
+
+            avg_time += end_time - start_time
+            total_time = total_time + (end_time - start_time)
+            i += 1
+
+        avg_time /= i
+
+        print(f'avg time = {avg_time}')
+        print(f'total time = {total_time}')
+
+                    
+        return np.array(new_points)    
+
+
+
+
+
+
+
+
+
+    def is_inside_hz_space_v1(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
         new_points = []
 
         for x_i, x in enumerate(brs_settings.x_space):
@@ -562,22 +592,23 @@ class ZonoOperations:
                 as the evolution of the brs is limited by the model dynamics.
                 '''
 
+
                 close_enough = False
                 if 1 in brs_settings.is_already_contained[y_i, max(0, x_i - brs_settings.max_dist_y):x_i ]:
                     close_enough = True
-                elif 1 in brs_settings.is_already_contained[y_i, x_i + 1:min(brs_settings.samples_y - 1, x_i + brs_settings.max_dist_y + 1)]:
+                elif 1 in brs_settings.is_already_contained[y_i, x_i + 1:min(brs_settings.y_space.shape[0] - 1, x_i + brs_settings.max_dist_y + 1)]:
                     close_enough = True
-                elif 1 in brs_settings.is_already_contained[y_i + 1:min(brs_settings.samples_x - 1, y_i + brs_settings.max_dist_x + 1), x_i]:
+                elif 1 in brs_settings.is_already_contained[y_i + 1:min(brs_settings.x_space.shape[0] - 1, y_i + brs_settings.max_dist_x + 1), x_i]:
                     close_enough = True
                 elif 1 in brs_settings.is_already_contained[max(0, y_i - brs_settings.max_dist_x):y_i, x_i]:
                     close_enough = True
                 else:
                     for q in range(brs_settings.max_dist_diag):                    
-                        if brs_settings.is_already_contained[ min(brs_settings.samples_y - 1, y_i + q),   max(0, x_i - q)]:
+                        if brs_settings.is_already_contained[ min(brs_settings.y_space.shape[0] - 1, y_i + q),   max(0, x_i - q)]:
                             close_enough = True
                             break 
                         # Move top and to the right (diagonally) of the point 'p'
-                        if brs_settings.is_already_contained[ min(brs_settings.samples_y - 1, y_i + q),   min(brs_settings.samples_x - 1, x_i + q)]:
+                        if brs_settings.is_already_contained[ min(brs_settings.y_space.shape[0] - 1, y_i + q),   min(brs_settings.x_space.shape[0] - 1, x_i + q)]:
                             close_enough = True
                             break
                         # Move bottom and to the left (diagonally) of the point 'p'
@@ -585,14 +616,13 @@ class ZonoOperations:
                             close_enough = True
                             break
                         # Move bottom and to the right (diagonally) of the point 'p'
-                        if brs_settings.is_already_contained[ max(0, y_i - q),   min(brs_settings.samples_x - 1, x_i + q)]:
+                        if brs_settings.is_already_contained[ max(0, y_i - q),   min(brs_settings.x_space.shape[0] - 1, x_i + q)]:
                             close_enough = True
                             break
                 
                 if close_enough:
                     # If the point made it until here, it means it needs to be checked
                     if self.is_inside_hz(hz, p):
-                        print(f'{p.T}')
                         brs_settings.is_already_contained[y_i, x_i] = 1
 
                         # Add the point p in the list of new points
