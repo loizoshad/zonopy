@@ -527,43 +527,74 @@ class ZonoOperations:
 
 
 
+    # def is_inside_hz_space(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
+    #     new_points = []
+
+    #     avg_time = 0
+    #     total_time = 0
+    #     i = 0
+
+    #     for indices, flag in np.ndenumerate(brs_settings.is_already_contained):
+
+    #         # Check if the point 'p' is contained in any of the constrained zonotopes
+    #         if flag == 1:
+    #             continue            
+
+    #         p = brs_settings.space[tuple(indices)].reshape(-1, 1)
+
+
+    #         start_time = time.perf_counter()
+
+    #         if self.is_inside_hz(hz, p):
+    #             brs_settings.is_already_contained[tuple(indices)] = 1
+
+    #             # Add the point p in the list of new points
+    #             new_points.append(p)
+
+    #         end_time = time.perf_counter()
+
+    #         avg_time += end_time - start_time
+    #         total_time = total_time + (end_time - start_time)
+    #         i += 1
+
+    #     avg_time /= i
+
+    #     print(f'avg time = {avg_time}')
+    #     print(f'total time = {total_time}')
+    #     print(f'iterations = {i}')
+
+                    
+    #     return np.array(new_points) 
+
+
     def is_inside_hz_space(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
         new_points = []
 
-        avg_time = 0
-        total_time = 0
+        # Index 10 is the zero value for each velocity dimension
         i = 0
 
-        for indices, flag in np.ndenumerate(brs_settings.is_already_contained):
 
-            # Check if the point 'p' is contained in any of the constrained zonotopes
-            if flag == 1:
-                continue            
+        for y_i in range(brs_settings.space.shape[0]):
+            for x_i in range(brs_settings.space.shape[1]):
+            
+                # if brs_settings.is_already_contained[y_i, x_i, 10, 10].any() == 1:
+                #     continue
 
-            p = brs_settings.space[tuple(indices)].reshape(-1, 1)
+                
+                # p = brs_settings.space[y_i, x_i, 10, 10]
+                p = brs_settings.space[y_i, x_i, 0, 0]
+                p = np.array([ [p[0]], [p[1]], [0.0], [0.0] ])
 
+                i += 1
+                print(f'(i = {i})  p = {p.T}')
 
-            start_time = time.perf_counter()
+                if self.is_inside_hz(hz, p):
+                    # brs_settings.is_already_contained[y_i, x_i, 10, 10] = 1
 
-            if self.is_inside_hz(hz, p):
-                brs_settings.is_already_contained[tuple(indices)] = 1
+                    # Add the point p in the list of new points
+                    new_points.append(p)
 
-                # Add the point p in the list of new points
-                new_points.append(p)
-
-            end_time = time.perf_counter()
-
-            avg_time += end_time - start_time
-            total_time = total_time + (end_time - start_time)
-            i += 1
-
-        avg_time /= i
-
-        print(f'avg time = {avg_time}')
-        print(f'total time = {total_time}')
-
-                    
-        return np.array(new_points)    
+        return np.array(new_points) 
 
 
 
@@ -690,6 +721,7 @@ class ZonoOperations:
 
         # Compute intersection with safe space X
         X_intersection_A_inv_T_W_plus_BU = self.intersection_hz_hz(hz1 = X, hz2 = A_inv_T_W_plus_BU)
+
 
         return X_intersection_A_inv_T_W_plus_BU
 

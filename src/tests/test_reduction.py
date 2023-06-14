@@ -7,7 +7,7 @@ from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 from utils.sets.hybrid_zonotopes import HybridZonotope
 from utils.environments.static_env1 import StaticEnv1
-from utils.dynamics_model import DynamicsModel
+from utils.dynamics_model_2d import DynamicsModel
 from utils.environments.static_env1 import StaticEnv1, ParamBRS
 
 def reduce_constraints_hz_v1(hz: HybridZonotope) -> HybridZonotope:

@@ -149,7 +149,6 @@ class ZonoVisualizer:
         '''
         Visualizes a backward reachable set repsented by a hybrid zonotope
         '''
-        assert hz.dim == 2, f'Hybrid Zonotope must be 2D (i.e., hz.dim = 2)'        
 
         new_points = self.zono_op.is_inside_hz_space(hz, brs_settings)
             

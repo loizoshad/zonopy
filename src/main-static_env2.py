@@ -4,7 +4,7 @@ import numpy as np
 from utils.environments.static_env2 import StaticEnv2, ParamBRS
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
-from utils.dynamics_model import DynamicsModel
+from utils.dynamics_model_2d import DynamicsModel
 
 marker_size = 0.5 * 39.36           # 0.2m in inches
 marker_size = marker_size**2        # area of the marker

@@ -5,7 +5,7 @@ import time
 from utils.environments.static_env1 import StaticEnv1, ParamBRS
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
-from utils.dynamics_model import DynamicsModel
+from utils.dynamics_model_2d import DynamicsModel
 
 
 ##############################################################################

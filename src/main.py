@@ -4,7 +4,7 @@ import numpy as np
 from utils.environments.static_env3 import StaticEnv3
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
-from utils.dynamics_model import DynamicsModel
+from utils.dynamics_model_4d import DynamicsModel
 
 marker_size = 0.5 * 39.36           # 0.2m in inches
 marker_size = marker_size**2        # area of the marker
@@ -27,13 +27,18 @@ input = env.input_space
 
 env.vis_background()
 
+print(f'ORIGINAL TARGET SET')
+print(f'ng = {target.ng}\t nc = {target.nc}\t nb = {target.nb}')
 
-N = 11
+
+N = 21
 for i in range(N):
     print(f'*********************************************************')
     print(f'Iteration {i}')
 
     target = zono_op.one_step_brs_hz_v2(X = space, T = target, U = input, A = env.A, B = env.B)
+
+    print(f'ng = {target.ng}\t nc = {target.nc}\t nb = {target.nb}')
     
     env.vis_background()
     
@@ -66,18 +71,15 @@ for i in range(N):
             first_time = False
 
 
-    env.grid = env.vis.vis_hz_brs(hz = target, brs_settings=env.brs_settings)
+    env.grid = env.vis.vis_hz_brs(hz =target, brs_settings=env.brs_settings)
+    # env.grid = env.vis.vis_hz_brs(hz = space, brs_settings=env.brs_settings)
+
 
     # Save and clear figure
     name = f'brs_N_{i}'
     plt.show()
     # env.vis.fig.savefig(f'./results/static2/{options}/{name}.pdf', dpi=300)
-    env.vis.fig.savefig(f'./results/static3/{options}/{name}.pdf', dpi=300)
+    env.vis.fig.savefig(f'./results/static3/{options}_2/{name}.pdf', dpi=300)
 
     plt.close(env.vis.fig)
-
-
-
-
-
 
