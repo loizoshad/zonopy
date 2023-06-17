@@ -1,18 +1,22 @@
-'''
+"""
 The properties of the hybrid zonotope class follow the work in [1]
 
 References:
 
 [1] T. Bird Hybrid Zonotopes: a new set representation for reachability analyisis of mixed logical dynamical systems
-'''
+"""
 
 import numpy as np
+
 # import cdd as pcdd # Enumerate vertices of a polytope
 # from scipy.spatial import ConvexHull
 
+
 class HybridZonotope:
-    def __init__(self, Gc: np.ndarray, Gb: np.ndarray, C: np.ndarray, Ac: np.ndarray, Ab:np.ndarray, b: np.ndarray) -> None:
-        '''
+    def __init__(
+        self, Gc: np.ndarray, Gb: np.ndarray, C: np.ndarray, Ac: np.ndarray, Ab: np.ndarray, b: np.ndarray
+    ) -> None:
+        """
         Constrained Zonotope CZ = (Gc, Gb, C, Ac, Ab, b)
 
         - Gc: Generators of the continuous component
@@ -24,15 +28,16 @@ class HybridZonotope:
         - Ac: matrix of linear constraints of dimensions (nc, ng), nc is the number of constraints
         - Ab: Binary, dimensions (nc, nb)
         - b : vector of linear constraints of dimensions (nc, 1), nc is the number of constraints
-        '''
+        """
 
-        assert C.shape[0] == Gc.shape[0] == Gb.shape[0], 'Center and generators must have the same dimension'
-        assert Gc.shape[1] == Ac.shape[1], 'Number of columns in Ac must match number of continuous generators'
-        assert Gb.shape[1] == Ab.shape[1], 'Number of columns in Ab must match number of binary generators'
-        assert Ac.shape[0] == Ab.shape[0] == b.shape[0], 'Number of constraints must be consinstent across Ac, Ab, and b'
+        assert C.shape[0] == Gc.shape[0] == Gb.shape[0], "Center and generators must have the same dimension"
+        assert Gc.shape[1] == Ac.shape[1], "Number of columns in Ac must match number of continuous generators"
+        assert Gb.shape[1] == Ab.shape[1], "Number of columns in Ab must match number of binary generators"
+        assert (
+            Ac.shape[0] == Ab.shape[0] == b.shape[0]
+        ), "Number of constraints must be consinstent across Ac, Ab, and b"
 
-
-        self.C = C.reshape(-1, 1)   # Reshape center
+        self.C = C.reshape(-1, 1)  # Reshape center
         self.Gc = Gc
         self.Gb = Gb
         self.Ac = Ac
@@ -45,39 +50,38 @@ class HybridZonotope:
 
     @property
     def ng(self) -> int:
-        '''
+        """
         Number of generators
-        '''
+        """
         return self.Gc.shape[1]
 
     @property
     def nb(self) -> int:
-        '''
+        """
         Number of binary generators
-        '''
+        """
         return self.Gb.shape[1]
 
     @property
     def nc(self) -> int:
-        '''
+        """
         Continuous constraints
-        '''
+        """
         return self.Ac.shape[0]
 
     @property
     def od(self) -> int:
-        '''
+        """
         Order of continuous component
-        '''
+        """
         return (self.ng - self.nb) / self.dim
 
     @property
     def ob(self) -> int:
-        '''
+        """
         TODO:
         Order of binary component
 
         ob = nb / | log_{2}(T) |
-        '''
+        """
         pass
-

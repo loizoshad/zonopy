@@ -1,22 +1,23 @@
-from ..tlt.nodes import OR, AND, UNTIL, set_node, WUNTIL, NEXT
+from zonopy.tlt.nodes import AND, NEXT, OR, UNTIL, WUNTIL, set_node
 
 
-class Tree(object):
+class Tree:
     def __init__(self, *nodes) -> None:
-
         for n in nodes:
-            assert isinstance(n, set_node) or isinstance(n, OR) or isinstance(n, AND) or isinstance(n, UNTIL) or isinstance(n, WUNTIL) or isinstance(n, NEXT), 'Nodes must be set nodes, OR, AND, UNTIL, WUNTIL, or NEXT'
+            assert (
+                isinstance(n, (AND, NEXT, OR, UNTIL, WUNTIL, set_node))
+            ), "Nodes must be set nodes, OR, AND, UNTIL, WUNTIL, or NEXT"
 
         self.nodes = nodes
 
-    @ property
+    @property
     def root(self):
         for n in self.nodes:
             if isinstance(n, set_node):
                 if n.is_root:
                     return n
 
-    @ property
+    @property
     def leaves(self):
         leaves = []
         for n in self.nodes:
@@ -53,4 +54,3 @@ class Tree(object):
 
         # Convert to tuple
         self.nodes = tuple(self.nodes)
-

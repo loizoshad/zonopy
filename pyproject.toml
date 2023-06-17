@@ -16,7 +16,7 @@ authors = [
   { name = "Loizos Hadjiloizou", email = "loizosh@kth.se" }
 ]
 maintainers = [
-  { name = "Loizos Hadjiloizou", email = "loizosh@kth.se" }
+  { name = "Loizos Hadjiloizou", email = "loizosh@kth.se" },
   { name = "Kaj Munhoz Arfvidsson", email = "kajarf@kth.se" },
 ]
 dependencies = []

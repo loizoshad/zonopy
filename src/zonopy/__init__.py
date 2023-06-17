@@ -2,4 +2,4 @@
 #
 # SPDX-License-Identifier: MIT
 
-from .sets.zonotopes import Zonotope
+from zonopy.sets.zonotopes import Zonotope
