@@ -11,6 +11,7 @@ REACH_SYMBOL = '\u211B'
 
 import casadi as ca
 import numpy as np
+import math
 from scipy.optimize import linprog
 from copy import deepcopy
 import itertools
@@ -523,50 +524,6 @@ class ZonoOperations:
         else:
             return False
 
-
-
-
-
-    # def is_inside_hz_space(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
-    #     new_points = []
-
-    #     avg_time = 0
-    #     total_time = 0
-    #     i = 0
-
-    #     for indices, flag in np.ndenumerate(brs_settings.is_already_contained):
-
-    #         # Check if the point 'p' is contained in any of the constrained zonotopes
-    #         if flag == 1:
-    #             continue            
-
-    #         p = brs_settings.space[tuple(indices)].reshape(-1, 1)
-
-
-    #         start_time = time.perf_counter()
-
-    #         if self.is_inside_hz(hz, p):
-    #             brs_settings.is_already_contained[tuple(indices)] = 1
-
-    #             # Add the point p in the list of new points
-    #             new_points.append(p)
-
-    #         end_time = time.perf_counter()
-
-    #         avg_time += end_time - start_time
-    #         total_time = total_time + (end_time - start_time)
-    #         i += 1
-
-    #     avg_time /= i
-
-    #     print(f'avg time = {avg_time}')
-    #     print(f'total time = {total_time}')
-    #     print(f'iterations = {i}')
-
-                    
-    #     return np.array(new_points) 
-
-
     def is_inside_hz_space(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
         new_points = []
 
@@ -577,90 +534,58 @@ class ZonoOperations:
         for y_i in range(brs_settings.space.shape[0]):
             for x_i in range(brs_settings.space.shape[1]):
             
-                # if brs_settings.is_already_contained[y_i, x_i, 10, 10].any() == 1:
-                #     continue
-
-                
-                # p = brs_settings.space[y_i, x_i, 10, 10]
-                p = brs_settings.space[y_i, x_i, 0, 0]
-                p = np.array([ [p[0]], [p[1]], [0.0], [0.0] ])
-
-                i += 1
-                print(f'(i = {i})  p = {p.T}')
-
-                if self.is_inside_hz(hz, p):
-                    # brs_settings.is_already_contained[y_i, x_i, 10, 10] = 1
-
-                    # Add the point p in the list of new points
-                    new_points.append(p)
-
-        return np.array(new_points) 
-
-
-
-
-
-
-
-
-
-    def is_inside_hz_space_v1(self, hz: HybridZonotope, brs_settings) -> np.ndarray:
-        new_points = []
-
-        for x_i, x in enumerate(brs_settings.x_space):
-            for y_i, y in enumerate(brs_settings.y_space):
-
-                p = np.array([[x], [y]])
 
                 # Check if the point 'p' is contained in any of the constrained zonotopes
-                if brs_settings.is_already_contained[y_i, x_i] == 1:
+                if brs_settings.is_already_contained_xy[y_i, x_i] == 1:
                     continue
-                
-                '''
-                Check if the point 'p' is close enough to any of the points that where already contained during last iteration.
-                We do this because this method is used specifically for plotting backward reachable sets (brs).
-                Therefore, it redundant to check points that are too far away from the brs from last iteration
-                as the evolution of the brs is limited by the model dynamics.
-                '''
+
+                # close_enough = False
+                # if 1 in brs_settings.is_already_contained_xy[y_i, max(0, x_i - brs_settings.max_dist_y):x_i ]:
+                #     close_enough = True
+                # elif 1 in brs_settings.is_already_contained_xy[y_i, x_i + 1:min(brs_settings.y_space.shape[0] - 1, x_i + brs_settings.max_dist_y + 1)]:
+                #     close_enough = True
+                # elif 1 in brs_settings.is_already_contained_xy[y_i + 1:min(brs_settings.x_space.shape[0] - 1, y_i + brs_settings.max_dist_x + 1), x_i]:
+                #     close_enough = True
+                # elif 1 in brs_settings.is_already_contained_xy[max(0, y_i - brs_settings.max_dist_x):y_i, x_i]:
+                #     close_enough = True
+                # else:
+                #     for q in range(brs_settings.max_dist_diag):                    
+                #         if brs_settings.is_already_contained_xy[ min(brs_settings.y_space.shape[0] - 1, y_i + q),   max(0, x_i - q)]:
+                #             close_enough = True
+                #             break 
+                #         # Move top and to the right (diagonally) of the point 'p'
+                #         if brs_settings.is_already_contained_xy[ min(brs_settings.y_space.shape[0] - 1, y_i + q),   min(brs_settings.x_space.shape[0] - 1, x_i + q)]:
+                #             close_enough = True
+                #             break
+                #         # Move bottom and to the left (diagonally) of the point 'p'
+                #         if brs_settings.is_already_contained_xy[ max(0, y_i - q),   max(0, x_i - q)]:
+                #             close_enough = True
+                #             break
+                #         # Move bottom and to the right (diagonally) of the point 'p'
+                #         if brs_settings.is_already_contained_xy[ max(0, y_i - q),   min(brs_settings.x_space.shape[0] - 1, x_i + q)]:
+                #             close_enough = True
+                #             break
 
 
-                close_enough = False
-                if 1 in brs_settings.is_already_contained[y_i, max(0, x_i - brs_settings.max_dist_y):x_i ]:
-                    close_enough = True
-                elif 1 in brs_settings.is_already_contained[y_i, x_i + 1:min(brs_settings.y_space.shape[0] - 1, x_i + brs_settings.max_dist_y + 1)]:
-                    close_enough = True
-                elif 1 in brs_settings.is_already_contained[y_i + 1:min(brs_settings.x_space.shape[0] - 1, y_i + brs_settings.max_dist_x + 1), x_i]:
-                    close_enough = True
-                elif 1 in brs_settings.is_already_contained[max(0, y_i - brs_settings.max_dist_x):y_i, x_i]:
-                    close_enough = True
-                else:
-                    for q in range(brs_settings.max_dist_diag):                    
-                        if brs_settings.is_already_contained[ min(brs_settings.y_space.shape[0] - 1, y_i + q),   max(0, x_i - q)]:
-                            close_enough = True
-                            break 
-                        # Move top and to the right (diagonally) of the point 'p'
-                        if brs_settings.is_already_contained[ min(brs_settings.y_space.shape[0] - 1, y_i + q),   min(brs_settings.x_space.shape[0] - 1, x_i + q)]:
-                            close_enough = True
-                            break
-                        # Move bottom and to the left (diagonally) of the point 'p'
-                        if brs_settings.is_already_contained[ max(0, y_i - q),   max(0, x_i - q)]:
-                            close_enough = True
-                            break
-                        # Move bottom and to the right (diagonally) of the point 'p'
-                        if brs_settings.is_already_contained[ max(0, y_i - q),   min(brs_settings.x_space.shape[0] - 1, x_i + q)]:
-                            close_enough = True
-                            break
-                
+                p = brs_settings.space[y_i, x_i, 0, 0]
+                p = np.array([ [p[0]], [p[1]], [0.0], [0.0] ])
+                # print(f'(i = {i})  p = {p.T}')
+                # i += 1
+
+                close_enough = True
                 if close_enough:
-                    # If the point made it until here, it means it needs to be checked
                     if self.is_inside_hz(hz, p):
-                        brs_settings.is_already_contained[y_i, x_i] = 1
+                        brs_settings.is_already_contained[y_i, x_i, 10, 10] = 1
+
+                        brs_settings.is_already_contained_xy[y_i, x_i] = 1
 
                         # Add the point p in the list of new points
                         new_points.append(p)
 
-                    
-        return np.array(new_points)                
+        return np.array(new_points)     
+
+
+
 
 
 
@@ -724,6 +649,172 @@ class ZonoOperations:
 
 
         return X_intersection_A_inv_T_W_plus_BU
+
+    def one_step_frs_hz(self, X: HybridZonotope, U: HybridZonotope, I: HybridZonotope, A: np.ndarray, B: np.ndarray, W: HybridZonotope) -> HybridZonotope:
+        '''
+        X: State space (Obstacles are not included)
+        U: Input space
+        I: Starting set (Initial set)
+        A: System matrix
+        B: Input matrix
+        W: Disturbance set
+
+        FRS = X \cap (A @ I + B @ U + W )
+
+        '''
+
+        A_I = self.lt_hz(A, I)                                          # A @ I
+        # print(f'A_I: ng = {A_I.ng},\t nc = {A_I.nc},\t nb = {A_I.nb}')
+        B_U = self.lt_hz(B, U)                                          # B @ U
+        # print(f'B_I: ng = {B_U.ng},\t nc = {B_U.nc},\t nb = {B_U.nb}')
+        A_I_plus_B_U = self.ms_hz_hz(hz1 = A_I, hz2 = B_U)              # A @ I + B @ U
+        # print(f'A_I_plus_B_U: ng = {A_I_plus_B_U.ng},\t nc = {A_I_plus_B_U.nc},\t nb = {A_I_plus_B_U.nb}')
+        A_I_plus_B_U_plus_W = self.ms_hz_hz(hz1 = A_I_plus_B_U, hz2 = W)    # A @ I + B @ U + W
+        # print(f'A_I_plus_B_U_plus_W: ng = {A_I_plus_B_U_plus_W.ng},\t nc = {A_I_plus_B_U_plus_W.nc},\t nb = {A_I_plus_B_U_plus_W.nb}')
+
+
+        return A_I_plus_B_U_plus_W
+
+
+        # X_intersection_A_I_plus_B_U_plus_W = self.intersection_hz_hz(hz1 = X, hz2 = A_I_plus_B_U_plus_W)
+        
+
+        # return X_intersection_A_I_plus_B_U_plus_W
+
+
+    def reduce_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        Reduces the number of continuous generators and the number
+        of constraints of a Hybrid Zonotope.
+        '''
+        # hz = self.reduce_c_hz(hz)
+        print(f'Before: size of Gc {hz.Gc.shape}\t size of Ac {hz.Ac.shape}')
+        hz = self.reduce_gc_hz(hz)
+        print(f'After: size of Gc {hz.Gc.shape}\t size of Ac {hz.Ac.shape}')
+
+        return hz
+    
+    def reduce_c_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        Reduces the number of constraints of a Hybrid Zonotope.
+
+        In this version we are removing the following constraints:
+            - Any constraint whose constraint matrix component (the particular row in [Ac Ab]) is all zeros
+            - Any constraint that there is another constraint that is equivalent to it
+                e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
+        '''
+
+        threshold = 1e-7
+        # max_angle = 5 * np.pi / 180
+        # threshold = np.cos(max_angle)
+
+        A = np.block([hz.Ac, hz.Ab, hz.b])
+
+        nc = A.shape[0]
+
+        # Loop through all the columns of Gc
+        i = 0; j = 0; k = 0
+
+        while i < nc - k:
+            c1 = A[i, :].T
+            c1 = c1.reshape((c1.shape[0], 1))
+            c1_mag = np.linalg.norm(c1)    # Magnitude of c1
+            c1_unit = c1 / c1_mag           # Unit vector of c1
+
+            # if np.abs(c1_mag) <= threshold:
+            if np.abs(c1_mag) <= 0.001:
+                A = np.delete(A, i, axis=0)
+                k += 1
+                continue
+
+            j = 0
+            while j < nc - k:
+                if i == j:
+                    j += 1
+                    continue
+
+                c2 = A[j, :].T
+                c2 = c2.reshape((c2.shape[0], 1))
+                c2_mag = np.linalg.norm(c2)     # Magnitude of c2
+                c2_unit = c2 / c2_mag            # Unit vector of c2
+
+                # dot_product = np.dot(c1.T, c2)  # Dot product between c1 and c2
+                # print(f'dot_product 1: {dot_product}')
+                dot_product = np.dot(c1_unit.T, c2_unit) # Dot product between c1 and c2 unit vectors
+                # print(f'dot_product 2: {dot_product}')
+
+                # if np.abs(np.abs(dot_product) - c1_mag*c2_mag) <= threshold or (c2_mag <= threshold):
+                if np.abs(np.abs(dot_product) - c1_mag*c2_mag) <= threshold or (c2_mag <= 0.001):
+                    A = np.delete(A, j, axis=0)   # Remove the second constraint
+                    k += 1
+
+                j += 1
+
+            i +=1
+
+        Ac = A[:, :hz.Ac.shape[1]]
+        Ab = A[:, hz.Ac.shape[1]:-1]
+        b = A[:, -1].reshape((A.shape[0], 1))
+
+        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
+
+    def reduce_gc_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        Reduces the number of continuous generators of a Hybrid Zonotope.
+        '''
+
+        # threshold = 1e-7
+        max_angle = 10 * math.pi / 180
+        threshold = math.cos(max_angle)
+
+        # Step 1: Stack Gc and Ac
+        G = np.block([
+            [hz.Gc],
+            [hz.Ac]
+        ])
+
+
+        n_row = G.shape[0]; ng = G.shape[1]
+
+        # Loop through all the rows of Gc
+        i = 0; j = 0; k = 0
+
+        while i < ng - k:
+            g1 = G[:, i]
+            g1_mag = np.linalg.norm(g1)    # Magnitude of g1
+            g1_unit = g1 / g1_mag           # Unit vector of g1
+
+            if np.abs(g1_mag) <= 0.001:
+                G = np.delete(G, i, axis=1)
+                k += 1
+                continue
+
+            j = 0
+            while j < ng - k:
+                if i == j:
+                    j += 1
+                    continue
+
+                g2 = G[:, j]
+                g2_mag = np.linalg.norm(g2)     # Magnitude of g2
+                g2_unit = g2 / g2_mag            # Unit vector of g2
+
+                dot_product = np.dot(g1_unit.T, g2_unit) # Dot product between g1 and g2 unit vectors
+
+                if np.abs(np.abs(dot_product) - g1_mag*g2_mag) <= threshold or (g2_mag <= 0.001):                
+                    G = np.delete(G, j, axis=1)   # Remove the second generator
+                    k += 1
+
+                j += 1
+
+            i +=1
+
+        Gc = G[:hz.dim, :]
+        Ac = G[hz.dim:, :]
+
+        return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
+
+
 
 
 

@@ -190,7 +190,7 @@ class SamplesHZ:
         Gb = np.zeros((n, nb))
         C = np.array([ [0.0], [0.0] ])
         Ac = np.array([
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+            [1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0]
         ])
         Ab = np.zeros((nc, nb))
         b = np.array([

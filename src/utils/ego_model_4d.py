@@ -1,4 +1,5 @@
 import numpy as np
+from utils.sets.hybrid_zonotopes import HybridZonotope
 
 class DynamicsModel:
     '''
@@ -28,6 +29,7 @@ class DynamicsModel:
 
 
         self.dt = 0.2       # [s] Time step
+        self.W = self.get_disturbance()
 
         self.A = np.array([
             [1.0, 0.0, self.dt, 0.0    ],     # x - position
@@ -44,4 +46,32 @@ class DynamicsModel:
 
 
 
-    
+    def get_disturbance(self):
+        '''
+        This function returns the disturbance w_k
+        '''
+        w = 0.0 * self.dt
+
+        n = 4
+        ng = 2; nc = 0; nb = 0
+        
+        Gc = np.array([
+            [0.0, 0.0],
+            [0.0, 0.0],
+            [  w, 0.0],
+            [0.0,   w]
+        ])
+        Gb = np.zeros((n, nb))
+        c = np.array([
+            [0.0],
+            [0.0],
+            [0.0],
+            [0.0]
+        ])
+
+        Ac = np.zeros((nc, ng))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))
+
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+

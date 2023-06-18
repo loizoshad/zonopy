@@ -52,9 +52,12 @@ class ParamBRS:
 
         self.samples_x = math.ceil( (self.max[1] - self.min[1]) / (self.step[1]) )              # Number of samples (x)
         self.samples_y = math.ceil( (self.max[0] - self.min[0]) / (self.step[0]) )              # Number of samples (y)
-        self.max_dist_x = math.ceil(dynamics.B[1][1] / self.step[1])                            # Maximum distance it can travel in one step (x)
-        self.max_dist_y = math.ceil(dynamics.B[0][0] / self.step[0])                            # Maximum distance it can travel in one step (y)
-        self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)                                     # Parking spot 2 vertices
+        # self.max_dist_x = math.ceil(dynamics.B[1][1] / self.step[1])                            # Maximum distance it can travel in one step (x)
+        # self.max_dist_y = math.ceil(dynamics.B[0][0] / self.step[0])                            # Maximum distance it can travel in one step (y)
+        # self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)                                     # Parking spot 2 vertices
+        self.max_dist_x = 4
+        self.max_dist_y = 4
+        self.max_dist_diag = 4
 
         # Create a list of all (x, y) points between the two points in p1, p2
         self.initial_points = []
@@ -76,16 +79,28 @@ class ParamBRS:
         meshgrid = np.meshgrid(*[np.arange(start, stop, step) for start, stop, step in axis_ranges])
         self.space = np.stack(meshgrid, axis=-1)    # Stack the grids into a single n-dimensional space
 
+
+        # JUST FOR THE X, Y DIMENSIONS
+        self.x_space = np.arange(self.min[0], self.max[0], self.step[0])
+        self.y_space = np.arange(self.min[1], self.max[1], self.step[1])
+
+
         # Associated flag for already contained points
         self.is_already_contained = np.zeros(self.space.shape)
+
+        # JUST FOR THE X, Y DIMENSIONS
+        self.is_already_contained_xy = np.zeros((self.y_space.shape[0], self.x_space.shape[0]))
+
 
         # Update the flag for already contained points
         for p in self.initial_points:
             x_idx = math.floor( (p[0] - self.min[0]) / self.step[0] )
             y_idx = math.floor( (p[1] - self.min[1]) / self.step[1] )
-
-            # TODO: MAKE SURE THAT THIS IS CORRECT
             self.is_already_contained[y_idx, x_idx, :, :] = 1   
+
+            # JUST FOR THE X, Y DIMENSIONS
+            self.is_already_contained_xy[y_idx, x_idx] = 1
+
 
 
 class StaticEnv3:
