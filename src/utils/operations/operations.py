@@ -37,6 +37,7 @@ References:
 [1] J. Scott, et al. 'Constrained zonotopes: A new tool for set-based estimation and fault detection'
 [2] L. Yang, et al.  'Efficient Backward Reachability Using the Minkowski Difference of Constrained Zonotopes'
 [3] T. Bird, et al.  'Unions and Complements of Hybrid Zonotopes'
+[4] L. Yang, et al.  'Scalable Zonotopic Under-approximation of Backward Reachable Sets for Uncertain Lienar Systems
 '''
 
 class ZonoOperations:
@@ -672,27 +673,9 @@ class ZonoOperations:
         A_I_plus_B_U_plus_W = self.ms_hz_hz(hz1 = A_I_plus_B_U, hz2 = W)    # A @ I + B @ U + W
         # print(f'A_I_plus_B_U_plus_W: ng = {A_I_plus_B_U_plus_W.ng},\t nc = {A_I_plus_B_U_plus_W.nc},\t nb = {A_I_plus_B_U_plus_W.nb}')
 
-
-        return A_I_plus_B_U_plus_W
-
-
-        # X_intersection_A_I_plus_B_U_plus_W = self.intersection_hz_hz(hz1 = X, hz2 = A_I_plus_B_U_plus_W)
+        X_intersection_A_I_plus_B_U_plus_W = self.intersection_hz_hz(hz1 = X, hz2 = A_I_plus_B_U_plus_W)
         
-
-        # return X_intersection_A_I_plus_B_U_plus_W
-
-
-    def reduce_hz(self, hz: HybridZonotope) -> HybridZonotope:
-        '''
-        Reduces the number of continuous generators and the number
-        of constraints of a Hybrid Zonotope.
-        '''
-        # hz = self.reduce_c_hz(hz)
-        print(f'Before: size of Gc {hz.Gc.shape}\t size of Ac {hz.Ac.shape}')
-        hz = self.reduce_gc_hz(hz)
-        print(f'After: size of Gc {hz.Gc.shape}\t size of Ac {hz.Ac.shape}')
-
-        return hz
+        return X_intersection_A_I_plus_B_U_plus_W
     
     def reduce_c_hz(self, hz: HybridZonotope) -> HybridZonotope:
         '''
@@ -757,15 +740,23 @@ class ZonoOperations:
         b = A[:, -1].reshape((A.shape[0], 1))
 
         return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
-
+    
     def reduce_gc_hz(self, hz: HybridZonotope) -> HybridZonotope:
         '''
-        Reduces the number of continuous generators of a Hybrid Zonotope.
+        Removes redundant continuous generators from a Hybrid Zonotope.
+
+        This method first forms the lifted hybrid zonotope. Then it
+        scans all generators and whenver it finds a pair of generators that are
+        parallel to each other, it adds one to the other and removes the other one.
+
+        Example: If we have two generators g1 and g2, and g1 = 2*g2,
+        then we update g1 as g1 = g1 + g2 = 3*g2 and remove g2. 
         '''
 
         # threshold = 1e-7
-        max_angle = 10 * math.pi / 180
-        threshold = math.cos(max_angle)
+        max_angle = 0.05 * math.pi / 180
+        # max_angle = 0.5 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
 
         # Step 1: Stack Gc and Ac
         G = np.block([
@@ -773,8 +764,7 @@ class ZonoOperations:
             [hz.Ac]
         ])
 
-
-        n_row = G.shape[0]; ng = G.shape[1]
+        ng = G.shape[1]
 
         # Loop through all the rows of Gc
         i = 0; j = 0; k = 0
@@ -801,7 +791,8 @@ class ZonoOperations:
 
                 dot_product = np.dot(g1_unit.T, g2_unit) # Dot product between g1 and g2 unit vectors
 
-                if np.abs(np.abs(dot_product) - g1_mag*g2_mag) <= threshold or (g2_mag <= 0.001):                
+                if np.abs(dot_product) >= threshold or (g2_mag <= 0.001):
+                    G[:, i - k] = g1 + g2
                     G = np.delete(G, j, axis=1)   # Remove the second generator
                     k += 1
 
@@ -813,6 +804,104 @@ class ZonoOperations:
         Ac = G[hz.dim:, :]
 
         return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
+
+    def under_approximate_gc_hz(self, hz: HybridZonotope, N: int) -> HybridZonotope:
+        '''
+        Reduces the number of continuous generators of a Hybrid Zonotope.
+
+        This method first removes all parallel generators of the lifted hybrid zonotope.
+
+        Then it makes use of the work in [4] to further reduce the number of continuous generators
+        by under-approximation of maximum N generators
+        '''
+        # Continuous Generators of Lifted Hybrid Zonotope
+        G = np.block([
+            [hz.Gc],
+            [hz.Ac]
+        ])
+
+        ng = G.shape[1]
+
+        # Loop through all the rows of Gc
+        i = 0; j = 0
+
+        objective = []
+
+        while i < ng:
+            g1 = G[:, i]
+            g1_mag = np.linalg.norm(g1)     # Magnitude of g1
+            g1_unit = g1 / g1_mag           # Unit vector of g1
+
+            j = 0
+            while j < ng:
+                if i == j:
+                    j += 1
+                    continue
+
+                g2 = G[:, j]
+
+                objective.append( ( g1_mag * np.linalg.norm(g2 - np.dot(g1_unit, np.dot(g2.T, g1_unit)) ),
+                                    i,
+                                    j))
+
+                j += 1
+            i +=1
+
+        # # Sort the objective list from min to max
+        # objective = sorted(objective, key=lambda x: x[0])   # This has a cost of O(n log n)
+        objective.sort()
+
+
+        remaining_indices = set(range(G.shape[1]))  # Set to keep track of the remaining generator indices
+        updated_generators = []                     # List to store the updated generators
+
+        # Perform generator elimination until 'N' generators are left
+        while len(remaining_indices) > N:
+            # Find the pair with the smallest objective value
+            _, i, j = objective.pop(0)
+
+            # Check if generators still exist
+            if i in remaining_indices and j in remaining_indices:
+                # Replace g1 by g1 + g2
+                G[:, i] += G[:, j]
+                remaining_indices.remove(j)
+
+        # Create the updated matrix with the remaining vectors
+        for i in range(G.shape[1]):
+            if i in remaining_indices:
+                updated_generators.append(G[:, i])
+
+        G = np.column_stack(updated_generators)
+
+
+        Gc = G[:hz.dim, :]
+        Ac = G[hz.dim:, :]
+
+        return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
+
+    def under_approximate_hz(self, hz: HybridZonotope, N: int) -> HybridZonotope:
+        '''
+        N is the maximum number of continuous generators to be kept.
+        '''
+        hz = self.reduce_c_hz(hz)
+        hz = self.under_approximate_gc_hz(hz, N)
+
+        return hz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
