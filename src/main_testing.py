@@ -6,6 +6,13 @@ from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 from utils.ego_model_4d import DynamicsModel
 
+
+'''
+Use this script for:
+
+'''
+
+
 marker_size = 0.5 * 39.36           # 0.2m in inches
 marker_size = marker_size**2        # area of the marker
 first_time = True
@@ -41,7 +48,7 @@ for i in range(N):
     target = zono_op.one_step_brs_hz_v2(X = space, T = target, U = input, A = env.A, B = env.B)
 
     if params == 'reduced':
-        target = zono_op.under_approximate_hz(target, max_gens)
+        target = zono_op.ua_hz(target, max_gens)
 
     print(f'ng = {target.ng}\t nc = {target.nc}\t nb = {target.nb}')
 

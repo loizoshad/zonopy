@@ -182,7 +182,7 @@ class SamplesHZ:
     
     @property
     def set_f(self):
-        n = 2; ng = 7; nc = 1; nb = 0
+        n = 2; ng = 7; nc = 3; nb = 0
         Gc = np.array([
             [1.0, 0.5, 1.0, 1.6, 0.4, 0.0, 0.5 ],
             [0.0, 1.0, 2.0, 2.1, 0.3, 0.1, 0.3 ]
@@ -190,11 +190,15 @@ class SamplesHZ:
         Gb = np.zeros((n, nb))
         C = np.array([ [0.0], [0.0] ])
         Ac = np.array([
-            [1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0]
+            [1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0],
+            [2.0, 2.0, 4.0, 2.0, 2.0, 2.0, 2.0],
+            [2.0, 2.0, 4.0, 2.0, 2.0, 2.0, 2.0]
         ])
         Ab = np.zeros((nc, nb))
         b = np.array([
-            [1.0]
+            [1.0],
+            [2.0],
+            [2.0]
         ])
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)

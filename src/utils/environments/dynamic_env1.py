@@ -423,7 +423,8 @@ class InitialSpace:
     '''
 
     def get_space(self):
-        return self.initial_space_1
+        # return self.initial_space_1
+        return self.initial_space_2
 
     @property
     def initial_space_1(self):
@@ -448,6 +449,33 @@ class InitialSpace:
         b = np.zeros((nc, 1))        
 
         # initial_space = HybridZonotope(Gc[:2,:], Gb[:2,:], c[:2,:], Ac, Ab, b)
+        initial_space = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        return initial_space
+
+
+    @property
+    def initial_space_2(self):
+        w = 0.25        # Width of vehicle [m]
+        l = 0.45        # Length of vehicle [m]
+        nx = 4         # Number of state variables
+        ng = 2; nb = 0; nc = 0
+        Gc = np.array([
+            [w/2, 0.0],
+            [0.0, l/2],
+            [0.0, 0.0],
+            [0.0, 0.0]
+        ])
+        Gb = np.zeros((nx, nb))
+        c = np.array([  [1.7], 
+                        [-1.0], 
+                        [0.0],
+                        [0.0] ])
+        
+        Ac = np.zeros((nc, ng))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))        
+
         initial_space = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
         return initial_space
