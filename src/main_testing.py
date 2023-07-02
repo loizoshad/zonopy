@@ -42,7 +42,7 @@ print(f'ng = {target.ng}\t nc = {target.nc}\t nb = {target.nb}')
 
 
 for i in range(N):
-    print(f'*********************************************************')
+    print(f'******************************************************************************************************')
     print(f'Iteration {i}')
 
     target = zono_op.one_step_brs_hz_v2(X = space, T = target, U = input, A = env.A, B = env.B)

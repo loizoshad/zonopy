@@ -12,6 +12,9 @@ from utils.ego_model_2d import DynamicsModel
 from utils.environments.static_env1 import StaticEnv1, ParamBRS
 
 
+
+np.set_printoptions(edgeitems=10, linewidth=10000)
+
 '''
 This test script tests the methods: 
     oa_constr_hz_scott
@@ -34,22 +37,28 @@ dynamics = DynamicsModel()
 vis = ZonoVisualizer(zono_op)
 brs_plot_params = ParamBRS(dynamics = dynamics, space = 'outer')
 env = StaticEnv1(zono_op = zono_op, dynamics = DynamicsModel(), visualizer = vis)
-hz = SamplesHZ().set_f
+hz1 = SamplesHZ().set_a
+hz2 = SamplesHZ().set_b
+hz3 = SamplesHZ().set_c
+
+hz = zono_op.union_hz_hz(hz2, hz3)
+# hz = zono_op.union_hz_hz(hz, hz3)
 
 
-param = 'oa'
+param = 'reduced'
+max_iter = 2
 
-
+print(f'*************************************')
+print(f'reduced {max_iter} times')
 print(f'Before reduction \nshape of Gc: {hz.Gc.shape} (ng = {hz.ng})')
 print(f'shape of Ac: {hz.Ac.shape} (nc = {hz.nc})\nshape of Ab: {hz.Ab.shape} (nb = {hz.nb})')
-print(f'Gc = \n{hz.Gc}')
-print(f'Ac = \n{hz.Ac}')
-if param == 'oa':
-    hz = zono_op.red_hz_scott(hz)
+if param == 'reduced':
+    for i in range(max_iter):
+        hz = zono_op.red_hz_scott(hz)
+
 print(f'After reduction \nshape of Gc: {hz.Gc.shape} (ng = {hz.ng})')
 print(f'shape of Ac: {hz.Ac.shape} (nc = {hz.nc})\nshape of Ab: {hz.Ab.shape} (nb = {hz.nb})')
-print(f'Gc = \n{hz.Gc}')
-print(f'Ac = \n{hz.Ac}')
+
 
 
 vis.brs_plot_settings(brs_plot_params)

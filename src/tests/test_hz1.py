@@ -151,6 +151,7 @@ vis.ax.get_xaxis().set_visible(True); vis.ax.get_yaxis().set_visible(True)
 vis.ax.grid(True)
 
 hz_15_U_16_U_17 = ZonoOperations().union_hz_hz(hz_15_U_16, hz_17)
+print(f'HZ_15_U_16_U_17: ng = {hz_15_U_16_U_17.ng}, nc = {hz_15_U_16_U_17.nc}, nb = {hz_15_U_16_U_17.nb}')
 hz_15_U_16_U_17 = ZonoOperations().red_hz_scott(hz_15_U_16_U_17)
 print(f'HZ_15_U_16_U_17: ng = {hz_15_U_16_U_17.ng}, nc = {hz_15_U_16_U_17.nc}, nb = {hz_15_U_16_U_17.nb}')
 # vis.vis_hz([hz_15_U_16_U_17])

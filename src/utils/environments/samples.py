@@ -85,11 +85,11 @@ class SamplesHZ:
     def set_a(self):
         n = 2; ng = 3; nc = 0; nb = 0
         Gc = 0.1*np.array([
-            [1.5, -1.5, 0.5],
-            [1.0, 0.5, -1.0]
+            [2.5, -1.5, 0.5],
+            [2.0, 1.5, -1.0]
         ])
         Gb = np.zeros((n, nb))
-        C = np.array([ [0.0], [0.0] ])
+        C = np.array([ [0.0], [4.0] ])
         Ac = np.zeros((nc, ng))
         Ab = np.zeros((nc, nb))
         b = np.zeros((nc, 1))
@@ -100,11 +100,11 @@ class SamplesHZ:
     def set_b(self):
         n = 2; ng = 3; nc = 1; nb = 0
         Gc = 0.07*np.array([
-            [1.5, -1.5, 0.5],
-            [1.0, 0.5, -1.0]
+            [3.5, -4.5, 6.5],
+            [3.0, 6.5, -4.0]
         ])
         Gb = np.zeros((n, nb))
-        C = 0.15*np.array([ [-1.2], [0.2] ])
+        C = np.array([ [-1.2], [-5.2] ])
 
         Ac = np.array([
             [1.0, 1.0, 1.0],

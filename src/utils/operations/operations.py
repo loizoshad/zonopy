@@ -718,84 +718,56 @@ class ZonoOperations:
 
 
     def red_hz_scott(self, hz: HybridZonotope) -> HybridZonotope:
-        '''
-        This method implements the over-approximation of a Hybrid zonotope by removing constraints
-
-        This method is based on the work in [] where the authors implement this algorithm for constrained zonotopes
-        and it is extended in this work to be applicable for Hybrid Zonotopes.
-        
-        Gc = Gc - Lgc @ Ac
-        Gb = Gb - Lgb @ Ab
-        c  = c + Lg @ b
-        Ac = Ac - Lac @ Ac
-        Ab = Ab - Lab @ Ab
-        b  = b - La @ b
-
-        Dimensions:
-
-        Lgc: (hz.dim, hz.nc)
-        Lgb: (hz.dim, hz.nb)
-        Lac: (hz.nc, hz.nc)
-        Lab: (hz.nb, hz.nb)
-        Lg: (hz.dim, hz.nc + hz.nb)
-        La: (hz.nc, hz.nc + hz.nb)
-        '''
-
-        # # V1
-        # Lgc = 0.1*np.eye(hz.dim, hz.nc)
-        # Lgb = 0.1*np.eye(hz.dim, hz.nb)
-        # Lac = np.eye(hz.nc, hz.nc)
-        # Lab = np.eye(hz.nb, hz.nb)
-
-        # Lg = Lgc if hz.nb == 0 else np.block([Lgc, Lgb])
-        # La = Lac if hz.nb == 0 else np.block([Lac, Lab])
-
-        # Gc = hz.Gc - Lgc @ hz.Ac
-        # Gb = hz.Gb if hz.nb == 0 else hz.Gb - Lgb @ hz.Ab
-
-        # c = hz.C + Lg @ hz.b
-        # Ac = hz.Ac - Lac @ hz.Ac
-        # Ab = hz.Ab if hz.nb == 0 else hz.Ab - Lab @ hz.Ab
-        # b = hz.b - La @ hz.b
-
-
-        # V2
-        hz = self.rescale_hz(hz)
         E, R = self.intervals_hz(hz)
         A = np.block([hz.Ac, hz.Ab])
 
+        epsilon = 1e-3
+
+        already_removed_c = []; already_removed_g = []
         for c in range (hz.ng + hz.nb):
             for r in range(hz.nc):
-                if A[r, c] != 0:
+                if np.abs(A[r, c]) >= epsilon:
                     a_rc_inv = (1/A[r, c])
                     sum = 0
                     for k in range(hz.ng + hz.nb):
                         if k != c:
                             sum = sum + A[r, k] * E[k]
                     R_rc = a_rc_inv * hz.b[r,0] - a_rc_inv * sum
-                
-                    if self.is_inside_interval(R_rc, np.array([-1, 1])):
+
+                    if self.is_inside_interval(R_rc, np.array([-1, 1])) and (r not in already_removed_c) and (c not in already_removed_g):
+                        already_removed_c.append(r); already_removed_g.append(c)
                         Ecr = np.zeros((hz.ng + hz.nb, hz.nc))
                         Ecr[c, r] = 1
 
-                        # print(f'c = {c}, r = {r}')
                         Lg = np.block([hz.Gc, hz.Gb]) @ Ecr * (1/A[r, c])
                         La = np.block([hz.Ac, hz.Ab]) @ Ecr * (1/A[r, c])
 
-                        # print(f'Lg = \n{Lg}')
+                        # print(f'*****************************************************************'); print(f'inverse of Arc = {(1/A[r, c])}')
+                        # print(f'Gc: max = {np.max(hz.Gc)}\t min = {np.min(hz.Gc)} '); print(f'Gb: max = {np.max(hz.Gb)}\t min = {np.min(hz.Gb)} ')
+                        # print(f'Ac: max = {np.max(hz.Ac)}\t min = {np.min(hz.Ac)} '); print(f'Ab: max = {np.max(hz.Ab)}\t min = {np.min(hz.Ab)} ')
+                        # print(f'Lg: max = {np.max(Lg)}\t min = {np.min(Lg)} '); print(f'La: max = {np.max(La)}\t min = {np.min(La)} ')
 
-                        Gc = hz.Gc - Lg @ hz.Ac
-                        Gb = hz.Gb - Lg @ hz.Ab
-                        C  = hz.C  + Lg @ hz.b
-                        Ac = hz.Ac - La @ hz.Ac
-                        Ab = hz.Ab - La @ hz.Ab
-                        b  = hz.b  - La @ hz.b
+                        # Check if Lg has only zero zero values
+                        full_zero = True
+                        for x in range(Lg.shape[1]):
+                            for y in range(Lg.shape[0]):
+                                if Lg[y, x] != 0:
+                                    full_zero = False
 
-                        hz = HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+                        if not (full_zero):
+                            Gc = hz.Gc - Lg @ hz.Ac
+                            Gb = hz.Gb - Lg @ hz.Ab
+                            C  = hz.C  + Lg @ hz.b
+                            Ac = hz.Ac - La @ hz.Ac
+                            Ab = hz.Ab - La @ hz.Ab
+                            b  = hz.b  - La @ hz.b
+
+                            hz = HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
 
 
         hz = self.reduce_c_hz(hz)   # Remove the redundant or zero constraints
-        # hz = self.reduce_gc_hz(hz)  # Remove redundant generators
+        # hz = self.reduce_gc_hz(hz)
 
         return hz
 
@@ -834,7 +806,9 @@ class ZonoOperations:
         Check if interval_1 is a subset of interval_2
         '''
 
-        l = interval_1[0]; r = interval_1[1]
+        # sort the intervals
+        l = min(interval_1[0], interval_1[1])
+        r = max(interval_1[0], interval_1[1])
 
         intersection = self.intesection_intervals(interval_1, interval_2)
 
@@ -865,10 +839,7 @@ class ZonoOperations:
         '''
         Extends the notion of rescaling a constrained zonotope of work [1] for hybrid zonotopes
         '''
-
-
-
-
+        
         ## Step 1: Create a model
         model = gp.Model('rescale_hz')
         model.Params.OutputFlag = 0         # Disable verbose output
@@ -922,8 +893,16 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
+    def precondition_hz(self, hz):
+        '''
+        This method takes the constraints [hz.Ac, hz.Ab | hz.b] to reduced row echelon form
+        by Gauss-Jordan elimination with full pivoting.
 
-
+        In each step of of elimination the pivot element is chosen as the element in the unreduced
+        submatrix (omitting the final column (hz.b)) that is the largest relative to the infinity norm
+        of the row it occupies
+        '''
+        pass
 
 
     def reduce_c_hz(self, hz: HybridZonotope) -> HybridZonotope:
@@ -1029,7 +1008,11 @@ class ZonoOperations:
                 g2 = G[:, j]
                 g2_mag = np.linalg.norm(g2)     # Magnitude of g2
 
-                if (g2_mag <= 0.001) or np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
+
+                if (g2_mag <= 0.001):
+                    G = np.delete(G, j, axis=1)   # Remove the second generator
+                    k += 1                    
+                elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
                     G[:, i - k] = g1 + g2
                     G = np.delete(G, j, axis=1)   # Remove the second generator
                     k += 1
@@ -1040,6 +1023,7 @@ class ZonoOperations:
 
         Gc = G[:hz.dim, :]
         Ac = G[hz.dim:, :]
+
 
         return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
 
