@@ -150,10 +150,26 @@ class StateSpaceSafe:
 
     def get_space(self, options):
         if options == 'outer':
+            # road_outer = self.zono_op.red_hz_scott(self.road_outer)
+            # return road_outer
             return self.road_outer
+        
         elif options == 'inner':
-            road_inner = self.zono_op.union_hz_hz(self.road_inner, self.road_park_1)
-            road_inner = self.zono_op.union_hz_hz(road_inner, self.road_park_2)
+            # road_inner_a = self.zono_op.union_hz_hz(self.road_park_1, self.road_park_2)
+            # road_inner_a = self.zono_op.red_hz_scott(road_inner_a)
+            # road_inner_b = self.zono_op.red_hz_scott(self.road_inner)
+            # road_inner = self.zono_op.union_hz_hz(road_inner_a, road_inner_b)
+
+
+            road_inner_a = self.zono_op.union_hz_hz_v2(self.road_park_1, self.road_park_2)
+            road_inner_a = self.zono_op.red_hz_scott(road_inner_a)
+            road_inner_b = self.zono_op.red_hz_scott(self.road_inner)
+            road_inner = self.zono_op.union_hz_hz_v2(road_inner_a, road_inner_b)
+
+
+            # road_inner = self.zono_op.union_hz_hz_v2(self.road_park_1, self.road_park_2)
+            # road_inner = self.zono_op.union_hz_hz_v2(self.road_inner, road_inner)
+
             return road_inner
         elif options == 'full':
             return self.road_full
@@ -204,7 +220,7 @@ class StateSpaceSafe:
         road_h = HybridZonotope(Gc_road_h, Gb_road_h, c_road, Ac_road, Ab_road, b_road)
         road_v = HybridZonotope(Gc_road_v, Gb_road_v, c_road, Ac_road, Ab_road, b_road)
 
-        road = self.zono_op.union_hz_hz(road_h, road_v)
+        road = self.zono_op.union_hz_hz_v2(road_h, road_v)
 
         return road
     
@@ -251,7 +267,8 @@ class StateSpaceSafe:
         road_h = HybridZonotope(Gc_road_h, Gb_road_h, c_road, Ac_road, Ab_road, b_road)
         road_v = HybridZonotope(Gc_road_v, Gb_road_v, c_road, Ac_road, Ab_road, b_road)
 
-        road = self.zono_op.union_hz_hz(road_h, road_v)
+        # road = self.zono_op.union_hz_hz(road_h, road_v)
+        road = self.zono_op.union_hz_hz_v2(road_h, road_v)
 
         return road
 
@@ -423,8 +440,8 @@ class InitialSpace:
     '''
 
     def get_space(self):
-        # return self.initial_space_1
-        return self.initial_space_2
+        return self.initial_space_1
+        # return self.initial_space_2
 
     @property
     def initial_space_1(self):

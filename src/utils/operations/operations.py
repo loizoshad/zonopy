@@ -373,6 +373,134 @@ class ZonoOperations:
         ])       
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+    
+
+
+
+
+
+
+    
+    def union_hz_hz_v2(self, hz1: HybridZonotope, hz2: HybridZonotope) -> HybridZonotope:
+        '''
+        Computes the union of two hybrid zonotopes. This function supports disjoint sets as well
+
+        For more info check the work in [3]
+
+        TODO: Optimize the computation of the inverse matrices
+        '''
+        # Step 1: Solve the set of linear equations
+        ones_1 = np.ones((hz1.nb, 1)); ones_2 = np.ones((hz2.nb, 1))
+        Ab_1_ones = hz1.Ab @ ones_1; Ab_2_ones = hz2.Ab @ ones_2
+        Gb_1_ones = hz1.Gb @ ones_1; Gb_2_ones = hz2.Gb @ ones_2
+
+        Gb_hat = 0.5 * ( ( Gb_2_ones + hz1.C) - (Gb_1_ones + hz2.C) )
+        Ab1_hat = 0.5 * ( -Ab_1_ones - hz1.b )
+        Ab2_hat = 0.5 * ( Ab_2_ones + hz2.b )
+        b1_hat = 0.5 * ( -Ab_1_ones + hz1.b )
+        b2_hat = 0.5 * ( -Ab_2_ones + hz2.b )
+        C_hat = 0.5 * ( ( Gb_2_ones + hz1.C) + (Gb_1_ones + hz2.C) )
+
+        # Find the index of all non-zero columns of Gc
+        nonzero_gc_1 = np.nonzero(hz1.Gc.any(axis=0))[0]
+        nonzero_gb_1 = np.nonzero(hz1.Gb.any(axis=0))[0]
+        nonzero_gb_1 = nonzero_gb_1# + hz1.ng
+
+        # Find the index of all non-zero columns of Gc
+        nonzero_gc_2 = np.nonzero(hz2.Gc.any(axis=0))[0]
+        nonzero_gb_2 = np.nonzero(hz2.Gb.any(axis=0))[0]
+        nonzero_gb_2 = nonzero_gb_2# + hz2.ng
+
+        staircase_ac3_left  = np.zeros((nonzero_gc_1.shape[0], hz1.ng))
+        staircase_ac3_right = np.zeros((nonzero_gc_2.shape[0], hz2.ng))
+
+        for r, c in enumerate(nonzero_gc_1):
+            staircase_ac3_left[r, c] = 1
+
+        for r, c in enumerate(nonzero_gc_2):
+            staircase_ac3_right[r, c] = 1
+
+
+        staircase_ab3_left  = np.zeros((nonzero_gb_1.shape[0], hz1.nb))
+        staircase_ab3_right = np.zeros((nonzero_gb_2.shape[0], hz2.nb))
+
+        for r, c in enumerate(nonzero_gb_1):
+            staircase_ab3_left[r, c] = 1
+        for r, c in enumerate(nonzero_gb_2):
+            staircase_ab3_right[r, c] = 1
+
+        # Auxiliary variables
+        n1 = 2*(staircase_ac3_left.shape[0] + staircase_ac3_right.shape[0] + staircase_ab3_left.shape[0] + staircase_ab3_right.shape[0])
+
+        # Step 3: Construst the union of the hybrid zonotopes
+        C = C_hat
+
+        Gc = np.block([
+            [hz1.Gc, hz2.Gc, np.zeros((hz1.dim, n1))],
+        ])
+        Gb = np.block([
+            [hz1.Gb, hz2.Gb, Gb_hat]
+        ])
+
+
+        Ac3 = np.block([
+            [     staircase_ac3_left,   np.zeros((staircase_ac3_left.shape[0], hz2.ng))],
+            [    -staircase_ac3_left,   np.zeros((staircase_ac3_left.shape[0], hz2.ng))],
+            [ np.zeros((staircase_ac3_right.shape[0], hz1.ng)),       staircase_ac3_right],
+            [ np.zeros((staircase_ac3_right.shape[0], hz1.ng)),      -staircase_ac3_right],
+            [ np.zeros((staircase_ab3_left.shape[0], hz1.ng)),   np.zeros((staircase_ab3_left.shape[0], hz2.ng))],
+            [ np.zeros((staircase_ab3_left.shape[0], hz1.ng)),   np.zeros((staircase_ab3_left.shape[0], hz2.ng))],
+            [ np.zeros((staircase_ab3_right.shape[0], hz1.ng)),   np.zeros((staircase_ab3_right.shape[0], hz2.ng))],
+            [ np.zeros((staircase_ab3_right.shape[0], hz1.ng)),   np.zeros((staircase_ab3_right.shape[0], hz2.ng))]
+        ])
+
+        # print(f'Ac3 = \n{Ac3}')
+
+
+        Ab3 = np.block([
+            [ np.zeros((staircase_ac3_left.shape[0], hz1.nb)),  np.zeros((staircase_ac3_left.shape[0], hz2.nb)), 0.5*np.ones((staircase_ac3_left.shape[0], 1))],
+            [ np.zeros((staircase_ac3_left.shape[0], hz1.nb)),  np.zeros((staircase_ac3_left.shape[0], hz2.nb)), 0.5*np.ones((staircase_ac3_left.shape[0], 1))],
+            [ np.zeros((staircase_ac3_right.shape[0], hz1.nb)), np.zeros((staircase_ac3_right.shape[0], hz2.nb)), -0.5*np.ones((staircase_ac3_right.shape[0], 1))],
+            [ np.zeros((staircase_ac3_right.shape[0], hz1.nb)), np.zeros((staircase_ac3_right.shape[0], hz2.nb)), -0.5*np.ones((staircase_ac3_right.shape[0], 1))],
+            [ 0.5*staircase_ab3_left,    np.zeros((staircase_ab3_left.shape[0], hz2.nb)),     0.5*np.ones((staircase_ab3_left.shape[0], 1))],
+            [-0.5*staircase_ab3_left,    np.zeros((staircase_ab3_left.shape[0], hz2.nb)),     0.5*np.ones((staircase_ab3_left.shape[0], 1))],
+            [ np.zeros((staircase_ab3_right.shape[0], hz1.nb)),    0.5*staircase_ab3_right,    -0.5*np.ones((staircase_ab3_right.shape[0], 1))],
+            [ np.zeros((staircase_ab3_right.shape[0], hz1.nb)),   -0.5*staircase_ab3_right,    -0.5*np.ones((staircase_ab3_right.shape[0], 1))]
+        ])
+        b3 = np.block([
+            [0.5*np.ones((staircase_ac3_left.shape[0], 1))],
+            [0.5*np.ones((staircase_ac3_left.shape[0], 1))],
+            [0.5*np.ones((staircase_ac3_right.shape[0], 1))],
+            [0.5*np.ones((staircase_ac3_right.shape[0], 1))],
+            [    np.zeros((staircase_ab3_left.shape[0], 1))],
+            [     np.ones((staircase_ab3_left.shape[0], 1))],
+            [    np.zeros((staircase_ab3_right.shape[0], 1))],
+            [     np.ones((staircase_ab3_right.shape[0], 1))],
+        ])
+
+
+
+        Ac = np.block([
+            [         hz1.Ac           ,    np.zeros((hz1.nc, hz2.ng)),    np.zeros((hz1.nc, n1))],
+            [np.zeros((hz2.nc, hz1.ng)),             hz2.Ac           ,    np.zeros((hz2.nc, n1))],
+            [                                 Ac3                     ,         np.eye(n1, n1)   ]
+        ])
+
+        Ab = np.block([
+            [          hz1.Ab          ,    np.zeros((hz1.nc, hz2.nb)),    Ab1_hat],
+            [np.zeros((hz2.nc, hz1.nb)),             hz2.Ab           ,    Ab2_hat],
+            [                                 Ab3                                 ]
+        ])
+
+        b = np.block([
+            [b1_hat],
+            [b2_hat],
+            [b3]
+        ])       
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+
 
     def one_step_brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray) -> HybridZonotope:
         '''
@@ -678,41 +806,6 @@ class ZonoOperations:
         
         return X_intersection_A_I_plus_B_U_plus_W
 
-    def one_step_frs_hz_v2(self, U: HybridZonotope, I: HybridZonotope, A: np.ndarray, B:np.ndarray)-> HybridZonotope:
-        '''
-        U: Input space
-        I: Starting set (Initial set)
-        A: System matrix
-        B: Input matrix
-
-        This version uses the work in [5]        
-        '''
-        
-        ## Step 1: Compute G1, G2
-        G1 = I.Gc; G2 = I.Gb
-        k = math.log2(U.nb + 1) - math.log2(I.nb + 1)
-
-        while k <= 0:
-            G1 = np.block([G1, np.zeros((I.dim, 1))])
-            G1 = np.block([G1, G1])
-            G2 = np.block([G2, G2])
-            m = 2*(G1.shape[1] + G2.shape[1])
-            
-            G1 = np.block([G1, np.zeros((I.dim, m))])
-            G2 = np.block([G2, np.zeros((I.dim, 1))])
-            k = k - 1
-        
-        ## Step 1: Compute FRS HZ
-        
-        Gc = A @ G1 + B @ U.Gc
-        Gb = A @ G2 + B @ U.Gb
-        c = A @ (I.C + ((U.nb + 1)/(I.nb + 1) - 1)*I.Gb @ np.ones((I.nb, 1))  ) + B @ U.C
-        Ac = U.Ac
-        Ab = U.Ab
-        b = U.b
-
-        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
 
 
 
@@ -767,7 +860,8 @@ class ZonoOperations:
 
 
         hz = self.reduce_c_hz(hz)   # Remove the redundant or zero constraints
-        # hz = self.reduce_gc_hz(hz)
+        hz = self.reduce_gc_hz(hz)
+
 
         return hz
 
@@ -1012,10 +1106,10 @@ class ZonoOperations:
                 if (g2_mag <= 0.001):
                     G = np.delete(G, j, axis=1)   # Remove the second generator
                     k += 1                    
-                elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
-                    G[:, i - k] = g1 + g2
-                    G = np.delete(G, j, axis=1)   # Remove the second generator
-                    k += 1
+                # elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
+                #     G[:, i - k] = g1 + g2
+                #     G = np.delete(G, j, axis=1)   # Remove the second generator
+                #     k += 1
 
                 j += 1
 
