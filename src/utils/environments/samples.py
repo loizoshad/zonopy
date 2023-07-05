@@ -118,6 +118,7 @@ class SamplesHZ:
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)    
 
+
     @property
     def set_c(self):
         n = 2; ng = 4; nc = 3; nb = 0
@@ -228,4 +229,58 @@ class SamplesHZ:
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)    
 
+    @property
+    def set_h(self):
+        w = 0.25        # Width of vehicle [m]
+        l = 0.45        # Length of vehicle [m]
+        nx = 4         # Number of state variables
+        ng = 2; nb = 0; nc = 0
+        Gc = np.array([
+            [w/2, 0.0],
+            [0.0, l/2],
+            [0.0, 0.0],
+            [0.0, 0.0]
+        ])
+        Gb = np.zeros((nx, nb))
+        c = np.array([  [1.29], 
+                        [0.375], 
+                        [0.0],
+                        [0.0] ])
+        
+        Ac = np.zeros((nc, ng))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))        
 
+        # initial_space = HybridZonotope(Gc[:2,:], Gb[:2,:], c[:2,:], Ac, Ab, b)
+        initial_space = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        return initial_space
+
+
+    @property
+    def set_i(self):
+        w = 0.25        # Width of vehicle [m]
+        l = 0.45        # Length of vehicle [m]
+        nx = 4         # Number of state variables
+        ng = 2; nb = 0; nc = 0
+        Gc = np.array([
+            [w/2, 0.0],
+            [0.0, l/2],
+            [0.0, 0.0],
+            [0.0, 0.0]
+        ])
+        Gb = np.zeros((nx, nb))
+        c = np.array([  [1.7], 
+                        [-1.0], 
+                        [0.0],
+                        [0.0] ])
+        
+        Ac = np.zeros((nc, ng))
+        Ab = np.zeros((nc, nb))
+        b = np.zeros((nc, 1))        
+
+        initial_space = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        return initial_space
+        
+    

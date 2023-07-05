@@ -103,7 +103,7 @@ class ParamBRS:
 
 
 
-class DynamicEnv1:
+class DynamicEnv2:
     def __init__(self, zono_op, dynamics, visualizer, options) -> None:
 
         assert options in ['outer', 'inner', 'full'], 'Invalid option for state space, choose from "outer", "inner", "full"'
@@ -212,6 +212,9 @@ class StateSpaceSafe:
 
         return road
     
+
+
+
     @property
     def road_inner(self):
         nx = 4          # Number of state variables

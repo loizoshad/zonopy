@@ -73,6 +73,87 @@ class ZonoOperations:
 
         return Zonotope(M @ z.C , M @ z.G)
 
+    def reduce_g_z(self, z: Zonotope) -> Zonotope:
+        '''
+        Removes redundant generators from a Zonotope.
+
+        This method scans all generators and whenver it finds a pair of generators that are
+        parallel to each other, it adds one to the other and removes the other one.
+
+        Example: If we have two generators g1 and g2, and g1 = 2*g2,
+        then we update g1 as g1 = g1 + g2 = 3*g2 and remove g2. 
+        '''
+
+        max_angle = 0.05 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
+
+        G = z.G
+        ng = G.shape[1]
+
+        # Loop through all the rows of G
+        i = 0; j = 0; k = 0
+
+        while i < ng - k:
+            g1 = G[:, i]
+            g1_mag = np.linalg.norm(g1)    # Magnitude of g1
+
+            if np.abs(g1_mag) <= 0.001:
+                G = np.delete(G, i, axis=1)
+                k += 1
+                continue
+
+            g1_unit = g1 / g1_mag           # Unit vector of g1
+
+            j = 0
+            while j < ng - k:
+                if i == j:
+                    j += 1
+                    continue
+
+                g2 = G[:, j]
+                g2_mag = np.linalg.norm(g2)     # Magnitude of g2
+
+
+                if (g2_mag <= 0.001):
+                    G = np.delete(G, j, axis=1)   # Remove the second generator
+                    k += 1
+                # elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
+                #     G[:, i - k] = g1 + g2
+                #     G = np.delete(G, j, axis=1)   # Remove the second generator
+                #     k += 1                    
+
+                j += 1
+
+            i +=1
+
+        return Zonotope(z.C, G)
+
+    def z_to_hz(self, z: Zonotope) -> HybridZonotope:
+        '''
+        This method takes in a zonotope and returns an equivalent representation as a Hybrid Zonotope
+        '''   
+        Gc = z.G
+        Gb = np.zeros((z.dim, 0))
+        C = z.C
+        Ac = np.zeros((0, z.ng))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+    def z_to_cz(self, z: Zonotope) -> ConstrainedZonotope:
+        '''
+        This method takes in a zonotope and returns an equivalent representation as a Constrained Zonotope
+        '''   
+        G = z.G
+        C = z.C
+        A = np.zeros((0, z.ng))
+        b = np.zeros((0, 1))
+
+        return ConstrainedZonotope(G, C, A, b)
+
+
+
     def lt_cz(self, M: np.ndarray, cz: ConstrainedZonotope) -> ConstrainedZonotope:
         '''
         Computes the linear transformation of a constrained zonotope.
@@ -162,6 +243,192 @@ class ZonoOperations:
         res = linprog(c, A_eq=A_eq, b_eq=b_eq, method = method, options = options, bounds = bounds)
 
         return res.success
+
+    def complement_cz_to_hz(self, cz: ConstrainedZonotope) -> HybridZonotope:
+        '''
+        This method computes the complement of a Constrained Zonotope cz inside space X represented as a Constrained Zonotope.
+
+        The complement is represented as a Hybrid Zonotope
+        
+        Gf1     :   (2*n_{g,z}, 2*n_{g,z})
+
+        Cf1     :   (2*n_{g,z}, 1)
+
+        Gf2     :   (4*n_{g,z}, 4*n_{g,z})
+
+        Cf2     :   (4*n_{g,z}, 1)
+
+        AcPF    :   [ (n_{g,z}, n_{g,z}), (n_{g,z}, 1), (n_{g,z}, n_{z} + n_{c,z} + 2*n_{g,z}) ]
+                    [ (n_{g,z}, n_{g,z}), (n_{g,z}, 1), (n_{g,z}, n_{z} + n_{c,z} + 2*n_{g,z}) ]
+
+        AcDF    :   [ (n_{g,z}, n_{g,z} + 1), (n_{g,z}, n_{z} + n_{c,z}), (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+                    [ (1, n_{g,z} + 1)      , (1, n_{z} + n_{c,z})      , (1, n_{g,z})      , (1, n_{g,z})       ]
+
+        bDF     :   [ (n_{g,z}, 1) ]
+                    [ (1, 1)       ]
+
+        AcCS    :   [ (n_{g,z}, n_{g,z}), (n_{g,z}, 1), (n_{g,z}, n_{z} + n_{c,z}), (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+                    [ (n_{g,z}, n_{g,z}), (n_{g,z}, 1), (n_{g,z}, n_{z} + n_{c,z}), (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+                    [ (n_{g,z}, n_{g,z}), (n_{g,z}, 1), (n_{g,z}, n_{z} + n_{c,z}), (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+                    [ (n_{g,z}, n_{g,z}), (n_{g,z}, 1), (n_{g,z}, n_{z} + n_{c,z}), (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+
+        AbCS    :   [ (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+                    [ (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+                    [ (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+                    [ (n_{g,z}, n_{g,z}), (n_{g,z}, n_{g,z}) ]
+
+        '''
+        G = cz.G; C = cz.C; A = cz.A; b = cz.b
+        ng = cz.ng; nc = cz.nc; n = cz.dim
+        ng_ng_zero = np.zeros((ng, ng))
+        ng_1_zero  = np.zeros((ng, 1))
+        ng_ng_eye  = np.eye(ng)
+        ng_1_ones  = np.ones((ng, 1))
+        ng_nnc_zero = np.zeros((ng, n + nc))
+        ng_nncngng_zero = np.zeros((ng, n + nc + 2*ng))
+
+
+        dm = 50 # TODO
+        lm = 50 # TODO
+        m = dm + 1
+
+
+        AcPF = np.block([
+            [ m*ng_ng_eye, -(dm/2)*ng_1_ones, ng_nncngng_zero],
+            [-m*ng_ng_eye, -(dm/2)*ng_1_ones, ng_nncngng_zero]])
+
+        AcDF = np.block([
+            [       ng_ng_zero, ng_1_zero, lm*np.block([G.T, A.T]),        0.5*ng_ng_eye,       -0.5*ng_ng_eye],
+            [np.zeros((1, ng)),         0,   np.zeros((1, n + nc)), 0.5*np.ones((1, ng)), 0.5*np.ones((1, ng))]])
+        
+        bDF = np.block([
+            [ng_1_zero],
+            [1 - ng]])
+
+        AcCS = np.block([
+            [-m*ng_ng_eye, (dm/2)*ng_1_ones, ng_nnc_zero, ng_ng_zero, ng_ng_zero],
+            [ m*ng_ng_eye, (dm/2)*ng_1_ones, ng_nnc_zero, ng_ng_zero, ng_ng_zero],
+            [  ng_ng_zero,        ng_1_zero, ng_nnc_zero,  ng_ng_eye, ng_ng_zero],
+            [  ng_ng_zero,        ng_1_zero, ng_nnc_zero, ng_ng_zero,  ng_ng_eye]])
+
+        AbCS = np.block([
+            [m*ng_ng_eye,  ng_ng_zero],
+            [ ng_ng_zero, m*ng_ng_eye],
+            [ -ng_ng_eye,  ng_ng_zero],
+            [ ng_ng_zero,  -ng_ng_eye]])
+
+        cf1 = np.zeros((2*ng, 1))
+        Gf1 = (m + dm/2) * np.eye(2*ng)
+
+        cf2 = np.block([
+            [-(dm + 1)*np.ones((2*ng, 1))],
+            [-np.ones((2*ng, 1))]
+        ])
+        Gf2 = np.block([
+            [((3*dm/2) + 1)*np.eye(2*ng), np.zeros((2*ng, 2*ng))],
+            [np.zeros((2*ng, 2*ng))     , np.eye(2*ng)          ]
+        ])
+
+
+        Gc = np.block([m*G, np.zeros((n, 1+n+nc+ng+ng+2*ng+4*ng))])
+        Gb = np.zeros((n, ng+ng))
+        
+        Ac = np.block([
+            [m*A, np.zeros((nc, 1+n+nc+ng+ng+2*ng+4*ng))],
+            [AcPF, Gf1, np.zeros((2*ng, 4*ng))],
+            [AcDF, np.zeros((ng+1, 2*ng)), np.zeros((ng+1, 4*ng))],
+            [AcCS, np.zeros((4*ng, 2*ng)), Gf2]
+        ])
+
+        Ab = np.block([
+            [np.zeros((nc+2*ng + ng + 1, 2*ng))],
+            [AbCS]
+        ])
+
+        b = np.block([
+            [b],
+            [cf1],
+            [bDF],
+            [cf2]
+        ])
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+    def reduce_gc_cz(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        Removes redundant generators from a Constrained Zonotope.
+
+        This method first forms the lifted constrained zonotope. Then it
+        scans all generators and whenver it finds a pair of generators that are
+        parallel to each other, it adds one to the other and removes the other one.
+
+        Example: If we have two generators g1 and g2, and g1 = 2*g2,
+        then we update g1 as g1 = g1 + g2 = 3*g2 and remove g2. 
+        '''
+
+        max_angle = 0.05 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
+
+        # Step 1: Stack Gc and Ac
+        G = np.block([
+            [cz.G],
+            [cz.A]
+        ])
+
+        ng = G.shape[1]
+
+        # Loop through all the rows of G
+        i = 0; j = 0; k = 0
+
+        while i < ng - k:
+            g1 = G[:, i]
+            g1_mag = np.linalg.norm(g1)    # Magnitude of g1
+
+            if np.abs(g1_mag) <= 0.001:
+                G = np.delete(G, i, axis=1)
+                k += 1
+                continue
+
+            g1_unit = g1 / g1_mag           # Unit vector of g1
+
+
+            j = 0
+            while j < ng - k:
+                if i == j:
+                    j += 1
+                    continue
+
+                g2 = G[:, j]
+                g2_mag = np.linalg.norm(g2)     # Magnitude of g2
+
+
+                if (g2_mag <= 0.001):
+                    G = np.delete(G, j, axis=1)   # Remove the second generator
+                    k += 1
+                elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
+                    G[:, i - k] = g1 + g2
+                    G = np.delete(G, j, axis=1)   # Remove the second generator
+                    k += 1                    
+
+                j += 1
+
+            i +=1
+
+        G = G[:cz.dim, :]
+        A = G[cz.dim:, :]
+
+        return ConstrainedZonotope(G, cz.C, A, cz.b)
+
+    def oa_cz_to_z(self, cz: ConstrainedZonotope) -> Zonotope:
+        '''
+        This method takes in a constrained zonotope and returns a zonotope
+        over-approximating the constrained zonotope.
+        '''   
+        G = cz.G
+        C = cz.C
+
+        return Zonotope(C, G)
+
 
 
     def lt_hz(self, M: np.ndarray, hz: HybridZonotope) -> HybridZonotope:
@@ -373,14 +640,7 @@ class ZonoOperations:
         ])       
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
-    
-
-
-
-
-
-
-    
+        
     def union_hz_hz_v2(self, hz1: HybridZonotope, hz2: HybridZonotope) -> HybridZonotope:
         '''
         Computes the union of two hybrid zonotopes. This function supports disjoint sets as well
@@ -500,7 +760,28 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
 
+    def oa_hz_to_cz(self, hz: HybridZonotope) -> ConstrainedZonotope:
+        '''
+        This method takes in a hybrid zonotope and returns a constrained zonotope
+        over-approximating the hybrid zonotope.
+        '''   
+        G = np.block([hz.Gc, hz.Gb])
+        C = hz.C
+        A = np.block([hz.Ac, hz.Ab])
+        b = hz.b
 
+        return ConstrainedZonotope(G, C, A, b)
+
+    def oa_hz_to_z(self, hz: HybridZonotope) -> Zonotope:
+        '''
+        This method takes in a hybrid zonotope and returns a zonotope
+        over-approximating the hybrid zonotope.
+        '''   
+        G = np.block([hz.Gc, hz.Gb])
+        C = hz.C
+ 
+        return Zonotope(C, G)
+    
 
     def one_step_brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray) -> HybridZonotope:
         '''
@@ -559,6 +840,13 @@ class ZonoOperations:
             if self.visualizer is not None and visualize:
                 self.visualizer.vis_hz_brs(T)
         return T
+
+    def rci_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray, N: int) -> HybridZonotope:
+        '''
+        
+        '''
+        for i in range(N):
+            pass
 
     def decompose_hz(self, hz: HybridZonotope):
         '''
@@ -720,7 +1008,6 @@ class ZonoOperations:
 
 
 
-
     def ms_hz_hz(self, hz1: HybridZonotope, hz2: HybridZonotope) -> HybridZonotope:
         '''
         Computes the minkowski sum of two hybrid zonotopes.
@@ -812,28 +1099,34 @@ class ZonoOperations:
 
     def red_hz_scott(self, hz: HybridZonotope) -> HybridZonotope:
         E, R = self.intervals_hz(hz)
-        A = np.block([hz.Ac, hz.Ab])
+        # A = np.block([hz.Ac, hz.Ab])
+        A = hz.Ac
 
         epsilon = 1e-3
 
         already_removed_c = []; already_removed_g = []
-        for c in range (hz.ng + hz.nb):
+        # for c in range (hz.ng + hz.nb):
+        for c in range (hz.ng):
             for r in range(hz.nc):
                 if np.abs(A[r, c]) >= epsilon:
                     a_rc_inv = (1/A[r, c])
                     sum = 0
-                    for k in range(hz.ng + hz.nb):
+                    # for k in range(hz.ng + hz.nb):
+                    for k in range(hz.ng):
                         if k != c:
                             sum = sum + A[r, k] * E[k]
                     R_rc = a_rc_inv * hz.b[r,0] - a_rc_inv * sum
 
                     if self.is_inside_interval(R_rc, np.array([-1, 1])) and (r not in already_removed_c) and (c not in already_removed_g):
                         already_removed_c.append(r); already_removed_g.append(c)
-                        Ecr = np.zeros((hz.ng + hz.nb, hz.nc))
+                        # Ecr = np.zeros((hz.ng + hz.nb, hz.nc))
+                        Ecr = np.zeros((hz.ng, hz.nc))
                         Ecr[c, r] = 1
 
-                        Lg = np.block([hz.Gc, hz.Gb]) @ Ecr * (1/A[r, c])
-                        La = np.block([hz.Ac, hz.Ab]) @ Ecr * (1/A[r, c])
+                        # Lg = np.block([hz.Gc, hz.Gb]) @ Ecr * (1/A[r, c])
+                        # La = np.block([hz.Ac, hz.Ab]) @ Ecr * (1/A[r, c])
+                        Lg = hz.Gc @ Ecr * (1/A[r, c])
+                        La = hz.Ac @ Ecr * (1/A[r, c])
 
                         # print(f'*****************************************************************'); print(f'inverse of Arc = {(1/A[r, c])}')
                         # print(f'Gc: max = {np.max(hz.Gc)}\t min = {np.min(hz.Gc)} '); print(f'Gb: max = {np.max(hz.Gb)}\t min = {np.min(hz.Gb)} ')
@@ -929,74 +1222,7 @@ class ZonoOperations:
 
         return np.array([l1, r1])
 
-    def rescale_hz(self, hz):
-        '''
-        Extends the notion of rescaling a constrained zonotope of work [1] for hybrid zonotopes
-        '''
-        
-        ## Step 1: Create a model
-        model = gp.Model('rescale_hz')
-        model.Params.OutputFlag = 0         # Disable verbose output
 
-        ## Step 2: Create the variables
-        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([ 1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
-        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([ 1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
-
-        # Enforce that x_b only takes values in {-1, 1}^hz.nb
-        for i in range(hz.nb):
-            model.addConstr(x_b[i] * x_b[i] == 1 )
-
-        # Compute the infinity norm of x_c
-        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
-
-        ## Step 3: Add constraints
-        rhs = hz.b                          # Right hand side of equality constraint equation
-        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
-        for left, right in zip(lhs, rhs):
-            model.addConstr(left == right)
-        
-        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
-
-
-        x_L = []
-        for g in range(hz.ng):
-            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
-            model.optimize()
-            x_L.append(x_c[g].X)
-
-        x_U = []
-        for g in range(hz.ng):
-            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
-            model.optimize()
-            x_U.append(x_c[g].X)
-
-        x_U = np.array(x_U); x_L = np.array(x_L)
-        x_m = (x_U + x_L)/2
-        x_r = (x_U - x_L)/2
-
-        x_m = x_m.reshape((hz.ng, 1))
-        x_r = x_r.reshape((hz.ng, 1))
-        diag = np.diag(x_r.flatten())
-
-        Gc = hz.Gc @ diag
-        Gb = hz.Gb
-        c = hz.C + hz.Gc @ x_m
-        Ac = hz.Ac @ diag
-        Ab = hz.Ab
-        b = hz.b - hz.Ac @ x_m
-
-        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-    def precondition_hz(self, hz):
-        '''
-        This method takes the constraints [hz.Ac, hz.Ab | hz.b] to reduced row echelon form
-        by Gauss-Jordan elimination with full pivoting.
-
-        In each step of of elimination the pivot element is chosen as the element in the unreduced
-        submatrix (omitting the final column (hz.b)) that is the largest relative to the infinity norm
-        of the row it occupies
-        '''
-        pass
 
 
     def reduce_c_hz(self, hz: HybridZonotope) -> HybridZonotope:
@@ -1195,17 +1421,67 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
 
-    def ua_hz(self, hz: HybridZonotope, N: int) -> HybridZonotope:
+
+
+
+    # Not used methods
+    def rescale_hz(self, hz):
         '''
-        N is the maximum number of continuous generators to be kept.
+        Extends the notion of rescaling a constrained zonotope of work [1] for hybrid zonotopes
         '''
-        hz = self.reduce_c_hz(hz)
-        hz = self.ua_gc_hz(hz, N)
+        
+        ## Step 1: Create a model
+        model = gp.Model('rescale_hz')
+        model.Params.OutputFlag = 0         # Disable verbose output
 
-        return hz
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([ 1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
+        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([ 1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
+
+        # Enforce that x_b only takes values in {-1, 1}^hz.nb
+        for i in range(hz.nb):
+            model.addConstr(x_b[i] * x_b[i] == 1 )
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = hz.b                          # Right hand side of equality constraint equation
+        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
 
 
+        x_L = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            x_L.append(x_c[g].X)
 
+        x_U = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            x_U.append(x_c[g].X)
+
+        x_U = np.array(x_U); x_L = np.array(x_L)
+        x_m = (x_U + x_L)/2
+        x_r = (x_U - x_L)/2
+
+        x_m = x_m.reshape((hz.ng, 1))
+        x_r = x_r.reshape((hz.ng, 1))
+        diag = np.diag(x_r.flatten())
+
+        Gc = hz.Gc @ diag
+        Gb = hz.Gb
+        c = hz.C + hz.Gc @ x_m
+        Ac = hz.Ac @ diag
+        Ab = hz.Ab
+        b = hz.b - hz.Ac @ x_m
+
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
 
 
