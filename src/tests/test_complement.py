@@ -52,7 +52,7 @@ cz = zono_op.oa_hz_to_cz(hz)
 # cz = ConstrainedZonotope(2*np.eye(2), np.array([[0.0], [0.0]]), np.zeros((0, 2)), np.zeros((0, 1)))
 
 print(f'cz.ng = {cz.ng}\t cz.nc = {cz.nc}')
-# cz = zono_op.reduce_gc_cz(cz)
+# cz = zono_op.reduce_g_cz(cz)
 z = zono_op.oa_cz_to_z(cz)
 z = zono_op.reduce_g_z(z)
 cz = zono_op.z_to_cz(z)

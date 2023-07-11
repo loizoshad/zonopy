@@ -49,6 +49,16 @@ class ZonoVisualizer:
         self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
 
+    def new_fig(self):
+        self.fig, self.ax = plt.subplots()
+        self.manager = plt.get_current_fig_manager()
+        self.manager.window.attributes('-zoomed', True)
+        self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
+        self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
+        self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
+
+
     def save(self, path: str) -> None:
         self.fig.savefig(path, dpi=300)
 

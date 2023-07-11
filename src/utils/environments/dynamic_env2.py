@@ -20,41 +20,26 @@ class ParamBRS:
 
         self.min = np.array([
             -2.45,              # Minimum value for x-direction
-            -1.35,              # Minimum value for y-direction
-            dynamics.v_min[0],  # Minimum value for velocity in x-direction
-            dynamics.v_min[1]   # Minimum value for velocity in y-direction
+            -1.35               # Minimum value for y-direction
         ])
         self.max = np.array([
             1.85,               # Maximum value for x-direction
-            1.45,               # Maximum value for y-direction
-            dynamics.v_max[0],  # Maximum value for velocity in x-direction
-            dynamics.v_max[1]   # Maximum value for velocity in y-direction
+            1.45                # Maximum value for y-direction
         ])
-        # self.step = np.array([
-        #     dynamics.v_max[0]*dynamics.dt,   # Step size for position in x
-        #     dynamics.v_max[1]*dynamics.dt,   # Step size for position in y
-        #     dynamics.v_max[0]*dynamics.dt,   # Step size for velocity in x
-        #     dynamics.v_max[1]*dynamics.dt    # Step size for velocity in y          
-        # ])
         self.step = np.array([
-            0.1,
-            0.1,
             0.1,
             0.1
         ])   
 
         # Vertices of outer parking spot
-        self.p1 = np.array([[1.9,   0.2, 0.0, 0.0],     # x, y, vx, vy
-                            [1.9,  -0.2, 0.0, 0.0] ])   # x, y, vx, vy
+        self.p1 = np.array([[1.9,   0.2],     # x, y
+                            [1.9,  -0.2] ])   # x, y
         # Vertices of inner parking spot
-        self.p2 = np.array([[0.3,  -0.1, 0.0, 0.0],     # x, y, vx, vy
-                            [0.7,  -0.1, 0.0, 0.0] ])   # x, y, vx, vy
+        self.p2 = np.array([[0.3,  -0.1],     # x, y
+                            [0.7,  -0.1] ])   # x, y
 
         self.samples_x = math.ceil( (self.max[1] - self.min[1]) / (self.step[1]) )              # Number of samples (x)
         self.samples_y = math.ceil( (self.max[0] - self.min[0]) / (self.step[0]) )              # Number of samples (y)
-        # self.max_dist_x = math.ceil(dynamics.B[1][1] / self.step[1])                            # Maximum distance it can travel in one step (x)
-        # self.max_dist_y = math.ceil(dynamics.B[0][0] / self.step[0])                            # Maximum distance it can travel in one step (y)
-        # self.max_dist_diag = math.ceil( math.sqrt(self.max_dist_x**2 + self.max_dist_y**2) )    # Maximum distance it can travel in one step (diagonal)                                     # Parking spot 2 vertices
         self.max_dist_x = 4
         self.max_dist_y = 4
         self.max_dist_diag = 4
@@ -65,14 +50,12 @@ class ParamBRS:
         p2_points = int(abs(self.p2[1][0] - self.p2[0][0])/self.step[1]) + 2
         for i in range(p1_points):    # These are the vertical lines (y-direction)
             self.initial_points.append([self.p1[0][0],                      # x
-                                        self.p1[0][1] - i*self.step[0],     # y
-                                        0.0,                                # vx
-                                        0.0])                               # vy
+                                        self.p1[0][1] - i*self.step[0]      # y
+                                        ])
         for i in range(p2_points):    # These are the horizontal lines (x-direction)
             self.initial_points.append([self.p2[0][0] + i*self.step[1],     # x
-                                        self.p2[0][1],                      # y
-                                        0.0,                                # vx
-                                        0.0])                               # vy
+                                        self.p2[0][1]                       # y
+                                        ])
 
 
         axis_ranges = [(min, max, step) for min, max, step in zip(self.min, self.max, self.step)]
@@ -101,6 +84,40 @@ class ParamBRS:
             # JUST FOR THE X, Y DIMENSIONS
             self.is_already_contained_xy[y_idx, x_idx] = 1
 
+class ParamFRS:
+    def __init__(self, dynamics):
+
+        self.min = np.array([
+            -2.45,              # Minimum value for x-direction
+            -1.35              # Minimum value for y-direction
+        ])
+        self.max = np.array([
+            1.85,               # Maximum value for x-direction
+            1.45               # Maximum value for y-direction
+        ])
+        self.step = np.array([
+            0.1,
+            0.1
+        ])   
+
+        self.samples_x = math.ceil( (self.max[1] - self.min[1]) / (self.step[1]) )              # Number of samples (x)
+        self.samples_y = math.ceil( (self.max[0] - self.min[0]) / (self.step[0]) )              # Number of samples (y)                                    # Parking spot 2 vertices
+
+        axis_ranges = [(min, max, step) for min, max, step in zip(self.min, self.max, self.step)]
+        meshgrid = np.meshgrid(*[np.arange(start, stop, step) for start, stop, step in axis_ranges])
+        self.space = np.stack(meshgrid, axis=-1)    # Stack the grids into a single n-dimensional space
+
+
+        # JUST FOR THE X, Y DIMENSIONS
+        self.x_space = np.arange(self.min[0], self.max[0], self.step[0])
+        self.y_space = np.arange(self.min[1], self.max[1], self.step[1])
+
+
+        # Associated flag for already contained points
+        self.is_already_contained = np.zeros(self.space.shape)
+
+        # JUST FOR THE X, Y DIMENSIONS
+        self.is_already_contained_xy = np.zeros((self.y_space.shape[0], self.x_space.shape[0]))
 
 
 class DynamicEnv2:
@@ -111,7 +128,10 @@ class DynamicEnv2:
         self.zono_op = zono_op      # Class for Zonotope operations
         self.vis = visualizer       # Class for visualizing the results        
         self.dynamics = dynamics    # Class for dynamics of the system
-        self.brs_settings = ParamBRS(dynamics)
+        
+        # self.brs_settings = ParamBRS(dynamics)
+        self.brs_settings = ParamFRS(dynamics)  # TODO: Automate this choice
+
 
         self.A = dynamics.A         # System dynamics
         self.B = dynamics.B         # System dynamics
@@ -164,45 +184,36 @@ class StateSpaceSafe:
         else:
             raise ValueError('Invalid option for state space, choose from "outer", "inner", "full"')
 
+
     @property
     def road_outer(self):
-        nx = 4          # Number of state variables
+        nx = 2          # Number of state variables
         lw = 0.38        # Width of one road lane [m]
         ll_h = 4.40    # Length of road segments 1 and 2 [m] (Horizontal roads)
         ll_v = 2.03    # Length of road segments 3 and 4 [m]   (Vertical roads)
         color = (0.000001,  0.000001,  0.000001, 0.6)  # Gray
 
-        ng = 4; nc = 0; nb = 1
+        ng = 2; nc = 0; nb = 1
         c_road = np.array([ [-0.3],     # Center of road in x-direction
-                            [ 0.0],     # Center of road in y-direction
-                            [ 0.0],     # Velocity in x
-                            [ 0.0]      # Velocity in y
+                            [ 0.0]      # Center of road in y-direction
                         ])
         Ac_road = np.zeros((nc, ng))
         b_road = np.zeros((nc, 1))
         Ab_road = np.zeros((nc, nb))
         Gc_road_h = np.array([
-            [ll_h/2,  0.0, 0.0, 0.0],
-            [0.0   , lw/2, 0.0, 0.0],
-            [0.0   , 0.0 , self.vx_max/2, 0.0],
-            [0.0   , 0.0 , 0.0, self.vy_max/2]
+            [ll_h/2,  0.0],
+            [0.0   , lw/2]
         ])
         Gb_road_h = np.array([
             [0.0],
-            [1.21],
-            [-0.45],    # TODO: How did you determine this value?
-            [0.0]
+            [1.21]
         ])
         Gc_road_v = np.array([
-            [lw/2, 0.0   , 0.0, 0.0],
-            [0.0 , ll_v/2, 0.0, 0.0],
-            [0.0 , 0.0   , self.vx_max/2, 0.0],
-            [0.0 , 0.0   , 0.0, self.vy_max/2]
+            [lw/2, 0.0   ],
+            [0.0 , ll_v/2]
         ])        
         Gb_road_v = np.array([  [2.01],
-                                [ 0.0],
-                                [ 0.0],
-                                [ 0.5]  # TODO: How did you determine this value
+                                [ 0.0]
                             ])
         
         road_h = HybridZonotope(Gc_road_h, Gb_road_h, c_road, Ac_road, Ab_road, b_road)
@@ -211,49 +222,36 @@ class StateSpaceSafe:
         road = self.zono_op.union_hz_hz_v2(road_h, road_v)
 
         return road
-    
-
-
 
     @property
     def road_inner(self):
-        nx = 4          # Number of state variables
+        nx = 2          # Number of state variables
         lw = 0.38        # Width of one road lane [m]
         ll_h = 3.56    # Length of road segments 1 and 2 [m] (Horizontal roads)
         ll_v = 1.21    # Length of road segments 3 and 4 [m]   (Vertical roads)
         color = (0.000001,  0.000001,  0.000001, 0.6)  # Gray
 
-        ng = 4; nc = 0; nb = 1
+        ng = 2; nc = 0; nb = 1
         c_road = np.array([ [-0.3],     # Center of road in x-direction
-                            [ 0.0],     # Center of road in y-direction
-                            [ 0.0],     # Velocity in x
-                            [ 0.0]      # Velocity in y
+                            [ 0.0]      # Center of road in y-direction
                         ])
         Ac_road = np.zeros((nc, ng))
         b_road = np.zeros((nc, 1))
         Ab_road = np.zeros((nc, nb))
         Gc_road_h = np.array([
-            [ll_h/2, 0.0 , 0.0, 0.0],
-            [0.0   , lw/2, 0.0, 0.0],
-            [0.0   , 0.0 , self.vx_max/2, 0.0],
-            [0.0   , 0.0 , 0.0, self.vy_max/2]
+            [ll_h/2, 0.0 ],
+            [0.0   , lw/2]
         ])
         Gb_road_h = np.array([
             [  0.0],
-            [0.795],
-            [ 0.45],    # TODO: How did you determine this value?
-            [  0.0]
+            [0.795]
         ])
         Gc_road_v = np.array([
-            [lw/2, 0.0   , 0.0, 0.0],
-            [0.0 , ll_v/2, 0.0, 0.0],
-            [0.0 , 0.0   , self.vx_max/2, 0.0],
-            [0.0 , 0.0   , 0.0, self.vy_max/2]
+            [lw/2, 0.0   ],
+            [0.0 , ll_v/2]
         ])
         Gb_road_v = np.array([  [1.59],
-                                [ 0.0],
-                                [ 0.0],
-                                [-0.5]      # TODO: How did you determine this value?
+                                [ 0.0]
         ])
         road_h = HybridZonotope(Gc_road_h, Gb_road_h, c_road, Ac_road, Ab_road, b_road)
         road_v = HybridZonotope(Gc_road_v, Gb_road_v, c_road, Ac_road, Ab_road, b_road)
@@ -265,21 +263,19 @@ class StateSpaceSafe:
 
     @property
     def road_park_1(self):
-        nx = 4          # Number of state variables
+        nx = 2          # Number of state variables
         w = 0.394        # Width of one road lane [m]
         l = 2.6    # Length of road segments 1 and 2 [m] (Horizontal roads)
         color = (0.000001,  0.000001,  0.000001, 0.6)  # Gray
 
-        ng = 4; nc = 0; nb = 0
-        c = np.array([ [-0.3], [-0.3], [0.0], [0.25]])
+        ng = 2; nc = 0; nb = 0
+        c = np.array([ [-0.3], [-0.3]])
         Ac = np.zeros((nc, ng))
         b = np.zeros((nc, 1))
         Ab = np.zeros((nc, nb))
         Gc = np.array([
-            [l/2, 0.0, 0.0, 0.0],
-            [0.0, w/2, 0.0, 0.0],
-            [0.0, 0.0, 0.5, 0.0],
-            [0.0, 0.0, 0.0, 0.25]
+            [l/2, 0.0],
+            [0.0, w/2]
         ])
         Gb = np.zeros((ng, nb))
 
@@ -289,26 +285,22 @@ class StateSpaceSafe:
 
     @property
     def road_park_2(self):
-        nx = 4          # Number of state variables
+        nx = 2          # Number of state variables
         w = 0.1        # Width of one road lane [m]
         l = 0.4    # Length of road segments 1 and 2 [m] (Horizontal roads)
         color = (0.000001,  0.000001,  0.000001, 0.6)  # Gray
 
-        ng = 4; nc = 0; nb = 1
-        c = np.array([ [-0.3], [-0.55], [0.0], [0.25] ])
+        ng = 2; nc = 0; nb = 1
+        c = np.array([ [-0.3], [-0.55] ])
         Ac = np.zeros((nc, ng))
         b = np.zeros((nc, 1))
         Ab = np.zeros((nc, nb))
         Gc = np.array([
-            [l/2, 0.0, 0.0, 0.0 ],
-            [0.0, w/2, 0.0, 0.0 ],
-            [0.0, 0.0, 0.5, 0.0 ],
-            [0.0, 0.0, 0.0, 0.25]
+            [l/2, 0.0],
+            [0.0, w/2]
         ])
         Gb = np.array([
             [0.8],
-            [0.0],
-            [0.0],
             [0.0]
         ])
 
@@ -329,8 +321,8 @@ class InputSpace:
         self.zono_op = ZonoOperations()
         
         # Maximum rate of change in velocity (acceleration)
-        self.ax_max = 5.5    # TODO: Define based on dynamics model
-        self.ay_max = 5.5    # TODO: Define based on dynamics model
+        self.ax_max = 0.0    # TODO: Define based on dynamics model
+        self.ay_max = 1.0    # TODO: Define based on dynamics model
 
 
     def get_space(self, max_input = None, min_input = None):
@@ -379,17 +371,15 @@ class TargetSpace:
     def park_outer(self):
         pw = 0.4        # Width of parking slot [m]
         pl = 0.6        # Length of parking slot [m] (This is not a realistic length, but it is used to make the plot look nicer)
-        nx = 4          # Number of state variables
+        nx = 2          # Number of state variables
         ng = 2; nb = 0; nc = 0
         Gc_park = np.array([
             [pl/2, 0.0],
-            [0.0, pw/2],
-            [0.0, 0.0],
-            [0.0, 0.0]
+            [0.0, pw/2]
         ])
 
         Gb_park = np.zeros((nx, nb))
-        c_park = np.array([ [2.2], [0.0], [0.0], [0.0] ])
+        c_park = np.array([ [2.2], [0.0] ])
         Ac_park = np.zeros((nc, ng))
         Ab_park = np.zeros((nc, nb))
         b_park = np.zeros((nc, 1))        
@@ -402,16 +392,14 @@ class TargetSpace:
     def park_inner(self):
         pw = 0.4        # Width of parking slot [m]
         pl = 0.6        # Length of parking slot [m] (This is not a realistic length, but it is used to make the plot look nicer)
-        nx = 4          # Number of state variables
+        nx = 2          # Number of state variables
         ng = 2; nb = 0; nc = 0
         Gc_park = np.array([
             [pw/2, 0.0],
-            [0.0, pl/2],
-            [0.0, 0.0],
-            [0.0, 0.0]
+            [0.0, pl/2]
         ])
         Gb_park = np.zeros((nx, nb))
-        c_park = np.array([ [0.5], [0.2], [0.0], [0.0] ])
+        c_park = np.array([ [0.5], [0.2] ])
         Ac_park = np.zeros((nc, ng))
         Ab_park = np.zeros((nc, nb))
         b_park = np.zeros((nc, 1))        
@@ -431,26 +419,23 @@ class InitialSpace:
     '''
 
     def get_space(self):
-        return self.initial_space_1
-        # return self.initial_space_2
+        # return self.initial_space_1
+        return self.initial_space_2
 
     @property
     def initial_space_1(self):
         w = 0.25        # Width of vehicle [m]
         l = 0.45        # Length of vehicle [m]
-        nx = 4         # Number of state variables
+        nx = 2         # Number of state variables
         ng = 2; nb = 0; nc = 0
         Gc = np.array([
             [w/2, 0.0],
-            [0.0, l/2],
-            [0.0, 0.0],
-            [0.0, 0.0]
+            [0.0, l/2]
         ])
         Gb = np.zeros((nx, nb))
         c = np.array([  [1.29], 
-                        [0.375], 
-                        [0.0],
-                        [0.0] ])
+                        [0.375]
+                        ])
         
         Ac = np.zeros((nc, ng))
         Ab = np.zeros((nc, nb))
@@ -461,24 +446,21 @@ class InitialSpace:
 
         return initial_space
 
-
+ 
     @property
     def initial_space_2(self):
-        w = 0.25        # Width of vehicle [m]
-        l = 0.45        # Length of vehicle [m]
-        nx = 4         # Number of state variables
+        w = 0.38        # Width of vehicle [m]
+        l = 0.38        # Length of vehicle [m]
+        nx = 2         # Number of state variables
         ng = 2; nb = 0; nc = 0
         Gc = np.array([
             [w/2, 0.0],
-            [0.0, l/2],
-            [0.0, 0.0],
-            [0.0, 0.0]
+            [0.0, l/2]
         ])
         Gb = np.zeros((nx, nb))
-        c = np.array([  [1.7], 
-                        [-1.0], 
-                        [0.0],
-                        [0.0] ])
+        c = np.array([  [1.71], 
+                        [-1.21]
+                        ])
         
         Ac = np.zeros((nc, ng))
         Ab = np.zeros((nc, nb))

@@ -19,7 +19,6 @@ import time
 
 # For mixed-integer linear programming
 import gurobipy as gp
-# from gurobipy import GRB
 from gurobipy import *
 
 import scipy.sparse as sp
@@ -87,42 +86,33 @@ class ZonoOperations:
         max_angle = 0.05 * math.pi / 180
         threshold = 1 - math.sin(max_angle)
 
-        G = z.G
+        # Compute norm of all columns
+        norms = np.linalg.norm(z.G, axis = 0)
+        # Find all indices of 'norms' that are zero
+        zeros = np.where(norms == 0)[0]
+        # Remove all 'zero' norm columngs from G
+        G = np.delete(arr = z.G, obj = zeros, axis = 1)
+
         ng = G.shape[1]
 
         # Loop through all the rows of G
         i = 0; j = 0; k = 0
 
         while i < ng - k:
-            g1 = G[:, i]
-            g1_mag = np.linalg.norm(g1)    # Magnitude of g1
+            g1_unit = G[:, i] / np.linalg.norm(G[:, i]) # Unit vector of g1
 
-            if np.abs(g1_mag) <= 0.001:
-                G = np.delete(G, i, axis=1)
-                k += 1
-                continue
-
-            g1_unit = g1 / g1_mag           # Unit vector of g1
-
-            j = 0
+            j = i + 1
             while j < ng - k:
-                if i == j:
-                    j += 1
-                    continue
 
                 g2 = G[:, j]
-                g2_mag = np.linalg.norm(g2)     # Magnitude of g2
+                g2_unit = g2 / np.linalg.norm(g2)       # Unit vector of g2
 
-
-                if (g2_mag <= 0.001):
+                if np.abs(np.dot(g1_unit.T, g2_unit)) >= threshold:
+                    G[:, i] = G[:, i] + g2
                     G = np.delete(G, j, axis=1)   # Remove the second generator
                     k += 1
-                # elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
-                #     G[:, i - k] = g1 + g2
-                #     G = np.delete(G, j, axis=1)   # Remove the second generator
-                #     k += 1                    
-
-                j += 1
+                else:
+                    j += 1
 
             i +=1
 
@@ -151,6 +141,8 @@ class ZonoOperations:
         b = np.zeros((0, 1))
 
         return ConstrainedZonotope(G, C, A, b)
+
+
 
 
 
@@ -354,7 +346,7 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
 
-    def reduce_gc_cz(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+    def reduce_g_cz(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
         '''
         Removes redundant generators from a Constrained Zonotope.
 
@@ -375,49 +367,501 @@ class ZonoOperations:
             [cz.A]
         ])
 
+        # Compute norm of all columns
+        norms = np.linalg.norm(G, axis = 0)
+        # Find all indices of 'norms' that are zero
+        zeros = np.where(norms == 0)[0]
+        # Remove all 'zero' norm columngs from G
+        G = np.delete(arr = G, obj = zeros, axis = 1)
+
         ng = G.shape[1]
 
         # Loop through all the rows of G
         i = 0; j = 0; k = 0
 
         while i < ng - k:
-            g1 = G[:, i]
-            g1_mag = np.linalg.norm(g1)    # Magnitude of g1
+            g1_unit = G[:, i] / np.linalg.norm(G[:, i]) # Unit vector of g1
 
-            if np.abs(g1_mag) <= 0.001:
-                G = np.delete(G, i, axis=1)
-                k += 1
-                continue
-
-            g1_unit = g1 / g1_mag           # Unit vector of g1
-
-
-            j = 0
+            j = i + 1
             while j < ng - k:
-                if i == j:
-                    j += 1
-                    continue
 
                 g2 = G[:, j]
-                g2_mag = np.linalg.norm(g2)     # Magnitude of g2
+                g2_unit = g2 / np.linalg.norm(g2)       # Unit vector of g2
 
-
-                if (g2_mag <= 0.001):
+                if np.abs(np.dot(g1_unit.T, g2_unit)) >= threshold:
+                    G[:, i] = G[:, i] + g2
                     G = np.delete(G, j, axis=1)   # Remove the second generator
                     k += 1
-                elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
-                    G[:, i - k] = g1 + g2
-                    G = np.delete(G, j, axis=1)   # Remove the second generator
-                    k += 1                    
-
-                j += 1
+                else:
+                    j += 1
 
             i +=1
 
-        G = G[:cz.dim, :]
-        A = G[cz.dim:, :]
+        return ConstrainedZonotope(G[:cz.dim, :], cz.C, G[cz.dim:, :], cz.b)
 
-        return ConstrainedZonotope(G, cz.C, A, cz.b)
+    def reduce_c_cz(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        Reduces the number of constraints of a Constrained Zonotope.
+
+        In this version we are removing the following constraints:
+            - Any constraint whose constraint matrix component (the particular row in Ac) is all zeros
+            - Any constraint that there is another constraint that is equivalent to it
+                e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
+        '''
+        max_angle = 0.05 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
+
+        A = np.block([cz.A, cz.b])
+
+        # Compute norm of all rows
+        norms = np.linalg.norm(A, axis = 1)
+        # Find all indices of 'norms' that are zero
+        zeros = np.where(norms == 0)[0]
+        # Remove all 'zero' norm columngs from G
+        A = np.delete(arr = A, obj = zeros, axis = 0)
+
+        nc = A.shape[0]
+
+        # Loop through all the rows of G
+        i = 0; j = 0; k = 0
+
+        while i < nc - k:
+            c1_unit = A[i, :] / np.linalg.norm(A[i, :]) # Unit vector of c1
+
+            j = i + 1
+            while j < nc - k:
+                c2 = A[j, :]
+                c2_unit = c2 / np.linalg.norm(c2)       # Unit vector of c2
+
+                if np.abs(np.dot(c1_unit.T, c2_unit)) >= threshold:
+                    A = np.delete(A, j, axis=0)   # Remove the second constraint
+                    k += 1
+                else:
+                    j += 1
+
+            i +=1
+
+        return ConstrainedZonotope(cz.G, cz.C, A[:, :cz.A.shape[1]], A[:, -1].reshape((A.shape[0], 1)))
+
+
+
+
+    def intervals_cz(self, cz):
+        '''
+        This method computes the Intervals of the input constrained zonotope
+        '''
+
+        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
+        E = np.array([ [-1, 1] for g in range(cz.ng) ])
+        R = np.array([ [-np.inf, np.inf] for g in range(cz.ng) ])
+        i = 0; j = 0
+
+        A = cz.A
+
+        while i < (cz.nc):
+            while j < (cz.ng):
+                if A[i, j] != 0:
+                    a_ij_inv = (1/A[i, j])
+                    sum = 0
+                    for k in range(cz.ng):
+                        if k != j:
+                            sum += a_ij_inv * A[i, k] * E[k]
+                    gen_val = a_ij_inv * cz.b[i,0] - sum
+                    # print(f'i = {i}, j = {j}, a_ij_inv = {a_ij_inv}, sum = {sum}, -sum = {-sum}, a_inv*b = {a_ij_inv * cz.b[i,0]}, gen_val = {gen_val}')
+                    R[j] = self.intesection_intervals(R[j], gen_val)
+                    E[j] = self.intesection_intervals(E[j], R[j])
+                    # print(f'R[{j}] = {R[j]}, E[{j}] = {E[j]}')
+
+                j += 1
+            i += 1
+            j = 0
+
+        return E, R
+ 
+    def red_cz_scott(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        E, R = self.intervals_cz(cz)
+        A = cz.A
+
+        epsilon = 1e-3
+
+        already_removed_c = []; already_removed_g = []
+        for c in range (cz.ng):
+            for r in range(cz.nc):
+                if np.abs(A[r, c]) >= epsilon:
+                    a_rc_inv = (1/A[r, c])
+                    sum = 0
+                    for k in range(cz.ng):
+                        if k != c:
+                            sum = sum + A[r, k] * E[k]
+                    R_rc = a_rc_inv * cz.b[r,0] - a_rc_inv * sum
+
+                    if self.is_inside_interval(R_rc, np.array([-1, 1])) and (r not in already_removed_c) and (c not in already_removed_g):
+                        already_removed_c.append(r); already_removed_g.append(c)
+                        Ecr = np.zeros((cz.ng, cz.nc))
+                        Ecr[c, r] = 1
+
+                        Lg = cz.G @ Ecr * (1/A[r, c])
+                        La = cz.A @ Ecr * (1/A[r, c])
+
+                        # Check if Lg has only zero zero values
+                        full_zero = True
+                        for x in range(Lg.shape[1]):
+                            for y in range(Lg.shape[0]):
+                                if Lg[y, x] != 0:
+                                    full_zero = False
+
+                        if not (full_zero):
+                            G = cz.G - Lg @ cz.A
+                            C = cz.C + Lg @ cz.b
+                            A = cz.A - La @ cz.A
+                            b = cz.b - La @ cz.b
+
+                            cz = ConstrainedZonotope(G, C, A, b)
+
+
+        cz = self.reduce_c_cz(cz)   # Remove the redundant or zero constraints
+        cz = self.reduce_g_cz(cz)
+
+
+        return cz
+
+    def rescale_cz(self, cz):
+        '''
+        This method rescales a constrained zonotope of work according to work [1]
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('rescale_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (cz.ng, ), lb = np.array([-1] * cz.ng), ub = np.array([1] * cz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * cz.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = cz.b                          # Right hand side of equality constraint equation
+        lhs = cz.A @ x_c                    # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        x_L = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            x_L.append(x_c[g].X)
+
+        x_U = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            x_U.append(x_c[g].X)
+
+        x_U = np.array(x_U); x_L = np.array(x_L)
+        x_m = (x_U + x_L)/2
+        x_r = (x_U - x_L)/2
+
+        x_m = x_m.reshape((cz.ng, 1))
+        x_r = x_r.reshape((cz.ng, 1))
+        diag = np.diag(x_r.flatten())
+
+        G = cz.G @ diag
+        C = cz.C + cz.G @ x_m
+        A = cz.A @ diag
+        b = cz.b - cz.A @ x_m
+
+        return ConstrainedZonotope(G, C, A, b)
+
+    def red_cz_scott_v2(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        # cz = self.rescale_cz(cz)
+        # E, R = self.intervals_cz(cz)
+
+        epsilon = 1e-3
+
+        for c in range (cz.ng):
+            for r in range(cz.nc):
+                cz = self.rescale_cz(cz)                
+                E, R = self.intervals_cz(cz)
+
+                if np.abs(cz.A[r, c]) >= epsilon:
+                    a_rc_inv = (1/cz.A[r, c])
+                    sum = 0
+                    for k in range(cz.ng):
+                        if k != c:
+                            sum = sum + cz.A[r, k] * E[k]
+                    R_rc = a_rc_inv * cz.b[r,0] - a_rc_inv * sum
+
+                    if self.is_inside_interval(R_rc, np.array([-1, 1])):
+                        Ecr = np.zeros((cz.ng, cz.nc))
+                        Ecr[c, r] = 1
+
+                        Lg = cz.G @ Ecr * (1/cz.A[r, c])
+                        La = cz.A @ Ecr * (1/cz.A[r, c])
+
+                        G = cz.G - Lg @ cz.A
+                        C = cz.C + Lg @ cz.b
+                        A = cz.A - La @ cz.A
+                        b = cz.b - La @ cz.b
+
+                        cz = ConstrainedZonotope(G, C, A, b)
+
+
+        cz = self.reduce_c_cz(cz)   # Remove the redundant or zero constraints
+        cz = self.reduce_g_cz(cz)
+
+
+        return cz
+
+
+
+    def find_E_intervals_cz(self, cz):
+        '''
+        This method finds the E interval by solving 2*ng LPs as described in [1]
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('intervals_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (cz.ng, ), lb = np.array([-1] * cz.ng), ub = np.array([1] * cz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * cz.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = cz.b                          # Right hand side of equality constraint equation
+        lhs = cz.A @ x_c                    # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        x_L = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            x_L.append(x_c[g].X)
+
+        x_U = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            x_U.append(x_c[g].X)
+
+        x_U = np.array(x_U); x_L = np.array(x_L)
+
+        E = np.block([x_L.reshape(-1, 1), x_U.reshape(-1, 1)])
+
+        return E
+
+    def red_cz_scott_v3(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        epsilon = 1e-3
+
+        for c in range (cz.ng):
+            for r in range(cz.nc):
+                E = self.find_E_intervals_cz(cz)
+
+                if np.abs(cz.A[r, c]) >= epsilon:
+                    a_rc_inv = (1/cz.A[r, c])
+                    sum = 0
+                    for k in range(cz.ng):
+                        if k != c:
+                            sum = sum + cz.A[r, k] * E[k]
+                    R_rc = a_rc_inv * cz.b[r,0] - a_rc_inv * sum
+
+                    if self.is_inside_interval(R_rc, np.array([-1, 1])):
+                        Ecr = np.zeros((cz.ng, cz.nc))
+                        Ecr[c, r] = 1
+
+                        Lg = cz.G @ Ecr * (1/cz.A[r, c])
+                        La = cz.A @ Ecr * (1/cz.A[r, c])
+
+                        G = cz.G - Lg @ cz.A
+                        C = cz.C + Lg @ cz.b
+                        A = cz.A - La @ cz.A
+                        b = cz.b - La @ cz.b
+
+                        cz = ConstrainedZonotope(G, C, A, b)
+
+
+        cz = self.reduce_c_cz(cz)   # Remove the redundant or zero constraints
+        cz = self.reduce_g_cz(cz)
+
+
+        return cz
+
+
+
+    def rreffp(self, A: np.ndarray):
+        '''
+        This method computes the reduced row echelon form with full pivoting of A
+
+        TODO: TEST THIS METHOD
+        '''
+        epsilon = 1e-5
+        A_rref = np.copy(A)
+        m, n = A_rref.shape
+
+        num = A_rref
+        den = np.ones((A_rref.shape))
+        rats = np.array_equal(A_rref, num / den)
+
+        ind = np.arange(n)  # Stores the column index
+
+        for j in range(m):  # Iterates through each of the rows.
+            temp_max = abs(A_rref[j, j])  # Sets A_rref(j,j) as the element with maximum absolute value.
+            imax = j
+            jmax = j
+
+            for k in range(j, m):
+                for l in range(j, n - 1): # (Pivot element) (Leaves out b vector which does not need reduction)
+                    if temp_max < abs(A_rref[k, l]):  # Determines the element with maximum absolute value in the matrix
+                        temp_max = abs(A_rref[k, l])
+                        imax = k  # Stores the row index of the element with maximum absolute value
+                        jmax = l  # Stores the corresponding column index
+
+            temp_jmax = np.copy(A_rref[:, jmax])  # Swaps the jmax^{th} column and j^th column
+            A_rref[:, jmax] = A_rref[:, j]
+            A_rref[:, j] = temp_jmax
+
+            temp_col_index = ind[jmax]  # Stores column indices after column swap
+            ind[jmax] = ind[j]
+            ind[j] = temp_col_index
+
+            temp_imax = np.copy(A_rref[imax, :])  # Swaps the imax^{th} row and j^th row
+            A_rref[imax, :] = A_rref[j, :]
+            A_rref[j, :] = temp_imax
+
+            if j != m:  # Checks if the last row is reached
+                for i in range(j + 1, m):  # Traverses through each of the rows from (j+1) to (m)
+                    if A_rref[j, j] >= epsilon:
+                        A_rref[i, :] = A_rref[i, :] - (A_rref[i, j] / A_rref[j, j]) * A_rref[j, :]  # Performs row reduction
+
+        for i in range(m):  # Traverses through each of the rows from 1 to m
+            if A_rref[i, i] != 0:  # Checks for non-zero.
+                A_rref[i, :] = A_rref[i, :] / A_rref[i, i]  # Normalizes the matrix to get 1 in A_rref(i,i) element
+
+        if rats:
+            num = A_rref
+            den = np.ones((A_rref.shape))
+            A_rref = np.divide(num, den)
+
+            print(f'A_rref = \n{A_rref}')
+
+        return A_rref, ind
+
+    def rref_cz(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        This method computes the reduced row echelon form with full pivoting for a constrained zonotope
+        TODO: TEST THIS METHOD
+        '''
+        temp_Ab_rref, ind = self.rreffp(np.block([cz.A, cz.b]))  # Computes reduced row echelon form with full pivoting
+        print(f'temp_Ab_rref = \n{temp_Ab_rref}')
+        G = cz.G[:, ind[:-1]]
+        C = cz.C
+        A = temp_Ab_rref[:, :cz.A.shape[1]]
+        b = temp_Ab_rref[:, cz.A.shape[1]]
+        cz = ConstrainedZonotope(G, C, A, b)
+
+        return cz
+
+    def bounds_idx(self, cz, max_iter):
+        '''
+        This method computes the interval sets R, E of the variables associated with each generator and constraint taken separately
+
+        max_iter : Number of iterations for computing the intervals R, E
+
+        TODO: TEST THIS METHOD
+        '''
+        ng = cz.ng; nc = cz.nc
+        epsilon = 1e-5
+
+        print(f'G = \n{cz.G}')
+        print(f'A = \n{cz.A}')
+        print(f'b = {cz.b.T}')
+
+        e_lb = -np.ones((ng, nc))  # Initialization
+        e_ub = np.ones((ng, nc))
+
+        E_old = np.concatenate((e_lb, e_ub), axis=1)
+
+        for rep in range(max_iter):
+            r_lb = -np.inf * np.ones((ng, nc))  # Initialization
+            r_ub = np.inf * np.ones((ng, nc))
+
+            for c in range(nc):  # Traverses through the constraints
+                for r in range(ng):  # Traverses through the generators
+                    if abs(cz.A[c, r]) >= epsilon:  # Checks if A[c,r] != 0
+                        rr_temp = np.array([0, 0])
+                        for k in range(ng):
+                            if k != r:
+                                if cz.A[c, k] / cz.A[c, r] >= 0:  # Computes bounds using interval arithmetic
+                                    rr_temp[0] += cz.A[c, k] / cz.A[c, r] * e_lb[k, c]
+                                    rr_temp[1] += cz.A[c, k] / cz.A[c, r] * e_ub[k, c]
+                                else:
+                                    rr_temp[0] += cz.A[c, k] / cz.A[c, r] * e_ub[k, c]
+                                    rr_temp[1] += cz.A[c, k] / cz.A[c, r] * e_lb[k, c]
+
+                        rr_temp = cz.b[c] / cz.A[c, r] - [rr_temp[1], rr_temp[0]]
+                        r_lb[r, c] = max(r_lb[r, c], rr_temp[0])  # Computes the intersected interval between r_lb and computed bound.
+                        r_ub[r, c] = min(r_ub[r, c], rr_temp[1])  # Computes the intersected interval between r_ub and computed bound.
+                        e_lb[r, c] = max(e_lb[r, c], r_lb[r, c])  # Computes the intersected interval between e_lb and computed bound.
+                        e_ub[r, c] = min(e_ub[r, c], r_ub[r, c])  # Computes the intersected interval between e_ub and computed bound.
+
+            R = np.concatenate((r_lb, r_ub), axis=1)
+            E = np.concatenate((e_lb, e_ub), axis=1)
+            
+            if nc != 0:
+                sum_feas = 0  # Lines 50-58 additions
+                for r in range(ng):
+                    if e_lb[r].all() <= e_ub[r].all():  # Checks if interval set E is feasible.
+                        sum_feas += 1
+                if sum_feas != ng:
+                    break
+
+            if np.array_equal(E, E_old):
+                break
+            else:
+                E_old = E
+
+        print(f'E = \n{E}')
+        print(f'R = \n{R}')
+        print(f'rep = \n{rep}')
+        return R, E, rep
+    
+    def redundat_indices(self, cz, max_iter):
+        '''
+        This method finds the indices of reduntant constraints and generators of a constrained zonotope
+
+        TODO: TEST THIS METHOD
+        '''
+
+        ng = cz.ng; nc = cz.nc
+        R_ind, _, _ = self.bounds_idx(cz, max_iter)
+        redund = []
+
+        for i in range(nc):
+            for j in range(ng):
+                if (R_ind[j, i] >= -1) and (R_ind[j, i + nc] <= 1):
+                    redund.append([i + 1, j + 1])
+
+        return redund
+
+    def red_cz_raghuraman(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        r_idx = self.redundat_indices(cz = cz, max_iter = 100)
+
+        print(f'r_idx = {r_idx}')
+        
+        return cz
+
+
+
+
+
 
     def oa_cz_to_z(self, cz: ConstrainedZonotope) -> Zonotope:
         '''
@@ -429,7 +873,22 @@ class ZonoOperations:
 
         return Zonotope(C, G)
 
+    def cz_to_hz(self, cz: ConstrainedZonotope) -> HybridZonotope:
+        '''
+        This method takes in a constrained zonotope and returns an equivalent representation as a Hybrid Zonotope
+        '''   
+        Gc = cz.G
+        Gb = np.zeros((cz.dim, 0))
+        C = cz.C
+        Ac = cz.A
+        Ab = np.zeros((cz.nc, 0))
+        b = cz.b
 
+        # print(f'shape of cz.A = {cz.A.shape}')
+        # print(f'shape of Ab = {Ab.shape}')
+        # print(f'shape of b = {cz.b.shape}')
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
 
     def lt_hz(self, M: np.ndarray, hz: HybridZonotope) -> HybridZonotope:
         '''
@@ -772,6 +1231,40 @@ class ZonoOperations:
 
         return ConstrainedZonotope(G, C, A, b)
 
+    def oa_hz_to_cz_v2(self, hz: HybridZonotope) -> ConstrainedZonotope:
+        # ## V1: not working
+        # norms = np.linalg.norm(hz.Gc, axis = 0)
+        # idx = np.argmax(norms, axis = 0)
+        # # Create the continuous generators component:
+        # Gc = np.zeros((hz.dim, hz.dim))
+        # for i in range(hz.dim):
+        #     Gc[i, i] = hz.Gc[i, idx]
+
+        # ## V2: not working
+        # # print(f'hz.Gc = \n{hz.Gc}')
+        # max_g = np.argmax(np.absolute(hz.Gc), axis = 0)
+        # Gc = np.zeros((hz.dim, hz.dim))
+        # for i in range(hz.dim):
+        #     Gc[i, i] = hz.Gc[i, max_g[i]]
+
+        ## V3
+        # print(f'hz.Gc = \n{hz.Gc}')
+        sums = np.sum(np.absolute(hz.Gc), axis = 1)
+        # print(f'sums = \n{sums}')
+        Gc = np.zeros((hz.dim, hz.dim))
+        for i in range(hz.dim):
+            Gc[i, i] = sums[i]
+
+
+
+        G = np.block([Gc, hz.Gb])
+
+        # A = np.block([np.zeros((hz.nc, hz.dim )), hz.Ab])
+        A = np.zeros((0, hz.dim + hz.nb))
+        b = np.zeros((0, 1))
+        
+        return ConstrainedZonotope(G, hz.C, A, b)
+
     def oa_hz_to_z(self, hz: HybridZonotope) -> Zonotope:
         '''
         This method takes in a hybrid zonotope and returns a zonotope
@@ -781,7 +1274,14 @@ class ZonoOperations:
         C = hz.C
  
         return Zonotope(C, G)
-    
+
+
+
+
+
+
+
+
 
     def one_step_brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray) -> HybridZonotope:
         '''
@@ -985,15 +1485,23 @@ class ZonoOperations:
                 #             break
 
 
-                p = brs_settings.space[y_i, x_i, 0, 0]
-                p = np.array([ [p[0]], [p[1]], [0.0], [0.0] ])
+                # 4D
+                # p = brs_settings.space[y_i, x_i, 0, 0]
+                # p = np.array([ [p[0]], [p[1]], [0.0], [0.0] ])
+                
+                # 2D
+                p = brs_settings.space[y_i, x_i]
+                p = np.array([ [p[0]], [p[1]] ])
+
                 # print(f'(i = {i})  p = {p.T}')
                 # i += 1
 
                 close_enough = True
                 if close_enough:
                     if self.is_inside_hz(hz, p):
-                        brs_settings.is_already_contained[y_i, x_i, 10, 10] = 1
+                        
+                        # Only for 4D
+                        # brs_settings.is_already_contained[y_i, x_i, 10, 10] = 1
 
                         brs_settings.is_already_contained_xy[y_i, x_i] = 1
 
