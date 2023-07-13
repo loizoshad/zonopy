@@ -38,14 +38,26 @@ vis = ZonoVisualizer(zono_op)
 brs_plot_params = ParamBRS(dynamics = dynamics, space = 'outer')
 env = StaticEnv1(zono_op = zono_op, dynamics = DynamicsModel(), visualizer = vis)
 cz1 = SamplesCZ().set_1; cz2 = SamplesCZ().set_2
-cz = zono_op.ms_cz_cz(cz1, cz2)
-cz = zono_op.red_cz_scott_v3(cz)
-hz = zono_op.cz_to_hz(cz)
+cz3 = SamplesCZ().set_3; cz4 = SamplesCZ().set_4
+cz = zono_op.intersection_cz_cz(cz1, cz2)
+cz = zono_op.intersection_cz_cz(cz, cz3)
+cz = zono_op.intersection_cz_cz(cz, cz4)
 
+cz = zono_op.reduce_c_cz(cz)
+cz = zono_op.reduce_g_cz(cz)
+cz = zono_op.red_cz_ragh_v3(cz)
+
+
+
+hz = zono_op.cz_to_hz(cz)
 print(f'ng = {hz.ng}, nc = {hz.nc}, nb = {hz.nb}')
 print(f'Gc = \n{hz.Gc}')
 print(f'Ac = \n{hz.Ac}')
 print(f'b = {hz.b.T}')
+
+
+
+
 
 
 

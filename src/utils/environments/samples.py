@@ -29,8 +29,8 @@ class SamplesZ:
         c = np.array([  [0],
                         [0]
                     ])
-        G = np.array([  [1, 0, 0, 0, 0, 0],
-                        [1, 1, 1, 1, 1, 0]
+        G = np.array([  [1, 0, 0, 0, 0, 0, 3],
+                        [1, 1, 1, 1, 1, 0, 2]
                     ])
 
         return Zonotope(c, G)      
@@ -85,6 +85,37 @@ class SamplesCZ:
         ])
 
         return ConstrainedZonotope(G, C, A, b)        
+
+    @property
+    def set_3(self):
+        G = np.array([
+            [1.0,  1.0],
+            [1.0, -1.0]
+        ])
+        C = np.array([
+            [0.0],
+            [0.0]
+        ])
+        A = np.zeros((0, 2))
+        b = np.zeros((0, 1))
+
+        return ConstrainedZonotope(G, C, A, b)     
+       
+    @property
+    def set_4(self):
+        G = np.array([
+            [1.0, 0.0],
+            [0.0, 1.0]
+        ])
+        C = np.array([
+            [0.0],
+            [0.0]
+        ])
+        A = np.zeros((0, 2))
+        b = np.zeros((0, 1))
+
+        return ConstrainedZonotope(G, C, A, b)        
+
 
 
 class SamplesHZ:

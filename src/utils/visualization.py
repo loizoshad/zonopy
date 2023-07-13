@@ -65,7 +65,6 @@ class ZonoVisualizer:
     def brs_plot_settings(self, settings):
         self.brs_sett = settings
 
-
     def vis_z(self, zonotopes: list):
         '''
         Visualizes a list of zonotopes
@@ -96,7 +95,6 @@ class ZonoVisualizer:
             handles.append(p)  # For the legend
             i += 1
 
-
     def vis_cz(self, czonotopes: list, colors = [(0.423, 0.556, 0.749, 1.0)], zorder = None, show_edges = False):
         '''
         Visualizes the exact shape of a list of constrained zonotopes
@@ -126,7 +124,6 @@ class ZonoVisualizer:
             poly = Polygon(vertices, closed = True, fill = True, facecolor = (color[0], color[1], color[2]),  alpha = color[3], zorder = zorder)
             self.ax.add_patch(poly)
  
-
     def vis_hz(self, hzonotopes: list, colors = [(0.835, 0.909, 0.831, 0.5)], zorder = None, show_edges = False):
         '''
         Visualizes a list of hybrid zonotoped
@@ -154,7 +151,6 @@ class ZonoVisualizer:
             self.vis_cz(cz, colors = colors[i], zorder = zorder, show_edges = show_edges)
             i += 1
 
-
     def vis_hz_brs(self, hz, brs_settings):
         '''
         Visualizes a backward reachable set repsented by a hybrid zonotope
@@ -166,10 +162,9 @@ class ZonoVisualizer:
         marker_size = marker_size**2        # area of the marker
 
         for p in new_points:
-            self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#4F94DA', alpha = 1.0, zorder = 11,
+            self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#6C8EBF', alpha = 1.0, zorder = 11,
                             edgecolors = 'face'
                             )
-
 
 
 
