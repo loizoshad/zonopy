@@ -39,37 +39,38 @@ space = zono_op.red_hz_scott(space)
 env.vis_background()
 
 
-# N = 100
-# for i in range(N):
-    # print(f'*********************************************************')
-    # print(f'Iteration {i}')
+N = 100
+for i in range(N):
+    print(f'*********************************************************')
+    print(f'Iteration {i}')
 
-obs = zono_op.one_step_frs_hz(X = space, U = input, I = obs, A = env.A, B = env.B, W = env.W)
-obs = zono_op.one_step_frs_hz(X = space, U = input, I = obs, A = env.A, B = env.B, W = env.W)
-cz = zono_op.oa_hz_to_cz(obs); cz = zono_op.reduce_c_cz(cz); cz = zono_op.reduce_g_cz(cz); hz = zono_op.cz_to_hz(cz)
-cz = zono_op.red_cz_ragh_v3(cz)
-obs_compl = zono_op.complement_cz_to_hz(cz)#; obs_compl = zono_op.intersection_hz_hz(obs_compl, space)
-
-
-print(f'Obstacle: ng = {obs.ng}\t nc = {obs.nc}\t nb = {obs.nb}')
-print(f'Obs red.: ng = {hz.ng}\t nc = {hz.nc}\t nb = {hz.nb}')
-print(f'Obs_Comp: ng = {obs_compl.ng}\t nc = {obs_compl.nc}\t nb = {obs_compl.nb}')
+    obs = zono_op.one_step_frs_hz(X = space, U = input, I = obs, A = env.A, B = env.B, W = env.W)
+    cz = zono_op.oa_hz_to_cz(obs); cz = zono_op.redundant_c_cz(cz); cz = zono_op.redundant_g_cz(cz)
+    cz = zono_op.red_cz_ragh_v3(cz)
+    hz = zono_op.cz_to_hz(cz)
+    hz = zono_op.intersection_hz_hz(hz, space)
+    obs_compl = zono_op.complement_cz_to_hz(cz)#; obs_compl = zono_op.intersection_hz_hz(obs_compl, space)
 
 
-# vis.vis_hz([hz], colors = colors, show_edges=True, zorder=20)
-# vis.vis_hz([obs], colors = colors, show_edges=True, zorder=20)
-# vis.vis_hz([obs_compl], colors = colors, show_edges=True, zorder=20)
+    print(f'Obstacle: ng = {obs.ng}\t nc = {obs.nc}\t nb = {obs.nb}')
+    print(f'Obs red.: ng = {hz.ng}\t nc = {hz.nc}\t nb = {hz.nb}')
+    print(f'Obs_Comp: ng = {obs_compl.ng}\t nc = {obs_compl.nc}\t nb = {obs_compl.nb}')
 
 
-# env.vis_background()
-# env.grid = env.vis.vis_hz_brs(hz = obs, brs_settings=env.brs_settings)
-# env.grid = env.vis.vis_hz_brs(hz = hz, brs_settings=env.brs_settings)
-env.grid = env.vis.vis_hz_brs(hz = obs_compl, brs_settings=env.brs_settings)
+    # vis.vis_hz([hz], colors = colors, show_edges=True, zorder=20)
+    # vis.vis_hz([obs], colors = colors, show_edges=True, zorder=20)
+    # vis.vis_hz([obs_compl], colors = colors, show_edges=True, zorder=20)
 
 
-plt.show()
-# name = f'frs_N_{i}'
-# env.vis.fig.savefig(f'./results/dynamic2/obs_reduced/{name}.pdf', dpi=300)
-# plt.close(env.vis.fig)
-# env.vis.new_fig()
+    env.vis_background()
+    # env.grid = env.vis.vis_hz_brs(hz = obs, brs_settings=env.brs_settings)
+    env.grid = env.vis.vis_hz_brs(hz = hz, brs_settings=env.brs_settings)
+    # env.grid = env.vis.vis_hz_brs(hz = obs_compl, brs_settings=env.brs_settings)
+
+
+    # plt.show()
+    name = f'frs_N_{i}'
+    env.vis.fig.savefig(f'./results/new/{name}.pdf', dpi=300)
+    plt.close(env.vis.fig)
+    env.vis.new_fig()
 
