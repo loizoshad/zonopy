@@ -46,30 +46,6 @@ cz = zono_op.redundant_c_g_cz(cz, options = 'fast')
 hz = zono_op.cz_to_hz(cz)
 
 
-
-
-
-
-
-
-# hz = zono_op.red_hz_scott(hz)
-# cz = zono_op.oa_hz_to_cz(hz)
-# cz = zono_op.red_cz_scott_v2(cz)
-# hz = zono_op.cz_to_hz(cz)
-# print(f'After : ng = {hz.ng}, nc = {hz.nc}, nb = {hz.nb}')
-
-
-
-
-
-
-
-
-
-
-
-
-
 vis.brs_plot_settings(brs_plot_params)
 vis.ax.set_xlim(-7.0, 7.0); vis.ax.set_ylim(-12, 14)
 vis.ax.spines['right'].set_visible(True); vis.ax.spines['left'].set_visible(True)

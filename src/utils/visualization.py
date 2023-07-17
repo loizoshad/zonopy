@@ -48,7 +48,6 @@ class ZonoVisualizer:
         self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
         self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
-
     def new_fig(self):
         self.fig, self.ax = plt.subplots()
         self.manager = plt.get_current_fig_manager()

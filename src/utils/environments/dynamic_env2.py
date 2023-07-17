@@ -170,17 +170,43 @@ class StateSpaceSafe:
 
     def get_space(self, options):
         if options == 'outer':
-            road_outer = self.zono_op.red_hz_scott(self.road_outer)
+            road_outer = self.zono_op.redundant_c_gc_hz_v2(self.road_outer)
+            road_outer = self.zono_op.redundant_c_gc_hz_v1(road_outer, options = 'slow')
             return road_outer
-            # return self.road_outer
         elif options == 'inner':
             road_inner_a = self.zono_op.union_hz_hz_v2(self.road_park_1, self.road_park_2)
-            road_inner_a = self.zono_op.red_hz_scott(road_inner_a)
-            road_inner_b = self.zono_op.red_hz_scott(self.road_inner)
+            road_inner_a = self.zono_op.redundant_c_gc_hz_v2(road_inner_a)
+            road_inner_a = self.zono_op.redundant_c_gc_hz_v1(road_inner_a, options = 'slow')
+            #
+            road_inner_b = self.zono_op.redundant_c_gc_hz_v2(self.road_inner)
+            road_inner_b = self.zono_op.redundant_c_gc_hz_v1(road_inner_b, options = 'slow')
+            #
             road_inner = self.zono_op.union_hz_hz_v2(road_inner_a, road_inner_b)
+            road_inner = self.zono_op.redundant_c_gc_hz_v2(road_inner)
+            road_inner = self.zono_op.redundant_c_gc_hz_v1(road_inner, options = 'slow')
             return road_inner
         elif options == 'full':
-            return self.road_full
+            ## Outer
+            road_outer = self.zono_op.redundant_c_gc_hz_v2(self.road_outer)
+            road_outer = self.zono_op.redundant_c_gc_hz_v1(road_outer, options = 'slow')
+            ## Inner
+            road_inner_a = self.zono_op.union_hz_hz_v2(self.road_park_1, self.road_park_2)
+            road_inner_a = self.zono_op.redundant_c_gc_hz_v2(road_inner_a)
+            road_inner_a = self.zono_op.redundant_c_gc_hz_v1(road_inner_a, options = 'slow')
+            #
+            road_inner_b = self.zono_op.redundant_c_gc_hz_v2(self.road_inner)
+            road_inner_b = self.zono_op.redundant_c_gc_hz_v1(road_inner_b, options = 'slow')
+            #
+            road_inner = self.zono_op.union_hz_hz_v2(road_inner_a, road_inner_b)
+            road_inner = self.zono_op.redundant_c_gc_hz_v2(road_inner)
+            road_inner = self.zono_op.redundant_c_gc_hz_v1(road_inner, options = 'slow')
+            ## Full road
+            road = self.zono_op.union_hz_hz_v2(road_inner, road_outer)
+            road = self.zono_op.redundant_c_gc_hz_v2(road)
+            road = self.zono_op.redundant_c_gc_hz_v1(road, options = 'slow')
+
+            return road 
+
         else:
             raise ValueError('Invalid option for state space, choose from "outer", "inner", "full"')
 

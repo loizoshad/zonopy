@@ -41,6 +41,7 @@ References:
 [4] L. Yang, et al.         'Scalable Zonotopic Under-approximation of Backward Reachable Sets for Uncertain Lienar Systems'
 [5] Y. Zhang, et al.        'Reachability Analysis and Safety Verification of Neural Feedback Systems via Hybrid Zonotopes'
 [6] V. Raghuraman, et al.   'Set Operations and Order reductions for constrained zonotopes'
+[7] T. Bird                 'PhD Dissertation: Hybrid Zonotopes: A Mixed-Integer Set Representation For The Analysis Of Hybrid Zonotopes
 '''
 
 class ZonoOperations:
@@ -585,8 +586,7 @@ class ZonoOperations:
     def rref_cz(self, cz):
         '''
         This method computes the reduced row echelon form of matrix [A | b] for a linear system of equations (Ax = b)
-        using Gauss-Jordan Elimination with full pivoting. In addition, it keeps track of the row and column swaps
-        so that the column swaps can be later tracked in the generator matrix G of the constrained zonotope.
+        using Gauss-Jordan Elimination with full pivoting.
 
         - FUTURE IMPROVEMENTS: Experiment with other preconditioning strategies
         '''
@@ -1058,7 +1058,570 @@ class ZonoOperations:
  
         return Zonotope(C, G)
 
-    #####
+    ##### Redundancy removal
+    def redundant_gc_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        Removes redundant generators from a Hybrid Zonotope.
+
+        This method first partially forms the lifted hybrid zonotope. Then it
+        scans all generators and whenver it finds a pair of generators that are
+        parallel to each other, it adds one to the other and removes the other one.
+
+        Example: If we have two generators g1 and g2, and g1 = 2*g2,
+        then we update g1 as g1 = g1 + g2 = 3*g2 and remove g2. 
+        '''
+
+        max_angle = 0.05 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
+
+        # Step 1: Stack Gc and Ac
+        G = np.block([
+            [hz.Gc],
+            [hz.Ac]
+        ])
+
+        norms = np.linalg.norm(G, axis = 0)             # Compute norm of all columns
+        zeros = np.where(norms == 0)[0]                 # Find all indices of 'norms' that are zero
+        G = np.delete(arr = G, obj = zeros, axis = 1)   # Remove all 'zero' norm columngs from G
+        ng = G.shape[1]
+
+        i = 0; j = 0; k = 0
+        while i < ng - k:
+            g1_unit = G[:, i] / np.linalg.norm(G[:, i]) # Unit vector of g1
+
+            j = i + 1
+            while j < ng - k:
+
+                g2 = G[:, j]
+                g2_unit = g2 / np.linalg.norm(g2)       # Unit vector of g2
+
+                if np.abs(np.dot(g1_unit.T, g2_unit)) >= threshold:
+                    G[:, i] = G[:, i] + g2
+                    G = np.delete(G, j, axis=1)         # Remove the second generator
+                    k += 1
+                else:
+                    j += 1
+
+            i +=1
+
+        return HybridZonotope(G[:hz.dim, :], hz.Gb, hz.C, G[hz.dim:, :], hz.Ab, hz.b)    
+
+    def redundant_c_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        Reduces the number of constraints of a hybrid Zonotope.
+
+        In this method we are removing the following constraints:
+            - Any constraint whose constraint matrix component (the particular row in Ac) is all zeros
+            - Any constraint that there is another constraint that is equivalent to it
+                e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
+        '''
+        max_angle = 0.05 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
+
+        A = np.block([hz.Ac, hz.Ab, hz.b])
+
+        norms = np.linalg.norm(A, axis = 1)             # Compute norm of all rows
+        zeros = np.where(norms == 0)[0]                 # Find all indices of 'norms' that are zero
+        A = np.delete(arr = A, obj = zeros, axis = 0)   # Remove all 'zero' norm columngs from G
+        nc = A.shape[0]
+
+        i = 0; j = 0; k = 0
+        while i < nc - k:
+            c1_unit = A[i, :] / np.linalg.norm(A[i, :]) # Unit vector of c1
+
+            j = i + 1
+            while j < nc - k:
+                c2 = A[j, :]
+                c2_unit = c2 / np.linalg.norm(c2)       # Unit vector of c2
+
+                if np.abs(np.dot(c1_unit.T, c2_unit)) >= threshold:
+                    A = np.delete(A, j, axis=0)         # Remove the second constraint
+                    k += 1
+                else:
+                    j += 1
+
+            i +=1
+
+
+        return HybridZonotope(hz.Gc, hz.Gb, hz.C, A[:, :hz.Ac.shape[1]], A[:, hz.Ac.shape[1]:-1], A[:, -1].reshape((A.shape[0], 1)))    
+
+    # This version does not always work. Nevertheless, I still use it for the initial space as it works in these cases and reduces the redundancy better than redundant_c_gc_hz_v1
+    def redundant_c_gc_hz_v2(self, hz: HybridZonotope) -> HybridZonotope:
+        E, R = self.intervals_hz(hz)
+        A = hz.Ac
+
+        epsilon = 1e-3
+
+        already_removed_c = []; already_removed_g = []
+        for c in range (hz.ng):
+            for r in range(hz.nc):
+                if np.abs(A[r, c]) >= epsilon:
+                    a_rc_inv = (1/A[r, c])
+                    sum = 0
+                    for k in range(hz.ng):
+                        if k != c:
+                            sum = sum + A[r, k] * E[k]
+                    R_rc = a_rc_inv * hz.b[r,0] - a_rc_inv * sum
+
+                    if self.is_inside_interval(R_rc, np.array([-1, 1])) and (r not in already_removed_c) and (c not in already_removed_g):
+                        already_removed_c.append(r); already_removed_g.append(c)
+                        Ecr = np.zeros((hz.ng, hz.nc))
+                        Ecr[c, r] = 1
+
+                        Lg = hz.Gc @ Ecr * (1/A[r, c])
+                        La = hz.Ac @ Ecr * (1/A[r, c])
+
+                        # Check if Lg has only zero zero values
+                        full_zero = True
+                        for x in range(Lg.shape[1]):
+                            for y in range(Lg.shape[0]):
+                                if Lg[y, x] != 0:
+                                    full_zero = False
+
+                        if not (full_zero):
+                            Gc = hz.Gc - Lg @ hz.Ac
+                            Gb = hz.Gb - Lg @ hz.Ab
+                            C  = hz.C  + Lg @ hz.b
+                            Ac = hz.Ac - La @ hz.Ac
+                            Ab = hz.Ab - La @ hz.Ab
+                            b  = hz.b  - La @ hz.b
+
+                            hz = HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+
+
+        hz = self.reduce_c_hz(hz)   # Remove the redundant or zero constraints
+        hz = self.reduce_gc_hz(hz)
+
+
+        return hz
+
+    def intervals_hz(self, hz):
+        '''
+        This method computes the Intervals of the input hybrid zonotope
+        '''
+
+        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
+        E = np.array([ [-1, 1] for g in range(hz.ng + hz.nb) ])
+        R = np.array([ [-np.inf, np.inf] for g in range(hz.ng + hz.nb) ])
+        i = 0; j = 0
+
+        A = np.block([hz.Ac, hz.Ab])
+
+        while i < (hz.nc):
+            while j < (hz.ng + hz.nb):
+                if A[i, j] != 0:
+                    a_ij_inv = (1/A[i, j])
+                    sum = 0
+                    for k in range(hz.ng + hz.nb):
+                        if k != j:
+                            sum += A[i, k] * E[k]
+                    gen_val = a_ij_inv * hz.b[i,0] - a_ij_inv * sum
+                    R[j] = self.intesection_intervals(R[j], gen_val)
+                    E[j] = self.intesection_intervals(E[j], R[j])
+
+                j += 1
+            i += 1
+            j = 0
+
+        return E, R
+    
+    def reduce_c_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        Reduces the number of constraints of a Hybrid Zonotope.
+
+        In this version we are removing the following constraints:
+            - Any constraint whose constraint matrix component (the particular row in [Ac Ab]) is all zeros
+            - Any constraint that there is another constraint that is equivalent to it
+                e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
+
+        TODO: NOW THAT YOU HAVE IMPLEMENTED THE NEW METHOD CHECK IF THIS IS REDUNDANT
+        '''
+        max_angle = 0.05 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
+
+        A = np.block([hz.Ac, hz.Ab, hz.b])
+
+        nc = A.shape[0]
+
+        # Loop through all the columns of Gc
+        i = 0; j = 0; k = 0
+
+        while i < nc - k:
+            c1 = A[i, :].T
+            c1_mag = np.linalg.norm(c1)    # Magnitude of c1
+
+            if np.abs(c1_mag) <= 0.001:
+                A = np.delete(A, i, axis=0)
+                k += 1
+                continue
+
+            c1_unit = c1 / c1_mag           # Unit vector of c1
+
+
+            j = 0
+            while j < nc - k:
+                if i == j:
+                    j += 1
+                    continue
+
+                c2 = A[j, :].T
+                c2_mag = np.linalg.norm(c2)     # Magnitude of c2
+
+                if (c2_mag <= 0.001) or np.abs(np.dot(c1_unit.T, c2 / c2_mag)) >= threshold:
+                    A = np.delete(A, j, axis=0)   # Remove the second constraint
+                    k += 1
+
+                j += 1
+
+            i +=1
+
+        Ac = A[:, :hz.Ac.shape[1]]
+        Ab = A[:, hz.Ac.shape[1]:-1]
+        b = A[:, -1].reshape((A.shape[0], 1))
+
+        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
+
+    def reduce_gc_hz(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        Removes redundant continuous generators from a Hybrid Zonotope.
+
+        This method first forms the lifted hybrid zonotope. Then it
+        scans all generators and whenver it finds a pair of generators that are
+        parallel to each other, it adds one to the other and removes the other one.
+
+        Example: If we have two generators g1 and g2, and g1 = 2*g2,
+        then we update g1 as g1 = g1 + g2 = 3*g2 and remove g2. 
+
+        TODO: NOW THAT YOU HAVE IMPLEMENTED THE NEW METHOD CHECK IF THIS IS REDUNDANT
+
+        '''
+
+        # threshold = 1e-7
+        max_angle = 0.05 * math.pi / 180
+        # max_angle = 0.5 * math.pi / 180
+        threshold = 1 - math.sin(max_angle)
+
+        # Step 1: Stack Gc and Ac
+        G = np.block([
+            [hz.Gc],
+            [hz.Ac]
+        ])
+
+        ng = G.shape[1]
+
+        # Loop through all the rows of Gc
+        i = 0; j = 0; k = 0
+
+        while i < ng - k:
+            g1 = G[:, i]
+            g1_mag = np.linalg.norm(g1)    # Magnitude of g1
+
+            if np.abs(g1_mag) <= 0.001:
+                G = np.delete(G, i, axis=1)
+                k += 1
+                continue
+
+            g1_unit = g1 / g1_mag           # Unit vector of g1
+
+
+            j = 0
+            while j < ng - k:
+                if i == j:
+                    j += 1
+                    continue
+
+                g2 = G[:, j]
+                g2_mag = np.linalg.norm(g2)     # Magnitude of g2
+
+
+                if (g2_mag <= 0.001):
+                    G = np.delete(G, j, axis=1)   # Remove the second generator
+                    k += 1                    
+                # elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
+                #     G[:, i - k] = g1 + g2
+                #     G = np.delete(G, j, axis=1)   # Remove the second generator
+                #     k += 1
+
+                j += 1
+
+            i +=1
+
+        Gc = G[:hz.dim, :]
+        Ac = G[hz.dim:, :]
+
+
+        return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
+
+    def ua_gc_hz(self, hz: HybridZonotope, N: int) -> HybridZonotope:
+        '''
+        Reduces the number of continuous generators of a Hybrid Zonotope.
+
+        This method first removes all parallel generators of the lifted hybrid zonotope.
+
+        Then it makes use of the work in [4] to further reduce the number of continuous generators
+        by under-approximation of maximum N generators
+        '''
+        # Continuous Generators of Lifted Hybrid Zonotope
+        G = np.block([
+            [hz.Gc],
+            [hz.Ac]
+        ])
+
+        ng = G.shape[1]
+
+        # Loop through all the rows of Gc
+        i = 0; j = 0
+
+        objective = []
+
+        while i < ng:
+            g1 = G[:, i]
+            g1_mag = np.linalg.norm(g1)     # Magnitude of g1
+            g1_unit = g1 / g1_mag           # Unit vector of g1
+
+            j = 0
+            while j < ng:
+                if i == j:
+                    j += 1
+                    continue
+
+                g2 = G[:, j]
+
+                objective.append( ( g1_mag * np.linalg.norm(g2 - np.dot(g1_unit, np.dot(g2.T, g1_unit)) ),
+                                    i,
+                                    j))
+
+                j += 1
+            i +=1
+
+        # # Sort the objective list from min to max
+        # objective = sorted(objective, key=lambda x: x[0])   # This has a cost of O(n log n)
+        objective.sort()
+
+
+        remaining_indices = set(range(G.shape[1]))  # Set to keep track of the remaining generator indices
+        updated_generators = []                     # List to store the updated generators
+
+        # Perform generator elimination until 'N' generators are left
+        while len(remaining_indices) > N:
+            # Find the pair with the smallest objective value
+            _, i, j = objective.pop(0)
+
+            # Check if generators still exist
+            if i in remaining_indices and j in remaining_indices:
+                # Replace g1 by g1 + g2
+                G[:, i] += G[:, j]
+                remaining_indices.remove(j)
+
+        # Create the updated matrix with the remaining vectors
+        for i in range(G.shape[1]):
+            if i in remaining_indices:
+                updated_generators.append(G[:, i])
+
+        G = np.column_stack(updated_generators)
+
+
+        Gc = G[:hz.dim, :]
+        Ac = G[hz.dim:, :]
+
+        return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
+    
+    # This version always works
+    def redundant_c_gc_hz_v1(self, hz: HybridZonotope, options = 'slow') -> HybridZonotope:
+        epsilon = 1e-3
+        redundant = True
+
+        Eb = np.array([ [-1, 1] for b in range(hz.nb) ])
+
+        hz = self.redundant_c_hz(hz)
+        hz = self.redundant_gc_hz(hz)
+
+        while redundant:
+            redundant = False
+            hz = self.rref_hz(hz)
+            if options == 'fast':
+                E = self.find_E_hz_fast(hz)
+            else:
+                E = self.find_E_hz_slow(hz)
+
+            for c in range (hz.ng):
+                for r in range(hz.nc):
+                    if np.abs(hz.Ac[r, c]) >= epsilon:
+                        a_rc_inv = (1/hz.Ac[r, c])
+                        R_rc = np.array([hz.b[r,0], hz.b[r,0]])
+
+                        tempc = np.array([0.0, 0.0])
+                        tempb = np.array([0.0, 0.0])
+                        for k in range(hz.ng):
+                            if k != c:
+                                tempc = self.interval_add(tempc, self.interval_scalar_mul(hz.Ac[r, k], E[k, :]))
+
+                        for b in range(hz.nb):
+                            tempb = self.interval_add(tempb, self.interval_scalar_mul(hz.Ab[r, b], Eb[b, :]))
+
+                        R_rc = self.interval_sub(R_rc, tempc)
+                        R_rc = self.interval_sub(R_rc, tempb)
+
+                        R_rc = self.interval_scalar_mul(a_rc_inv, R_rc)
+
+                        if self.is_inside_interval(R_rc, np.array([-1, 1])):
+                            hz = self.remove_c_g_hz(hz = hz, c = c, r = r)
+                            redundant = True
+
+                            break
+                if redundant:
+                    break
+
+        return hz
+
+    def find_E_hz_slow(self, hz):
+        '''
+        This method finds the E interval by solving 2*ng MILPs in equations (6.2a, 6.2b) from Section 6.1.2 in [7]
+        This method provides the exact E bounds but it is generally more computationally expensive
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('intervals_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
+        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
+
+        # Enforce that x_b only takes values in {-1, 1}^hz.nb
+        for i in range(hz.nb):
+            model.addConstr(x_b[i] * x_b[i] == 1 )
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = hz.b                          # Right hand side of equality constraint equation
+        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        x_L = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            x_L.append(x_c[g].X)
+
+        x_U = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            x_U.append(x_c[g].X)
+
+        x_U = np.array(x_U); x_L = np.array(x_L)
+
+        E = np.block([x_L.reshape(-1, 1), x_U.reshape(-1, 1)])
+
+        return E
+
+    def find_E_hz_fast(self, hz):
+        '''
+        This method computes the Intervals of the input hybrid zonotope according to Algorithm 1 in [6]
+        which is then adapted to work for Hybrid zonotopes.
+        This method does not provide the exact E bounds but it is generally more computationally efficient
+        '''
+
+        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
+        E = np.array([ [-1, 1] for g in range(hz.ng) ])
+        Eb = np.array([ [-1, 1] for b in range(hz.nb) ])
+        R = np.array([ [-np.inf, np.inf] for g in range(hz.ng) ])
+
+        A = hz.Ac
+        epsilon = 1e-5
+        iterations = 50  # Maximum number of iterations
+
+        for iter in range(iterations):
+            for i in range(hz.nc):
+                for j in range(hz.ng):
+                    if abs(A[i, j]) >= epsilon:
+                        a_rc_inv = (1/hz.Ac[i, j])
+                        R_rc = np.array([hz.b[i,0], hz.b[i,0]])
+
+                        tempc = np.array([0.0, 0.0])
+                        tempb = np.array([0.0, 0.0])
+                        for k in range(hz.ng):
+                            if k != j:
+                                tempc = self.interval_add(tempc, self.interval_scalar_mul(hz.Ac[i, k], E[k, :]))
+                        for b in range(hz.nb):
+                            tempb = self.interval_add(tempb, self.interval_scalar_mul(hz.Ab[i, b], Eb[b, :]))
+                        R_rc = self.interval_sub(R_rc, tempc)
+                        R_rc = self.interval_sub(R_rc, tempb)
+                        R_rc = self.interval_scalar_mul(a_rc_inv, R_rc)
+
+
+                        R[j] = self.intesection_intervals(R[j], R_rc)
+                        E[j] = self.intesection_intervals(E[j], R[j])
+        return E
+
+    def rref_hz(self, hz):
+        '''
+        This method computes the reduced row echelon form of matrix [A | b] for a linear system of equations (Ax = b)
+        using Gauss-Jordan Elimination with full pivoting.
+
+        - FUTURE IMPROVEMENTS: Experiment with other preconditioning strategies
+        '''
+        A = np.block([hz.Ac, hz.Ab, hz.b])
+
+        rows = A.shape[0]
+
+        pivots = []
+        for r in range(rows):
+            # Find the pivot row and column
+            pivot, pivots = self.find_pivot(A[r, :-1], pivots)
+
+            # Check if there is a new pivot
+            if len(pivots) < r + 1:
+                continue
+            
+            # Normalize the pivot row to turn the pivot element into 1
+            A[r, :] = A[r, :] / A[r, pivot]
+
+            # Turn the elements of all other rows in the pivot column to zero
+            for r2 in range(rows):
+                if r2 != r:
+                    A[r2, :] = A[r2, :] - A[r2, pivot] * A[r, :]
+
+        Ac = A[:, :hz.Ac.shape[1]]
+        Ab = A[:, hz.Ac.shape[1]:-1]
+        b = A[:, -1].reshape((A.shape[0], 1))
+
+        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
+
+    def remove_c_g_hz(self, hz, c, r):
+        '''
+        c: constraint index
+        r: generator index
+        '''
+        Ecr = np.zeros((hz.ng, hz.nc))
+        Ecr[c, r] = 1
+
+        Lg = hz.Gc @ Ecr * (1/hz.Ac[r, c])
+        La = hz.Ac @ Ecr * (1/hz.Ac[r, c])
+
+        Gc = hz.Gc - Lg @ hz.Ac
+        Gb = hz.Gb - Lg @ hz.Ab
+        C  = hz.C  + Lg @ hz.b
+        Ac = hz.Ac - La @ hz.Ac
+        Ab = hz.Ab - La @ hz.Ab
+        b  = hz.b  - La @ hz.b
+
+        Gc = np.delete(Gc, c, axis=1)
+        Ac = np.delete(Ac, c, axis=1)
+        Ac = np.delete(Ac, r, axis=0)
+        Ab = np.delete(Ab, r, axis=0)
+        b  = np.delete(b, r, axis=0)
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
+    ##### Reachable Sets
 
     def one_step_brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray) -> HybridZonotope:
         '''
@@ -1329,297 +1892,6 @@ class ZonoOperations:
 
 
 
-
-
-
-    def red_hz_scott(self, hz: HybridZonotope) -> HybridZonotope:
-        E, R = self.intervals_hz(hz)
-        # A = np.block([hz.Ac, hz.Ab])
-        A = hz.Ac
-
-        epsilon = 1e-3
-
-        already_removed_c = []; already_removed_g = []
-        # for c in range (hz.ng + hz.nb):
-        for c in range (hz.ng):
-            for r in range(hz.nc):
-                if np.abs(A[r, c]) >= epsilon:
-                    a_rc_inv = (1/A[r, c])
-                    sum = 0
-                    # for k in range(hz.ng + hz.nb):
-                    for k in range(hz.ng):
-                        if k != c:
-                            sum = sum + A[r, k] * E[k]
-                    R_rc = a_rc_inv * hz.b[r,0] - a_rc_inv * sum
-
-                    if self.is_inside_interval(R_rc, np.array([-1, 1])) and (r not in already_removed_c) and (c not in already_removed_g):
-                        already_removed_c.append(r); already_removed_g.append(c)
-                        # Ecr = np.zeros((hz.ng + hz.nb, hz.nc))
-                        Ecr = np.zeros((hz.ng, hz.nc))
-                        Ecr[c, r] = 1
-
-                        # Lg = np.block([hz.Gc, hz.Gb]) @ Ecr * (1/A[r, c])
-                        # La = np.block([hz.Ac, hz.Ab]) @ Ecr * (1/A[r, c])
-                        Lg = hz.Gc @ Ecr * (1/A[r, c])
-                        La = hz.Ac @ Ecr * (1/A[r, c])
-
-                        # print(f'*****************************************************************'); print(f'inverse of Arc = {(1/A[r, c])}')
-                        # print(f'Gc: max = {np.max(hz.Gc)}\t min = {np.min(hz.Gc)} '); print(f'Gb: max = {np.max(hz.Gb)}\t min = {np.min(hz.Gb)} ')
-                        # print(f'Ac: max = {np.max(hz.Ac)}\t min = {np.min(hz.Ac)} '); print(f'Ab: max = {np.max(hz.Ab)}\t min = {np.min(hz.Ab)} ')
-                        # print(f'Lg: max = {np.max(Lg)}\t min = {np.min(Lg)} '); print(f'La: max = {np.max(La)}\t min = {np.min(La)} ')
-
-                        # Check if Lg has only zero zero values
-                        full_zero = True
-                        for x in range(Lg.shape[1]):
-                            for y in range(Lg.shape[0]):
-                                if Lg[y, x] != 0:
-                                    full_zero = False
-
-                        if not (full_zero):
-                            Gc = hz.Gc - Lg @ hz.Ac
-                            Gb = hz.Gb - Lg @ hz.Ab
-                            C  = hz.C  + Lg @ hz.b
-                            Ac = hz.Ac - La @ hz.Ac
-                            Ab = hz.Ab - La @ hz.Ab
-                            b  = hz.b  - La @ hz.b
-
-                            hz = HybridZonotope(Gc, Gb, C, Ac, Ab, b)
-
-
-
-        hz = self.reduce_c_hz(hz)   # Remove the redundant or zero constraints
-        hz = self.reduce_gc_hz(hz)
-
-
-        return hz
-
-    def intervals_hz(self, hz):
-        '''
-        This method computes the Intervals of the input hybrid zonotope
-        '''
-
-        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
-        E = np.array([ [-1, 1] for g in range(hz.ng + hz.nb) ])
-        R = np.array([ [-np.inf, np.inf] for g in range(hz.ng + hz.nb) ])
-        i = 0; j = 0
-
-        A = np.block([hz.Ac, hz.Ab])
-
-        while i < (hz.nc):
-            while j < (hz.ng + hz.nb):
-                if A[i, j] != 0:
-                    a_ij_inv = (1/A[i, j])
-                    sum = 0
-                    for k in range(hz.ng + hz.nb):
-                        if k != j:
-                            sum += A[i, k] * E[k]
-                    gen_val = a_ij_inv * hz.b[i,0] - a_ij_inv * sum
-                    R[j] = self.intesection_intervals(R[j], gen_val)
-                    E[j] = self.intesection_intervals(E[j], R[j])
-
-                j += 1
-            i += 1
-            j = 0
-
-        return E, R
-    
-
-
-    def reduce_c_hz(self, hz: HybridZonotope) -> HybridZonotope:
-        '''
-        Reduces the number of constraints of a Hybrid Zonotope.
-
-        In this version we are removing the following constraints:
-            - Any constraint whose constraint matrix component (the particular row in [Ac Ab]) is all zeros
-            - Any constraint that there is another constraint that is equivalent to it
-                e.g., x + y = 1 and 2x + 2y = 2, 5x + 5x = 5 only one out of these three constraints will be kept
-        '''
-        max_angle = 0.05 * math.pi / 180
-        threshold = 1 - math.sin(max_angle)
-
-        A = np.block([hz.Ac, hz.Ab, hz.b])
-
-        nc = A.shape[0]
-
-        # Loop through all the columns of Gc
-        i = 0; j = 0; k = 0
-
-        while i < nc - k:
-            c1 = A[i, :].T
-            c1_mag = np.linalg.norm(c1)    # Magnitude of c1
-
-            if np.abs(c1_mag) <= 0.001:
-                A = np.delete(A, i, axis=0)
-                k += 1
-                continue
-
-            c1_unit = c1 / c1_mag           # Unit vector of c1
-
-
-            j = 0
-            while j < nc - k:
-                if i == j:
-                    j += 1
-                    continue
-
-                c2 = A[j, :].T
-                c2_mag = np.linalg.norm(c2)     # Magnitude of c2
-
-                if (c2_mag <= 0.001) or np.abs(np.dot(c1_unit.T, c2 / c2_mag)) >= threshold:
-                    A = np.delete(A, j, axis=0)   # Remove the second constraint
-                    k += 1
-
-                j += 1
-
-            i +=1
-
-        Ac = A[:, :hz.Ac.shape[1]]
-        Ab = A[:, hz.Ac.shape[1]:-1]
-        b = A[:, -1].reshape((A.shape[0], 1))
-
-        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
-
-    def reduce_gc_hz(self, hz: HybridZonotope) -> HybridZonotope:
-        '''
-        Removes redundant continuous generators from a Hybrid Zonotope.
-
-        This method first forms the lifted hybrid zonotope. Then it
-        scans all generators and whenver it finds a pair of generators that are
-        parallel to each other, it adds one to the other and removes the other one.
-
-        Example: If we have two generators g1 and g2, and g1 = 2*g2,
-        then we update g1 as g1 = g1 + g2 = 3*g2 and remove g2. 
-        '''
-
-        # threshold = 1e-7
-        max_angle = 0.05 * math.pi / 180
-        # max_angle = 0.5 * math.pi / 180
-        threshold = 1 - math.sin(max_angle)
-
-        # Step 1: Stack Gc and Ac
-        G = np.block([
-            [hz.Gc],
-            [hz.Ac]
-        ])
-
-        ng = G.shape[1]
-
-        # Loop through all the rows of Gc
-        i = 0; j = 0; k = 0
-
-        while i < ng - k:
-            g1 = G[:, i]
-            g1_mag = np.linalg.norm(g1)    # Magnitude of g1
-
-            if np.abs(g1_mag) <= 0.001:
-                G = np.delete(G, i, axis=1)
-                k += 1
-                continue
-
-            g1_unit = g1 / g1_mag           # Unit vector of g1
-
-
-            j = 0
-            while j < ng - k:
-                if i == j:
-                    j += 1
-                    continue
-
-                g2 = G[:, j]
-                g2_mag = np.linalg.norm(g2)     # Magnitude of g2
-
-
-                if (g2_mag <= 0.001):
-                    G = np.delete(G, j, axis=1)   # Remove the second generator
-                    k += 1                    
-                # elif np.abs(np.dot(g1_unit.T, g2 / g2_mag)) >= threshold:
-                #     G[:, i - k] = g1 + g2
-                #     G = np.delete(G, j, axis=1)   # Remove the second generator
-                #     k += 1
-
-                j += 1
-
-            i +=1
-
-        Gc = G[:hz.dim, :]
-        Ac = G[hz.dim:, :]
-
-
-        return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
-
-    def ua_gc_hz(self, hz: HybridZonotope, N: int) -> HybridZonotope:
-        '''
-        Reduces the number of continuous generators of a Hybrid Zonotope.
-
-        This method first removes all parallel generators of the lifted hybrid zonotope.
-
-        Then it makes use of the work in [4] to further reduce the number of continuous generators
-        by under-approximation of maximum N generators
-        '''
-        # Continuous Generators of Lifted Hybrid Zonotope
-        G = np.block([
-            [hz.Gc],
-            [hz.Ac]
-        ])
-
-        ng = G.shape[1]
-
-        # Loop through all the rows of Gc
-        i = 0; j = 0
-
-        objective = []
-
-        while i < ng:
-            g1 = G[:, i]
-            g1_mag = np.linalg.norm(g1)     # Magnitude of g1
-            g1_unit = g1 / g1_mag           # Unit vector of g1
-
-            j = 0
-            while j < ng:
-                if i == j:
-                    j += 1
-                    continue
-
-                g2 = G[:, j]
-
-                objective.append( ( g1_mag * np.linalg.norm(g2 - np.dot(g1_unit, np.dot(g2.T, g1_unit)) ),
-                                    i,
-                                    j))
-
-                j += 1
-            i +=1
-
-        # # Sort the objective list from min to max
-        # objective = sorted(objective, key=lambda x: x[0])   # This has a cost of O(n log n)
-        objective.sort()
-
-
-        remaining_indices = set(range(G.shape[1]))  # Set to keep track of the remaining generator indices
-        updated_generators = []                     # List to store the updated generators
-
-        # Perform generator elimination until 'N' generators are left
-        while len(remaining_indices) > N:
-            # Find the pair with the smallest objective value
-            _, i, j = objective.pop(0)
-
-            # Check if generators still exist
-            if i in remaining_indices and j in remaining_indices:
-                # Replace g1 by g1 + g2
-                G[:, i] += G[:, j]
-                remaining_indices.remove(j)
-
-        # Create the updated matrix with the remaining vectors
-        for i in range(G.shape[1]):
-            if i in remaining_indices:
-                updated_generators.append(G[:, i])
-
-        G = np.column_stack(updated_generators)
-
-
-        Gc = G[:hz.dim, :]
-        Ac = G[hz.dim:, :]
-
-        return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
 
 
 
