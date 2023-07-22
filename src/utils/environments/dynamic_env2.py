@@ -98,7 +98,7 @@ class ParamFRS:
         self.step = np.array([
             0.1,
             0.1
-        ])   
+        ])
 
         self.samples_x = math.ceil( (self.max[1] - self.min[1]) / (self.step[1]) )              # Number of samples (x)
         self.samples_y = math.ceil( (self.max[0] - self.min[0]) / (self.step[0]) )              # Number of samples (y)                                    # Parking spot 2 vertices
@@ -348,8 +348,7 @@ class InputSpace:
         
         # Maximum rate of change in velocity (acceleration)
         self.ax_max = 0.0    # TODO: Define based on dynamics model
-        self.ay_max = 1.0    # TODO: Define based on dynamics model
-
+        self.ay_max = 2.0    # TODO: Define based on dynamics model
 
     def get_space(self, max_input = None, min_input = None):
         assert max_input is not None, 'Maximum input must be specified'
@@ -361,6 +360,18 @@ class InputSpace:
         ng = 2; nc = 0; nb = 0
 
 
+        # Gc = np.array([
+        #     [self.ax_max/2, 0.0],
+        #     [0.0, self.ay_max/2]
+        # ])
+
+        # Gb = np.zeros((ng, nb))
+
+        # c = np.array([
+        #     [0.0],
+        #     [0.0]
+        # ])
+
         Gc = np.array([
             [self.ax_max/2, 0.0],
             [0.0, self.ay_max/2]
@@ -370,7 +381,7 @@ class InputSpace:
 
         c = np.array([
             [0.0],
-            [0.0]
+            [self.ay_max/2 + 0.1]
         ])
 
         Ac = np.zeros((nc, ng))
@@ -484,9 +495,12 @@ class InitialSpace:
             [0.0, l/2]
         ])
         Gb = np.zeros((nx, nb))
+        # c = np.array([  [1.71], 
+        #                 [-1.21]
+        #                 ])
         c = np.array([  [1.71], 
-                        [-1.21]
-                        ])
+                        [0.0]
+                        ])    
         
         Ac = np.zeros((nc, ng))
         Ab = np.zeros((nc, nb))

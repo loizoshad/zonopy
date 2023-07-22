@@ -6,6 +6,10 @@ from scipy.spatial import HalfspaceIntersection
 
 from scipy.optimize import linprog
 
+
+import matplotlib.pyplot as plt
+import pypoman
+
 '''
 The properties of the constrained zonotope class follow the Scott's, et al. work
 'Constrained zonotopes: A new tool for set-based estimation and fault detection'
@@ -15,6 +19,8 @@ References:
 [1] Liren Yang, et al. 'Efficient Backward Reachability Using the Minkowski Difference of Constrained Zonotopes'
 # [?] Scott, et al. 'Constrained zonotopes: A new tool for set-based estimation and fault detection'
 '''
+
+
 
 class ConstrainedZonotope:
     def __init__(self, G: np.ndarray, C: np.ndarray, A: np.ndarray, b: np.ndarray) -> None:
@@ -57,6 +63,8 @@ class ConstrainedZonotope:
         
     def g2v(self):
         '''
+        This method returns the vertices of the constrained zonotope
+
         See work in [1] for details
         '''
         Ap = np.concatenate([
@@ -72,6 +80,7 @@ class ConstrainedZonotope:
         ])
 
         vertices, rays, empty_flag = self.h2v(Ap, bp)
+        # vertices, rays, empty_flag = self.h2v_v2(Ap, bp)
 
         if empty_flag == True:
             return np.zeros((0, self.dim)), np.zeros((0, self.dim)), empty_flag
@@ -85,19 +94,92 @@ class ConstrainedZonotope:
             rays = self.G @ rays.T
             rays = rays.T
 
-        # Remove duplicate vertices
-        vertices = np.unique(vertices, axis=0)
+        vertices = np.array(vertices)
+
+        # Loop through all vertices to delete any duplicates
+        i = 0
+        while i < vertices.shape[0]:
+            j = i + 1
+            while j < vertices.shape[0]:
+                if np.allclose(vertices[i], vertices[j]):
+                    vertices = np.delete(vertices, j, axis=0)
+                else:
+                    j += 1
+            i += 1
 
         if vertices.shape[0] < 3:
             return np.zeros((0, self.dim)), np.zeros((0, self.dim)), True
 
         # Remove vertices not on the edge of the convex hull
-        # This is done for visualization purposes
-        hull = ConvexHull(vertices)
-        vertices = vertices[hull.vertices]
+        try:
+            hull = ConvexHull(vertices)
+            vertices = vertices[hull.vertices]
+        except:
+            return np.zeros((0, self.dim)), np.zeros((0, self.dim)), True
 
         return vertices, rays, False
 
+
+
+    def remove_colinear(self, vertices: np.ndarray):
+        '''
+        This method removes colinear vertices
+
+        For each triplet of vertices, if the angle between the vectors formed by the triplet is 0 or pi, then the middle vertex is removed
+        '''
+        # Loop through all triplets of vertices
+        i = 0
+        while i < vertices.shape[0]:
+            j = i + 1
+            while j < vertices.shape[0]:
+                k = j + 1
+                while k < vertices.shape[0]:
+                    if self.are_colinear(vertices[i], vertices[j], vertices[k]):
+                        # Find the middle vertex among i, j, and k
+                        dist_ij = np.linalg.norm(vertices[i] - vertices[j])
+                        dist_ik = np.linalg.norm(vertices[i] - vertices[k])
+                        dist_jk = np.linalg.norm(vertices[j] - vertices[k])
+                        
+                        if dist_ik > dist_ij and dist_jk > dist_ik:
+                            vertices = np.delete(vertices, i, axis=0)
+                        elif dist_ik > dist_ij and dist_jk < dist_ik:
+                            vertices = np.delete(vertices, j, axis=0)
+                        else:
+                            vertices = np.delete(vertices, k, axis=0)
+
+                    else:
+                        k += 1
+                j += 1
+            i += 1
+
+
+        return vertices
+
+    def are_colinear(self, v1: np.ndarray, v2: np.ndarray, v3: np.ndarray):
+        '''
+        This method checks if three n-dimensional vertices are on the same line segment
+        '''
+        # Compute the vector between v1 and v2
+        v12 = v2 - v1
+        # Compute the vector between v1 and v3
+        v13 = v3 - v1
+
+        # Compute the angle between v12 and v13
+        angle = np.arccos(np.dot(v12, v13)/(np.linalg.norm(v12)*np.linalg.norm(v13)))
+
+        # If the angle is 0 or pi, then the vertices are colinear
+        if np.isclose(angle, 0) or np.isclose(angle, np.pi):
+            return True
+        else:
+            return False
+        
+        # # Check if the angle between the vectors formed by the triplet is 0 +- threshold or pi +- threshold
+        # threshold = 1e-3
+        # if np.allclose(np.dot(v1 - v2, v3 - v2), 0, atol=threshold) or np.allclose(np.dot(v1 - v2, v3 - v2), -1, atol=threshold):
+        #     return True
+        # else:
+        #     return False        
+        
     def h2v(self, A, b):
         '''
         Given a Polytope defined by Ax <= b
@@ -126,21 +208,6 @@ class ConstrainedZonotope:
 
         return vertices, rays, empty_flag 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import time
+import copy
 
 from utils.environments.dynamic_env2 import DynamicEnv2
 from utils.visualization import ZonoVisualizer
@@ -19,7 +21,7 @@ marker_size = 0.5 * 39.36           # 0.2m in inches
 marker_size = marker_size**2        # area of the marker
 first_time = True
 
-options = 'inner'
+options = 'outer'
 reduction_options = 'reduced'
 
 # Initialize objects
@@ -34,60 +36,52 @@ target = env.target_space           # Free parking spots
 input = env.input_space
 obs = env.initial_space   # Initial space of non-ego vehicles
 
-print(f'********************\SPACE:\nng = {space.ng}, nc = {space.nc}, nb = {space.nb}')
+method = 2
+total_time = 0
+N = 11
+print(f'Method {method}')
+total_time = 0
+for i in range(N):
+    print(f'*********************************************************')
+    print(f'Iteration {i}')
 
-env.vis_background()
-vis.vis_hz([space], colors = colors, show_edges=True, zorder=20)
-# env.grid = env.vis.vis_hz_brs(hz = space, brs_settings=env.brs_settings)
+    start_time = time.perf_counter()
 
-plt.show()
+    # obs = zono_op.one_step_frs_hz(X = space, U = input, I = obs, A = env.A, B = env.B, W = env.W)
+    obs = zono_op.one_step_brs_hz_v2(X = space, U = input, T = obs, A = env.A, B = env.B)
+    # obs = zono_op.intersection_hz_hz(obs, space)
 
+    if method == 1: 
+        cz = zono_op.oa_hz_to_cz(obs)
+        cz = zono_op.redundant_c_g_cz(cz)
+        obs = zono_op.cz_to_hz(cz)
+    elif method == 2:
+        cz = zono_op.oa_hz_to_cz(obs)
+        cz = zono_op.redundant_c_g_cz(cz)
+        cz = zono_op.oa_cz_to_hypercube_tight_v2(cz)
+        hz = zono_op.cz_to_hz(cz)
+        obs = zono_op.cz_to_hz(cz)
+        obs = zono_op.intersection_hz_hz(hz, space)
+        # hz = zono_op.complement_cz_to_hz(cz)
+        # hz = zono_op.intersection_hz_hz(hz, space)
+    end_time = time.perf_counter()
 
+    print(f'Obstacle: ng = {obs.ng}\t nc = {obs.nc}\t nb = {obs.nb}')
+    print(f'time = {end_time - start_time}')
+    total_time += (end_time - start_time)
+    env.vis_background()
+    vis.vis_hz([obs], colors = colors, show_edges=True, zorder=100)
+    # env.grid = env.vis.vis_hz_brs(hz = obs, brs_settings=env.brs_settings)
+    # vis.vis_hz([hz], colors = colors, show_edges=True, zorder=100)
+    # env.grid = env.vis.vis_hz_brs(hz = hz, brs_settings=env.brs_settings)
 
-
-
-
-
-
-
-
-
-
-
-
-
-# N = 100
-# for i in range(N):
-#     print(f'*********************************************************')
-#     print(f'Iteration {i}')
-
-#     obs = zono_op.one_step_frs_hz(X = space, U = input, I = obs, A = env.A, B = env.B, W = env.W)
-#     cz = zono_op.oa_hz_to_cz(obs); cz = zono_op.redundant_c_cz(cz); cz = zono_op.redundant_g_cz(cz)
-#     cz = zono_op.red_cz_ragh_v3(cz)
-#     hz = zono_op.cz_to_hz(cz)
-#     hz = zono_op.intersection_hz_hz(hz, space)
-#     obs_compl = zono_op.complement_cz_to_hz(cz)#; obs_compl = zono_op.intersection_hz_hz(obs_compl, space)
-
-
-#     print(f'Obstacle: ng = {obs.ng}\t nc = {obs.nc}\t nb = {obs.nb}')
-#     print(f'Obs red.: ng = {hz.ng}\t nc = {hz.nc}\t nb = {hz.nb}')
-#     print(f'Obs_Comp: ng = {obs_compl.ng}\t nc = {obs_compl.nc}\t nb = {obs_compl.nb}')
-
-
-#     # vis.vis_hz([hz], colors = colors, show_edges=True, zorder=20)
-#     # vis.vis_hz([obs], colors = colors, show_edges=True, zorder=20)
-#     # vis.vis_hz([obs_compl], colors = colors, show_edges=True, zorder=20)
-
-
-#     env.vis_background()
-#     # env.grid = env.vis.vis_hz_brs(hz = obs, brs_settings=env.brs_settings)
-#     env.grid = env.vis.vis_hz_brs(hz = hz, brs_settings=env.brs_settings)
-#     # env.grid = env.vis.vis_hz_brs(hz = obs_compl, brs_settings=env.brs_settings)
+    plt.show()
+    env.vis.ax.set_title(f'Method {method}, ng = {obs.ng}, nc = {obs.nc}, nb = {obs.nb}', fontsize=16)
+    name = f'frs_N_{i}'
+    env.vis.fig.savefig(f'./results/temp/method_{method}_v2/{name}.pdf', dpi=300)
+    # env.vis.fig.savefig(f'./results/temp/compl_2/{name}.pdf', dpi=300)
+    plt.close(env.vis.fig)
+    env.vis.new_fig()
 
 
-#     # plt.show()
-#     name = f'frs_N_{i}'
-#     env.vis.fig.savefig(f'./results/new/{name}.pdf', dpi=300)
-#     plt.close(env.vis.fig)
-#     env.vis.new_fig()
-
+print(f'total time = {total_time}')

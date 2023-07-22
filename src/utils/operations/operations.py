@@ -18,6 +18,7 @@ from copy import deepcopy
 import itertools
 import time
 from fractions import Fraction
+import copy
 
 # For mixed-integer linear programming
 import gurobipy as gp
@@ -31,6 +32,10 @@ from utils.sets.hybrid_zonotopes import HybridZonotope
 from utils.tlt.nodes import OR, AND, UNTIL, set_node
 from utils.tlt.tree import Tree
 
+
+import signal
+
+
 '''
 
 References:
@@ -43,6 +48,9 @@ References:
 [6] V. Raghuraman, et al.   'Set Operations and Order reductions for constrained zonotopes'
 [7] T. Bird                 'PhD Dissertation: Hybrid Zonotopes: A Mixed-Integer Set Representation For The Analysis Of Hybrid Zonotopes
 '''
+
+def handler(signum, frame):
+    print(f'Function timed out')
 
 class ZonoOperations:
     def __init__(self, visualizer = None):
@@ -149,6 +157,98 @@ class ZonoOperations:
 
         return ConstrainedZonotope(G, C, A, b)
 
+    def oa_z_to_hypercube(self, z: Zonotope) -> Zonotope:
+        '''
+        This method over-approximates an n-dimensional zonotope as an n-dimensional hypercube.
+        '''
+        row_sums = np.sum(np.abs(z.G), axis=1)
+        G = np.diag(row_sums)
+
+        return Zonotope(z.C, G)
+        
+    def is_inside_z(self, z: Zonotope, p: np.ndarray):
+       
+        ## Step 1: Create a model
+        model = gp.Model('is_inside_z')
+        model.Params.OutputFlag = 0         # Disable verbose output
+        model.Params.MIPFocus = 1           # Set MIPFocus = 1 (Focus more on finding feasible solutions)
+        model.Params.ImproveStartTime = 0   # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately) (seconds)
+        model.Params.SolutionLimit = 1      # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (z.ng, ), lb = np.array([-1] * z.ng), ub = np.array([ 1] * z.ng), vtype = np.array([gp.GRB.CONTINUOUS] * z.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 4: Add constraints  # TODO: Check what can be done about making it into a sparse matrix
+        rhs = p - z.C                      # Right hand side of equality constraint equation
+        lhs = z.G @ x_c     # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        ## Step 3: Set the objective function
+        model.setObjective(norm_inf, gp.GRB.MINIMIZE)  
+
+        ## Step 4: Solve the model
+        model.optimize()
+
+        ## Step 5: Check if the solution is feasible
+        if model.status == gp.GRB.OPTIMAL or model.status == gp.GRB.SUBOPTIMAL:
+            return True
+        else:
+            return False        
+
+    def is_inside_z_v2(self, z, p):
+
+        G = z.G
+        C = z.C
+        
+        c = np.zeros(G.shape[1])  # Objective function coefficients
+        bounds = [(-1, 1)] * G.shape[1]  # Variable bounds
+
+        # Define the equality constraints
+        A_eq = G
+        b_eq = p - C
+
+        # Solve the linear program
+        result = linprog(c, A_eq=A_eq, b_eq=b_eq, bounds=bounds)
+
+        if result.success:
+            return True
+        else:
+            return False     
+
+    def is_empty_z(self, z: Zonotope) -> bool:
+        ## Step 1: Create a model
+        model = gp.Model('is_empty_z')
+        model.Params.OutputFlag = 0         # Disable verbose output
+        model.Params.MIPFocus = 1           # Set MIPFocus = 1 (Focus more on finding feasible solutions)
+        model.Params.ImproveStartTime = 0   # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately) (seconds)
+        model.Params.SolutionLimit = 1      # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (z.ng, ), lb = np.array([-1] * z.ng), ub = np.array([ 1] * z.ng), vtype = np.array([gp.GRB.CONTINUOUS] * z.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Set the objective function
+        model.setObjective(norm_inf, gp.GRB.MINIMIZE)  
+
+        ## Step 4: Solve the model
+        model.optimize()
+
+        ## Step 5: Check if the solution is feasible
+        if model.status == gp.GRB.OPTIMAL or model.status == gp.GRB.SUBOPTIMAL:
+            return False
+        else:
+            return True          
+    
+
+
     ###############################################################################################################
     # Constrained Zonotope Methods
 
@@ -242,6 +342,87 @@ class ZonoOperations:
 
         return res.success
 
+    def is_inside_cz_v2(self, cz: ConstrainedZonotope, z: np.ndarray):
+        '''
+        Checks if a point z is inside the constrained zonotope cz by solving the following linear program: 
+        '''
+
+        ## Step 1: Create a model
+        model = gp.Model('is_inside_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+        model.Params.MIPFocus = 1           # Set MIPFocus = 1 (Focus more on finding feasible solutions)
+        model.Params.ImproveStartTime = 0   # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately) (seconds)
+        model.Params.SolutionLimit = 1      # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (cz.ng, ), lb = np.array([-1] * cz.ng), ub = np.array([1] * cz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * cz.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 4: Add constraints  # TODO: Check what can be done about making it into a sparse matrix
+        rhs = z - cz.C                      # Right hand side of equality constraint equation
+        lhs = cz.G @ x_c                    # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+
+        rhs = cz.b                          # Right hand side of equality constraint equation
+        lhs = cz.A @ x_c                    # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        ## Step 3: Set the objective function
+        model.setObjective(norm_inf, gp.GRB.MINIMIZE)  
+
+        ## Step 4: Solve the model
+        model.optimize()
+
+        ## Step 5: Check if the solution is feasible
+        if model.status == gp.GRB.OPTIMAL or model.status == gp.GRB.SUBOPTIMAL:
+            # TODO: CHECK IF YOU NEED TO DO THE CHECK FOR <= 1
+            return True
+        else:
+            return False
+    
+    def is_empty_cz(self, cz: ConstrainedZonotope):
+        '''
+        Checks if the constrained zonotope cz is empty
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('is_empty_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (cz.ng, ), lb = np.array([-1] * cz.ng), ub = np.array([1] * cz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * cz.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        rhs = cz.b                          # Right hand side of equality constraint equation
+        lhs = cz.A @ x_c                    # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        ## Step 3: Set the objective function
+        model.setObjective(norm_inf, gp.GRB.MINIMIZE)
+
+        ## Step 4: Solve the model
+        model.optimize()
+
+        ## Step 5: Check if the solution is feasible
+        if model.status == gp.GRB.OPTIMAL:
+            # for i in range(cz.ng):      # Check if each value of the solution are less than '1'
+                # if abs(x_c[i].X) > 1:
+                #     return True
+            return False
+        else:
+            return True    
+    
     def complement_cz_to_hz(self, cz: ConstrainedZonotope) -> HybridZonotope:
         '''
         This method computes the complement of a Constrained Zonotope cz inside space X represented as a Constrained Zonotope.
@@ -362,6 +543,40 @@ class ZonoOperations:
 
         return Zonotope(C, G)
 
+    def oa_cz_to_hypercube(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        This method provides an over-approximation of a constrained zonotope as a hypercube.
+        However, this over-approximation is not the tightest hypercube over-approximation,
+        since it neglects constraints of the constrained zonotope.
+        '''
+        dim = cz.dim
+        z = self.lifted_cz(cz)          # Compute  lifted_cz
+        z = self.oa_z_to_hypercube(z)   # Compute the hypercube over-approximation of the lifted cz
+        cz = self.z_to_cz(z)            # Express the hypercube as a constrained zonotope
+
+        G = cz.G[:dim, :]
+        C = cz.C[:dim, :]
+        A = cz.G[dim:, :]
+        b = cz.C[dim:, :]
+
+        # print(f'G = \n{G}')
+        # print(f'C = {C.T}')
+        # print(f'A = \n{A}')
+        # print(f'b = {b.T}')
+
+        z = Zonotope(C, G)
+        z = self.redundant_g_z(z)
+        cz = self.z_to_cz(z)
+
+        return cz
+
+
+
+
+
+
+
+
     def cz_to_hz(self, cz: ConstrainedZonotope) -> HybridZonotope:
         '''
         This method takes in a constrained zonotope and returns an equivalent representation as a Hybrid Zonotope
@@ -474,19 +689,20 @@ class ZonoOperations:
         This method removes redundant constraints and generators from a Constrained Zonotope using the method described in [6]
         '''
         epsilon = 1e-3
-        ctr = 0
         redundant = True
 
         cz = self.redundant_c_cz(cz)   # Remove trivially redundant constraints
         cz = self.redundant_g_cz(cz)   # Remove trivially redundant generators
 
-        while redundant and ctr < 10:
+        while redundant:
             redundant = False
             cz = self.rref_cz(cz)
             if options == 'fast':
                 E = self.find_E_cz_fast(cz)
             else:
                 E = self.find_E_cz_slow(cz)
+                if E is None: # No solution found
+                    continue
 
             for c in range (cz.ng):
                 for r in range(cz.nc):
@@ -503,8 +719,6 @@ class ZonoOperations:
                         if self.is_inside_interval(R_rc, np.array([-1, 1])):                            
                             cz = self.remove_c_g_cz(cz = cz, c = c, r = r)
                             redundant = True
-                            ctr += 1
-
                             break
                 if redundant:
                     break
@@ -512,6 +726,54 @@ class ZonoOperations:
         return cz
 
     def find_E_cz_slow(self, cz):
+        '''
+        This method finds the E interval by solving 2*ng LPs as described in [1]
+        This method provides the exact E bounds but it is generally more computationally expensive
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('intervals_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (cz.ng, ), lb = np.array([-1] * cz.ng), ub = np.array([1] * cz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * cz.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = cz.b                          # Right hand side of equality constraint equation
+        lhs = cz.A @ x_c                    # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        x_L = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            if model.status == gp.GRB.OPTIMAL:
+                x_L.append(x_c[g].X)
+            else:
+                return None
+
+        x_U = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            if model.status == gp.GRB.OPTIMAL:
+                x_U.append(x_c[g].X)
+            else:
+                return None
+              
+        x_U = np.array(x_U); x_L = np.array(x_L)
+
+        E = np.block([x_L.reshape(-1, 1), x_U.reshape(-1, 1)])
+
+        return E
+
+    def find_E_cz_slow_v2(self, cz):
         '''
         This method finds the E interval by solving 2*ng LPs as described in [1]
         This method provides the exact E bounds but it is generally more computationally expensive
@@ -656,6 +918,230 @@ class ZonoOperations:
 
         return ConstrainedZonotope(G, C, A, b)   
 
+    def oa_cz_vertex_enumeration(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        This method over-approximates a constrained zonotope.
+
+        To do that it first performs vertex enumeration of the constrained zonotope.
+        Then, it defines a generator for each edge of the convex hull of the vertices.
+        Finally, it scales down the generators until at least one of the vertices is not inside the new constrained zonotope.
+
+        This method has the potential to perform a very tight over-approximation of the constrained zonotope, however,
+        to do is it would require a lot of computation time, both because of the vertex enumaration, but also because it would
+        require iterating between scaling and checking if the vertices are inside the new constrained zonotope.
+        The latter is computationally expensive because it requires solving an LP for each vertex.
+        '''
+        v, _, failed = cz.g2v()
+        if failed:
+            return cz
+
+        # Step 2: Compute the vertex centroid of the convex hull of V
+        # c = np.mean(v, axis = 0).reshape(-1, 1)
+        cx = (np.max(v[:, 0]) + np.min(v[:, 0])) / 2; cy = (np.max(v[:, 1]) + np.min(v[:, 1])) / 2
+        c = np.array([cx, cy]).reshape(-1, 1)
+        
+        # Step 3: Compute the midpoint between all consecutive vertices
+        midpoints = []
+        for i in range(v.shape[0]):
+            midpoints.append( (v[i, :] + v[(i+1)%v.shape[0], :]) / 2 )
+        midpoints = np.array(midpoints)
+
+        # Step 4: Define the new generators where a generator is the vector starting from 'c' and ends at a midpoint
+        G = np.zeros((c.shape[0], midpoints.shape[0]))
+        for i in range(midpoints.shape[0]):
+            is_inside = True
+            G[:, i] = midpoints[i, :] - c.reshape(-1)
+
+            z = Zonotope(c, G[:, :i])
+
+            if i == 0:
+                continue
+
+            for vertex in v:
+                p = np.array([ [vertex[0]], [vertex[1]] ])
+                if not self.is_inside_z_v2(z, p):
+                    is_inside = False
+                    break
+                
+            if is_inside:
+                break
+        # Step 5: Keep on scaling down the generators until at least one of the vertices is not inside the new constrained zonotope
+        # step = 0.1
+        step = 0.01
+        n = 0
+        while True:
+            scale = 1 - n*step
+            z = Zonotope(c, scale * G)
+            for vertex in v:
+                p = np.array([ [vertex[0]], [vertex[1]] ])
+                if not self.is_inside_z_v2(z, p):
+                    return ConstrainedZonotope((1 - (n-1)*step) * G, c, np.zeros((0, G.shape[1])), np.zeros((0, 1)))
+            n += 1
+
+    def oa_cz_to_hypercube_tight(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        This method is specifically designed for constrained zonotopes that represent very simple sets, however with a lot of redundancy 
+
+        To set the theme, this is gonna be used for the FRS of moving obstacles in the environment.
+        More precisely, given that the obstacle is a moving car and we initially represent it as a simple rectangle, we then wanna compute
+        its forward reachable set and the RCI for each FRS. Then we wanna compute its complement to see which set of states are actually safe
+        for the ego vehicle. Since we only have at our disposal a formula for the computation of the complement of a constrained zonotope
+        but not for a hybrid zonotope, we wanna convert that hybrid zonotope into a constrained zonotope.
+
+        Generally, this is gonna result in an over-approximation. However, even that over-approximation contains a lot of redundant information
+        because all we do (at the moment) to generate that constrained zonotope is to simply use the method 'oa_hz_to_cz'.
+
+        Therefore, we need to take extra steps to reduce the complexity of that CZ. This method does exactly that, that is it takes care of that
+        second step of over-approximation to significantly reduce the complexity of the CZ. The goal will be to generate a hypercube over-approximation        
+        
+        In this version we:
+
+        Assume that the dimensionality of the space is 'n'
+        Define a hypercube of dimensionality 'n' as a zonotope where each side of the hypercube is equal to the max and min of the
+        constrained zonotope when all of its constraints are ignored. This applies for all dimensions apart from the one that will be examined at each time.
+        For the dimension that is examined just define its size to be the same with the step size (This is gonna be clearer later on)
+        
+        Then for each dimension we compute the intersection of the original cosntrained zonotope with the hypercube with its center shifted by a single step.
+
+        Then save the value of the center of the hypercube in that dimension
+
+        These values are the min and max values in each dimensions of the constrained zonotope.
+        
+        We can use these min/max values to define a tight hypercube over-approximation of the constrained zonotope
+        '''
+
+        # Step 0: Define Parameters
+        step_size = 0.05
+        min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
+        max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
+        c_new   = np.zeros((cz.dim, 1))         # To store the new center
+        G_new   = np.zeros((cz.dim, cz.dim))    # To store the new generators
+
+        hypercube = self.oa_cz_to_hypercube(cz) # Compute the unconstrained hypercube
+
+        for d in range(cz.dim):
+            # Find maximum vertical value of dimension d
+            n = 1
+            original_G = hypercube.G[d, d]
+            original_C = hypercube.C[d, 0]
+
+            hypercube.G[d, d] = step_size
+            while True:
+                print(f'AAA')
+                hypercube.C[d, 0] = step_size*n
+                inters = self.intersection_cz_cz(cz, hypercube)
+                if self.is_empty_cz(inters):
+                    max_val[d, 0] = hypercube.C[d, 0] - step_size
+                    break
+                max_val[d, 0] = hypercube.C[d, 0] - step_size
+                n = n + 1
+            
+
+            n = 1
+            while True:
+                print(f'BBB')
+                hypercube.C[d, 0] = -step_size*n
+                inters = self.intersection_cz_cz(cz, hypercube)
+                if self.is_empty_cz(inters):
+                    min_val[d, 0] = hypercube.C[d, 0] + step_size
+                    break
+                min_val[d, 0] = hypercube.C[d, 0] + step_size
+                n = n + 1
+
+            # Reset G, C
+            hypercube.G[d, d] = original_G
+            hypercube.C[d, 0] = original_C
+
+            print(f'max_val[{d}] = {max_val[d]}\t min_val[{d}] = {min_val[d]}')
+            # Compute the new center as the middle point of each dimension
+            c_new[d, 0] = max_val[d, 0] - (max_val[d, 0] - min_val[d, 0]) / 2
+            G_new[d, d] = (abs(max_val[d, 0]) + abs(min_val[d, 0])) / 2
+
+        return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))   
+
+    def oa_cz_to_hypercube_tight_v2(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        This method is specifically designed for constrained zonotopes that represent very simple sets, however with a lot of redundancy 
+
+        To set the theme, this is gonna be used for the FRS of moving obstacles in the environment.
+        More precisely, given that the obstacle is a moving car and we initially represent it as a simple rectangle, we then wanna compute
+        its forward reachable set and the RCI for each FRS. Then we wanna compute its complement to see which set of states are actually safe
+        for the ego vehicle. Since we only have at our disposal a formula for the computation of the complement of a constrained zonotope
+        but not for a hybrid zonotope, we wanna convert that hybrid zonotope into a constrained zonotope.
+
+        Generally, this is gonna result in an over-approximation. However, even that over-approximation contains a lot of redundant information
+        because all we do (at the moment) to generate that constrained zonotope is to simply use the method 'oa_hz_to_cz'.
+
+        Therefore, we need to take extra steps to reduce the complexity of that CZ. This method does exactly that, that is it takes care of that
+        second step of over-approximation to significantly reduce the complexity of the CZ. The goal will be to generate a hypercube over-approximation        
+        
+        In this version we:
+
+        Assume that the dimensionality of the space is 'n'
+        Define a hypercube of dimensionality 'n' as a zonotope where each side of the hypercube is equal to the max and min of the
+        constrained zonotope when all of its constraints are ignored. This applies for all dimensions apart from the one that will be examined at each time.
+        For the dimension that is examined just define its size to be the same with the step size (This is gonna be clearer later on)
+        
+        Then for each dimension we compute the intersection of the original cosntrained zonotope with the hypercube with its center shifted by a single step.
+
+        Then save the value of the center of the hypercube in that dimension
+
+        These values are the min and max values in each dimensions of the constrained zonotope.
+        
+        We can use these min/max values to define a tight hypercube over-approximation of the constrained zonotope
+        '''
+
+        bounds = np.array([
+            [-2.0, 2.0],
+            [-2.0, 2.0]
+        ])
+
+
+        # Step 0: Define Parameters
+        step_size = 0.05
+        min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
+        max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
+        c_new   = np.zeros((cz.dim, 1))         # To store the new center
+        G_new   = np.zeros((cz.dim, cz.dim))    # To store the new generators
+
+        hypercube = self.oa_cz_to_hypercube(cz) # Compute the unconstrained hypercube
+        hypercube.C = np.zeros((hypercube.dim, 1))
+
+        for d in range(cz.dim):
+            # Find maximum vertical value of dimension d
+            ctr = 0
+            original_G = hypercube.G[d, d]
+
+            hypercube.G[d, d] = step_size
+
+            n_steps = int((bounds[d, 1] - bounds[d, 0]))
+            # Loop through the positive axis 
+            val = bounds[d, 0]
+            # for n in range(-int(n_steps/2), int(n_steps/2)):
+            while True and val < n_steps/2:
+                val += step_size
+                hypercube.C[d, 0] = val
+                inters = self.intersection_cz_cz(cz, hypercube)
+                if ctr == 0:
+                    if not self.is_empty_cz(inters):
+                        min_val[d, 0] = val# + step_size
+                        ctr += 1
+                elif ctr == 1:
+                    if self.is_empty_cz(inters):
+                        max_val[d, 0] = val - 2*step_size
+                        break
+
+            # Reset G, C
+            hypercube.G[d, d] = original_G
+            hypercube.C[d, 0] = 0
+
+            print(f'min_val[{d}] = {min_val[d]}\t max_val[{d}] = {max_val[d]}')
+            # Compute the new center as the middle point of each dimension
+            # c_new[d, 0] = max_val[d, 0] - (max_val[d, 0] - min_val[d, 0]) / 2
+            c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2
+            G_new[d, d] = (abs(max_val[d, 0]) - abs(min_val[d, 0])) / 2
+
+        return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))
 
     ############################################################################################################
     # Hybrid Zonotope methods
@@ -1849,6 +2335,57 @@ class ZonoOperations:
                         new_points.append(p)
 
         return np.array(new_points)     
+
+    def is_empty_hz(self, hz: HybridZonotope):
+        '''
+        Checks if the hybrid zonotope hz is empty
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('is_empty_hz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+        # model.Params.MIPFocus = 1           # Set MIPFocus = 1 (Focus more on finding feasible solutions)
+        # model.Params.ImproveStartTime = 0   # Set ImproveStartTime = 0 (To start focusing on finding feasible solutions immediately) (seconds)
+        # model.Params.SolutionLimit = 1      # Set the SolutionLimit parameter to 1 (to find only one feasible solution)
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([ 1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
+        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([ 1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
+
+        # Enforce that x_b only takes values in {-1, 1}^hz.nb
+        for i in range(hz.nb):
+            model.addConstr(x_b[i] * x_b[i] == 1 )
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        rhs = hz.b                          # Right hand side of equality constraint equation
+        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        ## Step 3: Set the objective function
+        model.setObjective(norm_inf, gp.GRB.MINIMIZE)
+
+        ## Step 4: Solve the model
+        model.optimize()
+
+        # ## Step 5: Check if the solution is feasible
+        # if model.status == gp.GRB.OPTIMAL or model.status == gp.GRB.SUBOPTIMAL:
+        #     return False
+        # else:
+        #     return True
+        ## Step 5: Check if the solution is feasible
+        if model.status == gp.GRB.OPTIMAL:
+            for i in range(hz.ng):      # Check if each value of the solution are less than '1'
+                if abs(x_c[i].X) > 1:
+                    return True
+            return False
+        else:
+            return True
+
 
     #####
     

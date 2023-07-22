@@ -57,7 +57,6 @@ class ZonoVisualizer:
         self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
         self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
-
     def save(self, path: str) -> None:
         self.fig.savefig(path, dpi=300)
 
@@ -154,7 +153,7 @@ class ZonoVisualizer:
         '''
         Visualizes a backward reachable set repsented by a hybrid zonotope
         '''
-
+        brs_settings.is_already_contained_xy = np.zeros((brs_settings.is_already_contained_xy.shape))
         new_points = self.zono_op.is_inside_hz_space(hz, brs_settings)
             
         marker_size = 0.5 * 39.36           # 0.2m in inches
