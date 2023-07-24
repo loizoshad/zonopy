@@ -348,7 +348,8 @@ class InputSpace:
         
         # Maximum rate of change in velocity (acceleration)
         self.ax_max = 0.0    # TODO: Define based on dynamics model
-        self.ay_max = 2.0    # TODO: Define based on dynamics model
+        # self.ay_max = 2.0    # TODO: Define based on dynamics model
+        self.ay_max = 0.2
 
     def get_space(self, max_input = None, min_input = None):
         assert max_input is not None, 'Maximum input must be specified'
@@ -381,7 +382,7 @@ class InputSpace:
 
         c = np.array([
             [0.0],
-            [self.ay_max/2 + 0.1]
+            [1.0]
         ])
 
         Ac = np.zeros((nc, ng))
@@ -499,7 +500,7 @@ class InitialSpace:
         #                 [-1.21]
         #                 ])
         c = np.array([  [1.71], 
-                        [0.0]
+                        [0.8]
                         ])    
         
         Ac = np.zeros((nc, ng))

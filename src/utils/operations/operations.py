@@ -9,7 +9,6 @@ UNTIL_SYMBOL = '\u0055'
 WUNTIL_SYMBOL = '\u0057'
 REACH_SYMBOL = '\u211B'
 
-import casadi as ca
 import numpy as np
 import sympy as sympy
 import math
@@ -17,23 +16,16 @@ from scipy.optimize import linprog
 from copy import deepcopy
 import itertools
 import time
-from fractions import Fraction
-import copy
 
 # For mixed-integer linear programming
 import gurobipy as gp
 from gurobipy import *
-
-import scipy.sparse as sp
 
 from utils.sets.zonotopes import Zonotope
 from utils.sets.constrained_zonotopes import ConstrainedZonotope
 from utils.sets.hybrid_zonotopes import HybridZonotope
 from utils.tlt.nodes import OR, AND, UNTIL, set_node
 from utils.tlt.tree import Tree
-
-
-import signal
 
 
 '''
@@ -48,9 +40,6 @@ References:
 [6] V. Raghuraman, et al.   'Set Operations and Order reductions for constrained zonotopes'
 [7] T. Bird                 'PhD Dissertation: Hybrid Zonotopes: A Mixed-Integer Set Representation For The Analysis Of Hybrid Zonotopes
 '''
-
-def handler(signum, frame):
-    print(f'Function timed out')
 
 class ZonoOperations:
     def __init__(self, visualizer = None):
@@ -248,7 +237,6 @@ class ZonoOperations:
             return True          
     
 
-
     ###############################################################################################################
     # Constrained Zonotope Methods
 
@@ -345,6 +333,8 @@ class ZonoOperations:
     def is_inside_cz_v2(self, cz: ConstrainedZonotope, z: np.ndarray):
         '''
         Checks if a point z is inside the constrained zonotope cz by solving the following linear program: 
+
+        See work in [1] for details
         '''
 
         ## Step 1: Create a model
@@ -381,7 +371,6 @@ class ZonoOperations:
 
         ## Step 5: Check if the solution is feasible
         if model.status == gp.GRB.OPTIMAL or model.status == gp.GRB.SUBOPTIMAL:
-            # TODO: CHECK IF YOU NEED TO DO THE CHECK FOR <= 1
             return True
         else:
             return False
@@ -389,6 +378,8 @@ class ZonoOperations:
     def is_empty_cz(self, cz: ConstrainedZonotope):
         '''
         Checks if the constrained zonotope cz is empty
+
+        See work in [1] for details
         '''
         
         ## Step 1: Create a model
@@ -416,9 +407,6 @@ class ZonoOperations:
 
         ## Step 5: Check if the solution is feasible
         if model.status == gp.GRB.OPTIMAL:
-            # for i in range(cz.ng):      # Check if each value of the solution are less than '1'
-                # if abs(x_c[i].X) > 1:
-                #     return True
             return False
         else:
             return True    
@@ -426,6 +414,8 @@ class ZonoOperations:
     def complement_cz_to_hz(self, cz: ConstrainedZonotope) -> HybridZonotope:
         '''
         This method computes the complement of a Constrained Zonotope cz inside space X represented as a Constrained Zonotope.
+
+        See work in [6] for details
 
         The complement is represented as a Hybrid Zonotope
         
@@ -543,7 +533,7 @@ class ZonoOperations:
 
         return Zonotope(C, G)
 
-    def oa_cz_to_hypercube(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+    def oa_lifted_cz_to_hypercube(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
         '''
         This method provides an over-approximation of a constrained zonotope as a hypercube.
         However, this over-approximation is not the tightest hypercube over-approximation,
@@ -556,26 +546,12 @@ class ZonoOperations:
 
         G = cz.G[:dim, :]
         C = cz.C[:dim, :]
-        A = cz.G[dim:, :]
-        b = cz.C[dim:, :]
-
-        # print(f'G = \n{G}')
-        # print(f'C = {C.T}')
-        # print(f'A = \n{A}')
-        # print(f'b = {b.T}')
 
         z = Zonotope(C, G)
         z = self.redundant_g_z(z)
         cz = self.z_to_cz(z)
 
         return cz
-
-
-
-
-
-
-
 
     def cz_to_hz(self, cz: ConstrainedZonotope) -> HybridZonotope:
         '''
@@ -897,6 +873,8 @@ class ZonoOperations:
 
     def remove_c_g_cz(self, cz, c, r):
         '''
+        This method removes the 'c' constraint and 'r' generator from a constrained zonotope
+
         c: constraint index
         r: generator index
         '''
@@ -1010,93 +988,11 @@ class ZonoOperations:
         We can use these min/max values to define a tight hypercube over-approximation of the constrained zonotope
         '''
 
-        # Step 0: Define Parameters
-        step_size = 0.05
-        min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
-        max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
-        c_new   = np.zeros((cz.dim, 1))         # To store the new center
-        G_new   = np.zeros((cz.dim, cz.dim))    # To store the new generators
-
-        hypercube = self.oa_cz_to_hypercube(cz) # Compute the unconstrained hypercube
-
-        for d in range(cz.dim):
-            # Find maximum vertical value of dimension d
-            n = 1
-            original_G = hypercube.G[d, d]
-            original_C = hypercube.C[d, 0]
-
-            hypercube.G[d, d] = step_size
-            while True:
-                print(f'AAA')
-                hypercube.C[d, 0] = step_size*n
-                inters = self.intersection_cz_cz(cz, hypercube)
-                if self.is_empty_cz(inters):
-                    max_val[d, 0] = hypercube.C[d, 0] - step_size
-                    break
-                max_val[d, 0] = hypercube.C[d, 0] - step_size
-                n = n + 1
-            
-
-            n = 1
-            while True:
-                print(f'BBB')
-                hypercube.C[d, 0] = -step_size*n
-                inters = self.intersection_cz_cz(cz, hypercube)
-                if self.is_empty_cz(inters):
-                    min_val[d, 0] = hypercube.C[d, 0] + step_size
-                    break
-                min_val[d, 0] = hypercube.C[d, 0] + step_size
-                n = n + 1
-
-            # Reset G, C
-            hypercube.G[d, d] = original_G
-            hypercube.C[d, 0] = original_C
-
-            print(f'max_val[{d}] = {max_val[d]}\t min_val[{d}] = {min_val[d]}')
-            # Compute the new center as the middle point of each dimension
-            c_new[d, 0] = max_val[d, 0] - (max_val[d, 0] - min_val[d, 0]) / 2
-            G_new[d, d] = (abs(max_val[d, 0]) + abs(min_val[d, 0])) / 2
-
-        return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))   
-
-    def oa_cz_to_hypercube_tight_v2(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
-        '''
-        This method is specifically designed for constrained zonotopes that represent very simple sets, however with a lot of redundancy 
-
-        To set the theme, this is gonna be used for the FRS of moving obstacles in the environment.
-        More precisely, given that the obstacle is a moving car and we initially represent it as a simple rectangle, we then wanna compute
-        its forward reachable set and the RCI for each FRS. Then we wanna compute its complement to see which set of states are actually safe
-        for the ego vehicle. Since we only have at our disposal a formula for the computation of the complement of a constrained zonotope
-        but not for a hybrid zonotope, we wanna convert that hybrid zonotope into a constrained zonotope.
-
-        Generally, this is gonna result in an over-approximation. However, even that over-approximation contains a lot of redundant information
-        because all we do (at the moment) to generate that constrained zonotope is to simply use the method 'oa_hz_to_cz'.
-
-        Therefore, we need to take extra steps to reduce the complexity of that CZ. This method does exactly that, that is it takes care of that
-        second step of over-approximation to significantly reduce the complexity of the CZ. The goal will be to generate a hypercube over-approximation        
-        
-        In this version we:
-
-        Assume that the dimensionality of the space is 'n'
-        Define a hypercube of dimensionality 'n' as a zonotope where each side of the hypercube is equal to the max and min of the
-        constrained zonotope when all of its constraints are ignored. This applies for all dimensions apart from the one that will be examined at each time.
-        For the dimension that is examined just define its size to be the same with the step size (This is gonna be clearer later on)
-        
-        Then for each dimension we compute the intersection of the original cosntrained zonotope with the hypercube with its center shifted by a single step.
-
-        Then save the value of the center of the hypercube in that dimension
-
-        These values are the min and max values in each dimensions of the constrained zonotope.
-        
-        We can use these min/max values to define a tight hypercube over-approximation of the constrained zonotope
-        '''
-
         bounds = np.array([
-            [-2.0, 2.0],
-            [-2.0, 2.0]
+            [-2.5, 2.5],        # Bounds in x-direction
+            [-2.5, 2.5]         # Bounds in y-direction
         ])
 
-
         # Step 0: Define Parameters
         step_size = 0.05
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
@@ -1104,8 +1000,19 @@ class ZonoOperations:
         c_new   = np.zeros((cz.dim, 1))         # To store the new center
         G_new   = np.zeros((cz.dim, cz.dim))    # To store the new generators
 
-        hypercube = self.oa_cz_to_hypercube(cz) # Compute the unconstrained hypercube
-        hypercube.C = np.zeros((hypercube.dim, 1))
+        # hypercube = self.oa_lifted_cz_to_hypercube(cz) # Compute the unconstrained hypercube
+        # hypercube.C = np.zeros((hypercube.dim, 1))
+
+        G_hyper = np.array([
+            [2.5, 0.0],
+            [0.0, 2.5]
+        ])
+        C_hyper = np.array([
+            [0.0],
+            [0.0]
+        ])
+
+        hypercube = ConstrainedZonotope(G_hyper, C_hyper, np.zeros((0, 2)), np.zeros((0, 1)))
 
         for d in range(cz.dim):
             # Find maximum vertical value of dimension d
@@ -1135,13 +1042,13 @@ class ZonoOperations:
             hypercube.G[d, d] = original_G
             hypercube.C[d, 0] = 0
 
-            print(f'min_val[{d}] = {min_val[d]}\t max_val[{d}] = {max_val[d]}')
             # Compute the new center as the middle point of each dimension
-            # c_new[d, 0] = max_val[d, 0] - (max_val[d, 0] - min_val[d, 0]) / 2
             c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2
-            G_new[d, d] = (abs(max_val[d, 0]) - abs(min_val[d, 0])) / 2
+            # G_new[d, d] = (abs(max_val[d, 0]) - abs(min_val[d, 0])) / 2
+            G_new[d, d] = (max_val[d, 0] - min_val[d, 0]) / 2
 
         return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))
+
 
     ############################################################################################################
     # Hybrid Zonotope methods
@@ -1631,8 +1538,209 @@ class ZonoOperations:
 
         return HybridZonotope(hz.Gc, hz.Gb, hz.C, A[:, :hz.Ac.shape[1]], A[:, hz.Ac.shape[1]:-1], A[:, -1].reshape((A.shape[0], 1)))    
 
-    # This version does not always work. Nevertheless, I still use it for the initial space as it works in these cases and reduces the redundancy better than redundant_c_gc_hz_v1
+    def redundant_c_gc_hz_v1(self, hz: HybridZonotope, options = 'slow') -> HybridZonotope:
+        '''
+        This method performs redundancy removal for constraints and continuous generators in a hybrid zonotope.
+
+        # This version always works
+        '''
+        epsilon = 1e-3
+        redundant = True
+
+        Eb = np.array([ [-1, 1] for b in range(hz.nb) ])
+
+        hz = self.redundant_c_hz(hz)
+        hz = self.redundant_gc_hz(hz)
+
+        while redundant:
+            redundant = False
+            hz = self.rref_hz(hz)
+            if options == 'fast':
+                E = self.find_E_hz_fast(hz)
+            else:
+                E = self.find_E_hz_slow(hz)
+
+            for c in range (hz.ng):
+                for r in range(hz.nc):
+                    if np.abs(hz.Ac[r, c]) >= epsilon:
+                        a_rc_inv = (1/hz.Ac[r, c])
+                        R_rc = np.array([hz.b[r,0], hz.b[r,0]])
+
+                        tempc = np.array([0.0, 0.0])
+                        tempb = np.array([0.0, 0.0])
+                        for k in range(hz.ng):
+                            if k != c:
+                                tempc = self.interval_add(tempc, self.interval_scalar_mul(hz.Ac[r, k], E[k, :]))
+
+                        for b in range(hz.nb):
+                            tempb = self.interval_add(tempb, self.interval_scalar_mul(hz.Ab[r, b], Eb[b, :]))
+
+                        R_rc = self.interval_sub(R_rc, tempc)
+                        R_rc = self.interval_sub(R_rc, tempb)
+
+                        R_rc = self.interval_scalar_mul(a_rc_inv, R_rc)
+
+                        if self.is_inside_interval(R_rc, np.array([-1, 1])):
+                            hz = self.remove_c_g_hz(hz = hz, c = c, r = r)
+                            redundant = True
+
+                            break
+                if redundant:
+                    break
+
+        return hz
+
+    def find_E_hz_slow(self, hz):
+        '''
+        This method finds the E interval by solving 2*ng MILPs in equations (6.2a, 6.2b) from Section 6.1.2 in [7]
+        This method provides the exact E bounds but it is generally more computationally expensive
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('intervals_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
+        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
+
+        # Enforce that x_b only takes values in {-1, 1}^hz.nb
+        for i in range(hz.nb):
+            model.addConstr(x_b[i] * x_b[i] == 1 )
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = hz.b                          # Right hand side of equality constraint equation
+        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        x_L = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            x_L.append(x_c[g].X)
+
+        x_U = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            x_U.append(x_c[g].X)
+
+        x_U = np.array(x_U); x_L = np.array(x_L)
+
+        E = np.block([x_L.reshape(-1, 1), x_U.reshape(-1, 1)])
+
+        return E
+
+    def find_E_hz_fast(self, hz):
+        '''
+        This method computes the Intervals of the input hybrid zonotope according to Algorithm 1 in [6]
+        which is then adapted to work for Hybrid zonotopes.
+        This method does not provide the exact E bounds but it is generally more computationally efficient
+        '''
+
+        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
+        E = np.array([ [-1, 1] for g in range(hz.ng) ])
+        Eb = np.array([ [-1, 1] for b in range(hz.nb) ])
+        R = np.array([ [-np.inf, np.inf] for g in range(hz.ng) ])
+
+        A = hz.Ac
+        epsilon = 1e-5
+        iterations = 50  # Maximum number of iterations
+
+        for iter in range(iterations):
+            for i in range(hz.nc):
+                for j in range(hz.ng):
+                    if abs(A[i, j]) >= epsilon:
+                        a_rc_inv = (1/hz.Ac[i, j])
+                        R_rc = np.array([hz.b[i,0], hz.b[i,0]])
+
+                        tempc = np.array([0.0, 0.0])
+                        tempb = np.array([0.0, 0.0])
+                        for k in range(hz.ng):
+                            if k != j:
+                                tempc = self.interval_add(tempc, self.interval_scalar_mul(hz.Ac[i, k], E[k, :]))
+                        for b in range(hz.nb):
+                            tempb = self.interval_add(tempb, self.interval_scalar_mul(hz.Ab[i, b], Eb[b, :]))
+                        R_rc = self.interval_sub(R_rc, tempc)
+                        R_rc = self.interval_sub(R_rc, tempb)
+                        R_rc = self.interval_scalar_mul(a_rc_inv, R_rc)
+
+
+                        R[j] = self.intesection_intervals(R[j], R_rc)
+                        E[j] = self.intesection_intervals(E[j], R[j])
+        return E
+
+    def rref_hz(self, hz):
+        '''
+        This method computes the reduced row echelon form of matrix [A | b] for a linear system of equations (Ax = b)
+        using Gauss-Jordan Elimination with full pivoting.
+
+        - FUTURE IMPROVEMENTS: Experiment with other preconditioning strategies
+        '''
+        A = np.block([hz.Ac, hz.Ab, hz.b])
+
+        rows = A.shape[0]
+
+        pivots = []
+        for r in range(rows):
+            # Find the pivot row and column
+            pivot, pivots = self.find_pivot(A[r, :-1], pivots)
+
+            # Check if there is a new pivot
+            if len(pivots) < r + 1:
+                continue
+            
+            # Normalize the pivot row to turn the pivot element into 1
+            A[r, :] = A[r, :] / A[r, pivot]
+
+            # Turn the elements of all other rows in the pivot column to zero
+            for r2 in range(rows):
+                if r2 != r:
+                    A[r2, :] = A[r2, :] - A[r2, pivot] * A[r, :]
+
+        Ac = A[:, :hz.Ac.shape[1]]
+        Ab = A[:, hz.Ac.shape[1]:-1]
+        b = A[:, -1].reshape((A.shape[0], 1))
+
+        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
+
+    def remove_c_g_hz(self, hz, c, r):
+        '''
+        c: constraint index
+        r: generator index
+        '''
+        Ecr = np.zeros((hz.ng, hz.nc))
+        Ecr[c, r] = 1
+
+        Lg = hz.Gc @ Ecr * (1/hz.Ac[r, c])
+        La = hz.Ac @ Ecr * (1/hz.Ac[r, c])
+
+        Gc = hz.Gc - Lg @ hz.Ac
+        Gb = hz.Gb - Lg @ hz.Ab
+        C  = hz.C  + Lg @ hz.b
+        Ac = hz.Ac - La @ hz.Ac
+        Ab = hz.Ab - La @ hz.Ab
+        b  = hz.b  - La @ hz.b
+
+        Gc = np.delete(Gc, c, axis=1)
+        Ac = np.delete(Ac, c, axis=1)
+        Ac = np.delete(Ac, r, axis=0)
+        Ab = np.delete(Ab, r, axis=0)
+        b  = np.delete(b, r, axis=0)
+
+        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
+
     def redundant_c_gc_hz_v2(self, hz: HybridZonotope) -> HybridZonotope:
+        '''
+        # This version does not always work. 
+        Nevertheless, I still use it for the initial space as it works in these cases and reduces the redundancy better than redundant_c_gc_hz_v1
+        '''
         E, R = self.intervals_hz(hz)
         A = hz.Ac
 
@@ -1841,6 +1949,8 @@ class ZonoOperations:
 
     def ua_gc_hz(self, hz: HybridZonotope, N: int) -> HybridZonotope:
         '''
+        TODO: This method needs to be checked again if it indeed works.
+
         Reduces the number of continuous generators of a Hybrid Zonotope.
 
         This method first removes all parallel generators of the lifted hybrid zonotope.
@@ -1913,209 +2023,11 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, hz.Gb, hz.C, Ac, hz.Ab, hz.b)
     
-    # This version always works
-    def redundant_c_gc_hz_v1(self, hz: HybridZonotope, options = 'slow') -> HybridZonotope:
-        epsilon = 1e-3
-        redundant = True
-
-        Eb = np.array([ [-1, 1] for b in range(hz.nb) ])
-
-        hz = self.redundant_c_hz(hz)
-        hz = self.redundant_gc_hz(hz)
-
-        while redundant:
-            redundant = False
-            hz = self.rref_hz(hz)
-            if options == 'fast':
-                E = self.find_E_hz_fast(hz)
-            else:
-                E = self.find_E_hz_slow(hz)
-
-            for c in range (hz.ng):
-                for r in range(hz.nc):
-                    if np.abs(hz.Ac[r, c]) >= epsilon:
-                        a_rc_inv = (1/hz.Ac[r, c])
-                        R_rc = np.array([hz.b[r,0], hz.b[r,0]])
-
-                        tempc = np.array([0.0, 0.0])
-                        tempb = np.array([0.0, 0.0])
-                        for k in range(hz.ng):
-                            if k != c:
-                                tempc = self.interval_add(tempc, self.interval_scalar_mul(hz.Ac[r, k], E[k, :]))
-
-                        for b in range(hz.nb):
-                            tempb = self.interval_add(tempb, self.interval_scalar_mul(hz.Ab[r, b], Eb[b, :]))
-
-                        R_rc = self.interval_sub(R_rc, tempc)
-                        R_rc = self.interval_sub(R_rc, tempb)
-
-                        R_rc = self.interval_scalar_mul(a_rc_inv, R_rc)
-
-                        if self.is_inside_interval(R_rc, np.array([-1, 1])):
-                            hz = self.remove_c_g_hz(hz = hz, c = c, r = r)
-                            redundant = True
-
-                            break
-                if redundant:
-                    break
-
-        return hz
-
-    def find_E_hz_slow(self, hz):
-        '''
-        This method finds the E interval by solving 2*ng MILPs in equations (6.2a, 6.2b) from Section 6.1.2 in [7]
-        This method provides the exact E bounds but it is generally more computationally expensive
-        '''
-        
-        ## Step 1: Create a model
-        model = gp.Model('intervals_cz')
-        model.Params.OutputFlag = 0         # Disable verbose output
-
-        ## Step 2: Create the variables
-        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
-        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
-
-        # Enforce that x_b only takes values in {-1, 1}^hz.nb
-        for i in range(hz.nb):
-            model.addConstr(x_b[i] * x_b[i] == 1 )
-
-        # Compute the infinity norm of x_c
-        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
-
-        ## Step 3: Add constraints
-        rhs = hz.b                          # Right hand side of equality constraint equation
-        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
-        for left, right in zip(lhs, rhs):
-            model.addConstr(left == right)
-        
-        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
-
-        x_L = []
-        for g in range(hz.ng):
-            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
-            model.optimize()
-            x_L.append(x_c[g].X)
-
-        x_U = []
-        for g in range(hz.ng):
-            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
-            model.optimize()
-            x_U.append(x_c[g].X)
-
-        x_U = np.array(x_U); x_L = np.array(x_L)
-
-        E = np.block([x_L.reshape(-1, 1), x_U.reshape(-1, 1)])
-
-        return E
-
-    def find_E_hz_fast(self, hz):
-        '''
-        This method computes the Intervals of the input hybrid zonotope according to Algorithm 1 in [6]
-        which is then adapted to work for Hybrid zonotopes.
-        This method does not provide the exact E bounds but it is generally more computationally efficient
-        '''
-
-        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
-        E = np.array([ [-1, 1] for g in range(hz.ng) ])
-        Eb = np.array([ [-1, 1] for b in range(hz.nb) ])
-        R = np.array([ [-np.inf, np.inf] for g in range(hz.ng) ])
-
-        A = hz.Ac
-        epsilon = 1e-5
-        iterations = 50  # Maximum number of iterations
-
-        for iter in range(iterations):
-            for i in range(hz.nc):
-                for j in range(hz.ng):
-                    if abs(A[i, j]) >= epsilon:
-                        a_rc_inv = (1/hz.Ac[i, j])
-                        R_rc = np.array([hz.b[i,0], hz.b[i,0]])
-
-                        tempc = np.array([0.0, 0.0])
-                        tempb = np.array([0.0, 0.0])
-                        for k in range(hz.ng):
-                            if k != j:
-                                tempc = self.interval_add(tempc, self.interval_scalar_mul(hz.Ac[i, k], E[k, :]))
-                        for b in range(hz.nb):
-                            tempb = self.interval_add(tempb, self.interval_scalar_mul(hz.Ab[i, b], Eb[b, :]))
-                        R_rc = self.interval_sub(R_rc, tempc)
-                        R_rc = self.interval_sub(R_rc, tempb)
-                        R_rc = self.interval_scalar_mul(a_rc_inv, R_rc)
-
-
-                        R[j] = self.intesection_intervals(R[j], R_rc)
-                        E[j] = self.intesection_intervals(E[j], R[j])
-        return E
-
-    def rref_hz(self, hz):
-        '''
-        This method computes the reduced row echelon form of matrix [A | b] for a linear system of equations (Ax = b)
-        using Gauss-Jordan Elimination with full pivoting.
-
-        - FUTURE IMPROVEMENTS: Experiment with other preconditioning strategies
-        '''
-        A = np.block([hz.Ac, hz.Ab, hz.b])
-
-        rows = A.shape[0]
-
-        pivots = []
-        for r in range(rows):
-            # Find the pivot row and column
-            pivot, pivots = self.find_pivot(A[r, :-1], pivots)
-
-            # Check if there is a new pivot
-            if len(pivots) < r + 1:
-                continue
-            
-            # Normalize the pivot row to turn the pivot element into 1
-            A[r, :] = A[r, :] / A[r, pivot]
-
-            # Turn the elements of all other rows in the pivot column to zero
-            for r2 in range(rows):
-                if r2 != r:
-                    A[r2, :] = A[r2, :] - A[r2, pivot] * A[r, :]
-
-        Ac = A[:, :hz.Ac.shape[1]]
-        Ab = A[:, hz.Ac.shape[1]:-1]
-        b = A[:, -1].reshape((A.shape[0], 1))
-
-        return HybridZonotope(hz.Gc, hz.Gb, hz.C, Ac, Ab, b)
-
-    def remove_c_g_hz(self, hz, c, r):
-        '''
-        c: constraint index
-        r: generator index
-        '''
-        Ecr = np.zeros((hz.ng, hz.nc))
-        Ecr[c, r] = 1
-
-        Lg = hz.Gc @ Ecr * (1/hz.Ac[r, c])
-        La = hz.Ac @ Ecr * (1/hz.Ac[r, c])
-
-        Gc = hz.Gc - Lg @ hz.Ac
-        Gb = hz.Gb - Lg @ hz.Ab
-        C  = hz.C  + Lg @ hz.b
-        Ac = hz.Ac - La @ hz.Ac
-        Ab = hz.Ab - La @ hz.Ab
-        b  = hz.b  - La @ hz.b
-
-        Gc = np.delete(Gc, c, axis=1)
-        Ac = np.delete(Ac, c, axis=1)
-        Ac = np.delete(Ac, r, axis=0)
-        Ab = np.delete(Ab, r, axis=0)
-        b  = np.delete(b, r, axis=0)
-
-        return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
-
     ##### Reachable Sets
 
     def one_step_brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray) -> HybridZonotope:
         '''
         Computes a one-step backward reachable set using the hybrid zonotope representation
-
-        # TODO: Is the HZ 'u' just for the inputs? If not, how can we include the admissible set of states?
-        # If not, perhaps we can just compute the intersection of the BRS with the admissible set of states
-        # at each iteration.
         
         X: Admissible (state X control) set
         t: Target set
@@ -2154,6 +2066,18 @@ class ZonoOperations:
 
         return HybridZonotope(Gc, Gb, C, Ac, Ab, b)
 
+    def one_step_brs_hz_v2(self, X: HybridZonotope, U: HybridZonotope, T: HybridZonotope, A: np.ndarray, B: np.ndarray) -> HybridZonotope:
+        BU = self.lt_hz(-B, U)
+        T_plus_BU = self.ms_hz_hz(hz1 = T, hz2 = BU)
+        A_inv = np.linalg.inv(A)
+        A_inv_T_W_plus_BU = self.lt_hz(A_inv, T_plus_BU)
+
+        # Compute intersection with safe space X
+        X_intersection_A_inv_T_W_plus_BU = self.intersection_hz_hz(hz1 = X, hz2 = A_inv_T_W_plus_BU)
+
+
+        return X_intersection_A_inv_T_W_plus_BU
+
     def brs_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray, N: int, visualize = False, env = None) -> HybridZonotope:
         '''
         Computes the N-step backward reachable set using the hybrid zonotope representation
@@ -2166,35 +2090,6 @@ class ZonoOperations:
             if self.visualizer is not None and visualize:
                 self.visualizer.vis_hz_brs(T)
         return T
-
-    def rci_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray, N: int) -> HybridZonotope:
-        '''
-        
-        '''
-        for i in range(N):
-            pass
-
-    def decompose_hz(self, hz: HybridZonotope):
-        '''
-        Decomposes the input hybrid zonotope into a list of constrained zonotopes
-        '''
-        start_time = time.perf_counter()
-
-        cz = [] # List that will hold all the constrained zonotopes
-
-        # Step 1: Enumerate all possible binary combinations for the binary generators hz.nb
-        b_combs = np.array(list(itertools.product([-1, 1], repeat = hz.nb)))
-        
-        # Iterate over all the binary combinations
-        for b in b_combs:
-            b = b.reshape(-1, 1)
-            # Step 2.1: Create a constrained zonotope object out of the binary combination
-            cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
-
-        end_time = time.perf_counter()
-        print(f'Decompose time  = {end_time - start_time}')
-
-        return cz
 
     def is_inside_hz(self, hz: HybridZonotope, z: np.ndarray):
         '''
@@ -2386,21 +2281,6 @@ class ZonoOperations:
         else:
             return True
 
-
-    #####
-    
-    def one_step_brs_hz_v2(self, X: HybridZonotope, U: HybridZonotope, T: HybridZonotope, A: np.ndarray, B: np.ndarray) -> HybridZonotope:
-        BU = self.lt_hz(-B, U)
-        T_plus_BU = self.ms_hz_hz(hz1 = T, hz2 = BU)
-        A_inv = np.linalg.inv(A)
-        A_inv_T_W_plus_BU = self.lt_hz(A_inv, T_plus_BU)
-
-        # Compute intersection with safe space X
-        X_intersection_A_inv_T_W_plus_BU = self.intersection_hz_hz(hz1 = X, hz2 = A_inv_T_W_plus_BU)
-
-
-        return X_intersection_A_inv_T_W_plus_BU
-
     def one_step_frs_hz(self, X: HybridZonotope, U: HybridZonotope, I: HybridZonotope, A: np.ndarray, B: np.ndarray, W: HybridZonotope) -> HybridZonotope:
         '''
         X: State space (Obstacles are not included)
@@ -2414,263 +2294,23 @@ class ZonoOperations:
 
         '''
 
-        A_I = self.lt_hz(A, I)                                          # A @ I
-        # print(f'A_I: ng = {A_I.ng},\t nc = {A_I.nc},\t nb = {A_I.nb}')
-        B_U = self.lt_hz(B, U)                                          # B @ U
-        # print(f'B_I: ng = {B_U.ng},\t nc = {B_U.nc},\t nb = {B_U.nb}')
-        A_I_plus_B_U = self.ms_hz_hz(hz1 = A_I, hz2 = B_U)              # A @ I + B @ U
-        # print(f'A_I_plus_B_U: ng = {A_I_plus_B_U.ng},\t nc = {A_I_plus_B_U.nc},\t nb = {A_I_plus_B_U.nb}')
+        A_I = self.lt_hz(A, I)                                              # A @ I
+        B_U = self.lt_hz(B, U)                                              # B @ U
+        A_I_plus_B_U = self.ms_hz_hz(hz1 = A_I, hz2 = B_U)                  # A @ I + B @ U
         A_I_plus_B_U_plus_W = self.ms_hz_hz(hz1 = A_I_plus_B_U, hz2 = W)    # A @ I + B @ U + W
-        # print(f'A_I_plus_B_U_plus_W: ng = {A_I_plus_B_U_plus_W.ng},\t nc = {A_I_plus_B_U_plus_W.nc},\t nb = {A_I_plus_B_U_plus_W.nb}')
 
         X_intersection_A_I_plus_B_U_plus_W = self.intersection_hz_hz(hz1 = X, hz2 = A_I_plus_B_U_plus_W)
         
         return X_intersection_A_I_plus_B_U_plus_W
 
+    ##### TODO:
 
-
-
-
-
-
-
-
-
-    # Not used methods
-    def rescale_hz(self, hz):
-        '''
-        Extends the notion of rescaling a constrained zonotope of work [1] for hybrid zonotopes
+    def rci_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray, N: int) -> HybridZonotope:
         '''
         
-        ## Step 1: Create a model
-        model = gp.Model('rescale_hz')
-        model.Params.OutputFlag = 0         # Disable verbose output
-
-        ## Step 2: Create the variables
-        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([ 1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
-        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([ 1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
-
-        # Enforce that x_b only takes values in {-1, 1}^hz.nb
-        for i in range(hz.nb):
-            model.addConstr(x_b[i] * x_b[i] == 1 )
-
-        # Compute the infinity norm of x_c
-        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
-
-        ## Step 3: Add constraints
-        rhs = hz.b                          # Right hand side of equality constraint equation
-        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
-        for left, right in zip(lhs, rhs):
-            model.addConstr(left == right)
-        
-        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
-
-
-        x_L = []
-        for g in range(hz.ng):
-            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
-            model.optimize()
-            x_L.append(x_c[g].X)
-
-        x_U = []
-        for g in range(hz.ng):
-            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
-            model.optimize()
-            x_U.append(x_c[g].X)
-
-        x_U = np.array(x_U); x_L = np.array(x_L)
-        x_m = (x_U + x_L)/2
-        x_r = (x_U - x_L)/2
-
-        x_m = x_m.reshape((hz.ng, 1))
-        x_r = x_r.reshape((hz.ng, 1))
-        diag = np.diag(x_r.flatten())
-
-        Gc = hz.Gc @ diag
-        Gb = hz.Gb
-        c = hz.C + hz.Gc @ x_m
-        Ac = hz.Ac @ diag
-        Ab = hz.Ab
-        b = hz.b - hz.Ac @ x_m
-
-        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-    def intervals_cz_v0(self, cz):
         '''
-        This method computes the Intervals of the input constrained zonotope according to Algorithm 1 in [6]
-        '''
-
-        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
-        E = np.array([ [-1, 1] for g in range(cz.ng) ])
-        R = np.array([ [-np.inf, np.inf] for g in range(cz.ng) ])
-        i = 0; j = 0
-
-        A = cz.A
-
-        while i < (cz.nc):
-            while j < (cz.ng):
-                if A[i, j] != 0:
-                    a_ij_inv = (1/A[i, j])
-                    sum = 0
-                    for k in range(cz.ng):
-                        if k != j:
-                            sum += a_ij_inv * A[i, k] * E[k]
-                    gen_val = a_ij_inv * cz.b[i,0] - sum
-                    R[j] = self.intesection_intervals(R[j], gen_val)
-                    E[j] = self.intesection_intervals(E[j], R[j])
-
-                j += 1
-            i += 1
-            j = 0
-
-        return E, R
-
-    def intervals_cz_v1(self, cz):
-        '''
-        This method computes the Intervals of the input constrained zonotope according to Algorithm 1 in [6]
-        '''
-
-        # Step 1: Initialize intervals Ej and Rj as Ej <- [-1, 1], Rj <- [-inf, inf], i,j <- 1
-        E = np.array([ [-1, 1] for g in range(cz.ng) ])
-        R = np.array([ [-np.inf, np.inf] for g in range(cz.ng) ])
-
-        A = cz.A
-        epsilon = 1e-5
-        iterations = 100  # Maximum number of iterations
-
-        for iter in range(iterations):
-            for i in range(cz.nc):
-                for j in range(cz.ng):
-                    if abs(A[i, j]) >= epsilon:
-                        a_ij_inv = 1/A[i, j]
-                        # ## V1
-                        # sum = 0
-                        # for k in range(cz.ng):
-                        #     if k != j:
-                        #         sum += a_ij_inv * A[i, k] * E[k]
-                        # gen_val = a_ij_inv * cz.b[i,0] - sum
-                        # R[j] = self.intesection_intervals(R[j], gen_val)
-                        # E[j] = self.intesection_intervals(E[j], R[j])
-
-                        ## V2
-                        temp = E
-                        temp[j] = 0
-                        dummy = a_ij_inv * (cz.b[i, 0] - A[i, :] @ temp)
-
-                        # Update domains
-                        R[j] = self.intesection_intervals(R[j], dummy)
-                        E[j] = self.intesection_intervals(E[j], R[j])
-
-
-        return E, R
-
-    def rescale_cz(self, cz):
-        '''
-        This method rescales a constrained zonotope of work according to work [1]
-        '''
-        
-        ## Step 1: Create a model
-        model = gp.Model('rescale_cz')
-        model.Params.OutputFlag = 0         # Disable verbose output
-
-        ## Step 2: Create the variables
-        x_c = model.addMVar(shape = (cz.ng, ), lb = np.array([-1] * cz.ng), ub = np.array([1] * cz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * cz.ng), name = 'x_c')
-
-        # Compute the infinity norm of x_c
-        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
-
-        ## Step 3: Add constraints
-        rhs = cz.b                          # Right hand side of equality constraint equation
-        lhs = cz.A @ x_c                    # Left hand side of equality constraint equation
-        for left, right in zip(lhs, rhs):
-            model.addConstr(left == right)
-        
-        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
-
-        x_L = []
-        for g in range(cz.ng):
-            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
-            model.optimize()
-            x_L.append(x_c[g].X)
-
-        x_U = []
-        for g in range(cz.ng):
-            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
-            model.optimize()
-            x_U.append(x_c[g].X)
-
-        x_U = np.array(x_U); x_L = np.array(x_L)
-        x_m = (x_U + x_L)/2
-        x_r = (x_U - x_L)/2
-
-        x_m = x_m.reshape((cz.ng, 1))
-        x_r = x_r.reshape((cz.ng, 1))
-        diag = np.diag(x_r.flatten())
-
-        G = cz.G @ diag
-        C = cz.C + cz.G @ x_m
-        A = cz.A @ diag
-        b = cz.b - cz.A @ x_m
-
-        return ConstrainedZonotope(G, C, A, b)
-
-    def red_cz_red(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
-
-        # Remove immediately redundant constraints and generators
-        # cz = self.redundant_c_cz(cz)
-        # cz = self.redundant_g_cz(cz)
-
-        print(f'A = \n{cz.A}')
-
-        E, R = self.intervals_cz(cz)
-
-        ksi_l = self.infinum(E)
-        ksi_u = self.supremum(E)
-        rho_l = self.infinum(R)
-        rho_u = self.supremum(R)
-
-        print(f'Intervals:')
-        print(f'E = \n{E}')
-        print(f'R = \n{R}')
-
-
-        ksi_m = (ksi_u + ksi_l)/2
-        ksi_r = (ksi_u - ksi_l)/2
-
-        print(f'ksi_m = \n{ksi_m}')
-        print(f'ksi_r = \n{ksi_r}')
-
-        # Rescale R
-        for j, ng in enumerate(ksi_m):
-            R[j, 0] = (rho_l[j] - ksi_m[j]) / ksi_r[j]
-            R[j, 1] = (rho_u[j] - ksi_m[j]) / ksi_r[j]
-
-        diagonal = np.diag(ksi_r.flatten())
-
-        # Rescale cz
-        G = cz.G @ diagonal
-        C = cz.C + cz.G @ ksi_m
-        A = cz.A @ diagonal
-        b = cz.b - cz.A @ ksi_m
-        cz = ConstrainedZonotope(G, C, A, b)
-
-        # Find constraints who's removal 
-        r = np.maximum(np.zeros((R.shape)),  np.maximum(np.absolute(R), 2*np.ones((R.shape))) - np.ones((R.shape))  )
-
-        # Find indices of all zero values in r:
-        idx = np.where(r == 0)
-
-        print(f'r = \n{r}')
-        # print(f'idx = \n{idx}')
-
-        # TODO: Implement the removal
-
-    def rescale_R_cz(self, R):
-        pass
-
-
-
-
+        for i in range(N):
+            pass
 
     ############################################################################################################
     # Interval set methods
@@ -2819,6 +2459,119 @@ class ZonoOperations:
         return np.array([l1, r1])
 
 
+    ############################################################################################################
+    # Not used methods
+    
+    def rescale_hz(self, hz):
+        '''
+        Extends the notion of rescaling a constrained zonotope of work [1] for hybrid zonotopes
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('rescale_hz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (hz.ng, ), lb = np.array([-1] * hz.ng), ub = np.array([ 1] * hz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * hz.ng), name = 'x_c')
+        x_b = model.addMVar(shape = (hz.nb, ), lb = np.array([-1] * hz.nb), ub = np.array([ 1] * hz.nb), vtype = np.array([gp.GRB.INTEGER] * hz.nb), name = 'x_b')
+
+        # Enforce that x_b only takes values in {-1, 1}^hz.nb
+        for i in range(hz.nb):
+            model.addConstr(x_b[i] * x_b[i] == 1 )
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = hz.b                          # Right hand side of equality constraint equation
+        lhs = hz.Ac @ x_c + hz.Ab @ x_b     # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+
+        x_L = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            x_L.append(x_c[g].X)
+
+        x_U = []
+        for g in range(hz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            x_U.append(x_c[g].X)
+
+        x_U = np.array(x_U); x_L = np.array(x_L)
+        x_m = (x_U + x_L)/2
+        x_r = (x_U - x_L)/2
+
+        x_m = x_m.reshape((hz.ng, 1))
+        x_r = x_r.reshape((hz.ng, 1))
+        diag = np.diag(x_r.flatten())
+
+        Gc = hz.Gc @ diag
+        Gb = hz.Gb
+        c = hz.C + hz.Gc @ x_m
+        Ac = hz.Ac @ diag
+        Ab = hz.Ab
+        b = hz.b - hz.Ac @ x_m
+
+        return HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+    def rescale_cz(self, cz):
+        '''
+        This method rescales a constrained zonotope of work according to work [1]
+        '''
+        
+        ## Step 1: Create a model
+        model = gp.Model('rescale_cz')
+        model.Params.OutputFlag = 0         # Disable verbose output
+
+        ## Step 2: Create the variables
+        x_c = model.addMVar(shape = (cz.ng, ), lb = np.array([-1] * cz.ng), ub = np.array([1] * cz.ng), vtype = np.array([gp.GRB.CONTINUOUS] * cz.ng), name = 'x_c')
+
+        # Compute the infinity norm of x_c
+        norm_inf = model.addMVar(shape = 1, lb = 0, vtype = gp.GRB.CONTINUOUS, name = 'norm_inf')
+
+        ## Step 3: Add constraints
+        rhs = cz.b                          # Right hand side of equality constraint equation
+        lhs = cz.A @ x_c                    # Left hand side of equality constraint equation
+        for left, right in zip(lhs, rhs):
+            model.addConstr(left == right)
+        
+        model.addConstr(norm_inf == gp.norm(x_c, gp.GRB.INFINITY))  # Use the 'norm' General constraint helper function from the gurobi API
+
+        x_L = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MINIMIZE)
+            model.optimize()
+            x_L.append(x_c[g].X)
+
+        x_U = []
+        for g in range(cz.ng):
+            model.setObjective(x_c[g], gp.GRB.MAXIMIZE)
+            model.optimize()
+            x_U.append(x_c[g].X)
+
+        x_U = np.array(x_U); x_L = np.array(x_L)
+        x_m = (x_U + x_L)/2
+        x_r = (x_U - x_L)/2
+
+        x_m = x_m.reshape((cz.ng, 1))
+        x_r = x_r.reshape((cz.ng, 1))
+        diag = np.diag(x_r.flatten())
+
+        G = cz.G @ diag
+        C = cz.C + cz.G @ x_m
+        A = cz.A @ diag
+        b = cz.b - cz.A @ x_m
+
+        return ConstrainedZonotope(G, C, A, b)
+
+
+
 
 
 class TreeOperations:
@@ -2938,11 +2691,6 @@ class TreeOperations:
         # Step 6: Pass the new_tree1 and tree2 to the OR operation
         return self.OR(new_tree1, tree2)
     
-
-
-
-
-
 
 
 
