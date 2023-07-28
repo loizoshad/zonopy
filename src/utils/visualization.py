@@ -43,18 +43,30 @@ class ZonoVisualizer:
         self.fig, self.ax = plt.subplots()
         self.manager = plt.get_current_fig_manager()
         self.manager.window.attributes('-zoomed', True)
-        self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
-        self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
-        self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+
+        # TODO: TEMPORARY
+        # self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
+        # self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
+        # self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.1)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.1))    # Set ticks every 0.1 and 0.1
+        self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
+        self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
+
         self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
     def new_fig(self):
         self.fig, self.ax = plt.subplots()
         self.manager = plt.get_current_fig_manager()
         self.manager.window.attributes('-zoomed', True)
-        self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
-        self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
-        self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        
+        # TODO: TEMPORARY
+        # self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
+        # self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
+        # self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.1)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.1))    # Set ticks every 0.1 and 0.1
+        self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
+        self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
+
         self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
     def save(self, path: str) -> None:
@@ -117,7 +129,8 @@ class ZonoVisualizer:
 
             # Fill the interior of the Polytope
             zorder = 1 if zorder is None else zorder
-            color = [0.423, 0.556, 0.749, 1.0]
+            color = colors
+            # color = [0.423, 0.556, 0.749, 1.0]
 
             poly = Polygon(vertices, closed = True, fill = True, facecolor = (color[0], color[1], color[2]),  alpha = color[3], zorder = zorder)
             self.ax.add_patch(poly)
@@ -146,7 +159,8 @@ class ZonoVisualizer:
                 b = b.reshape(-1, 1)
                 cz.append(ConstrainedZonotope(hz.Gc, hz.C + hz.Gb @ b, hz.Ac, hz.b - hz.Ab @ b))
  
-            self.vis_cz(cz, colors = colors[i], zorder = zorder, show_edges = show_edges)
+            # self.vis_cz(cz, colors = colors[i], zorder = zorder, show_edges = show_edges)
+            self.vis_cz(cz, colors = colors, zorder = zorder, show_edges = show_edges)
             i += 1
 
     def vis_hz_brs(self, hz, brs_settings):

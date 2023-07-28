@@ -321,6 +321,11 @@ class StateSpaceSafe:
         
         return road_full
 
+
+
+
+
+
 class InputSpace:
     def __init__(self):
         self.zono_op = ZonoOperations()
@@ -421,7 +426,6 @@ class TargetSpace:
     def park_full(self):
         return self.zono_op.union_hz_hz(self.park_outer, self.park_inner)
     
-
 class InitialSpace:
     '''
     This class contains all the possible initial states for the non-ego vehicles

@@ -286,7 +286,7 @@ class ZonoOperations:
         See the work in [1] for details
         '''
         assert cz1.dim == cz2.dim, f'Both constrained zonotopes must have the same dimensionality, \
-                                    whereas cz1.dimension = {cz1.dimension} and cz2.dimension = {cz2.dimension}.'
+                                    whereas cz1.dimension = {cz1.dim} and cz2.dimension = {cz2.dim}.'
         
         C = cz1.C
         G = np.block([cz1.G, np.zeros((cz1.G.shape[0], cz2.G.shape[1]))]) # TODO
@@ -989,20 +989,17 @@ class ZonoOperations:
         '''
 
         bounds = np.array([
-            [-2.5, 2.5],        # Bounds in x-direction
-            [-2.5, 2.5]         # Bounds in y-direction
+            [-2.5, 2.0],        # Bounds in x-direction
+            [-1.45, 1.45]         # Bounds in y-direction
         ])
 
-        # Step 0: Define Parameters
+        # Define Parameters
         step_size = 0.05
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
         max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
         c_new   = np.zeros((cz.dim, 1))         # To store the new center
         G_new   = np.zeros((cz.dim, cz.dim))    # To store the new generators
-
-        # hypercube = self.oa_lifted_cz_to_hypercube(cz) # Compute the unconstrained hypercube
-        # hypercube.C = np.zeros((hypercube.dim, 1))
-
+        
         G_hyper = np.array([
             [2.5, 0.0],
             [0.0, 2.5]
@@ -1021,20 +1018,22 @@ class ZonoOperations:
 
             hypercube.G[d, d] = step_size
 
-            n_steps = int((bounds[d, 1] - bounds[d, 0]))
+            # n_steps = int((bounds[d, 1] - bounds[d, 0]))
             # Loop through the positive axis 
             val = bounds[d, 0]
-            # for n in range(-int(n_steps/2), int(n_steps/2)):
-            while True and val < n_steps/2:
+            # while True and val < n_steps/2:
+            while True and val < bounds[d, 1]:
                 val += step_size
                 hypercube.C[d, 0] = val
                 inters = self.intersection_cz_cz(cz, hypercube)
                 if ctr == 0:
                     if not self.is_empty_cz(inters):
-                        min_val[d, 0] = val# + step_size
+                        # min_val[d, 0] = val# + step_size
+                        min_val[d, 0] = val + step_size
                         ctr += 1
                 elif ctr == 1:
                     if self.is_empty_cz(inters):
+                        # max_val[d, 0] = val - 2*step_size
                         max_val[d, 0] = val - 2*step_size
                         break
 
@@ -1044,11 +1043,117 @@ class ZonoOperations:
 
             # Compute the new center as the middle point of each dimension
             c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2
-            # G_new[d, d] = (abs(max_val[d, 0]) - abs(min_val[d, 0])) / 2
             G_new[d, d] = (max_val[d, 0] - min_val[d, 0]) / 2
+
+        print(f'max_val = {max_val.T}')
+        print(f'min_val = {min_val.T}')
 
         return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))
 
+    def oa_cz_to_hypercube_tight_4d(self, cz: ConstrainedZonotope) -> ConstrainedZonotope:
+        '''
+        This method is specifically designed for constrained zonotopes that represent very simple sets, however with a lot of redundancy 
+
+        To set the theme, this is gonna be used for the FRS of moving obstacles in the environment.
+        More precisely, given that the obstacle is a moving car and we initially represent it as a simple rectangle, we then wanna compute
+        its forward reachable set and the RCI for each FRS. Then we wanna compute its complement to see which set of states are actually safe
+        for the ego vehicle. Since we only have at our disposal a formula for the computation of the complement of a constrained zonotope
+        but not for a hybrid zonotope, we wanna convert that hybrid zonotope into a constrained zonotope.
+
+        Generally, this is gonna result in an over-approximation. However, even that over-approximation contains a lot of redundant information
+        because all we do (at the moment) to generate that constrained zonotope is to simply use the method 'oa_hz_to_cz'.
+
+        Therefore, we need to take extra steps to reduce the complexity of that CZ. This method does exactly that, that is it takes care of that
+        second step of over-approximation to significantly reduce the complexity of the CZ. The goal will be to generate a hypercube over-approximation        
+        
+        In this version we:
+
+        Assume that the dimensionality of the space is 'n'
+        Define a hypercube of dimensionality 'n' as a zonotope where each side of the hypercube is equal to the max and min of the
+        constrained zonotope when all of its constraints are ignored. This applies for all dimensions apart from the one that will be examined at each time.
+        For the dimension that is examined just define its size to be the same with the step size (This is gonna be clearer later on)
+        
+        Then for each dimension we compute the intersection of the original cosntrained zonotope with the hypercube with its center shifted by a single step.
+
+        Then save the value of the center of the hypercube in that dimension
+
+        These values are the min and max values in each dimensions of the constrained zonotope.
+        
+        We can use these min/max values to define a tight hypercube over-approximation of the constrained zonotope
+        '''
+
+        bounds = np.array([
+            [-2.5, 2.1],        # Bounds on position in x-direction
+            [-1.5, 1.5],      # Bounds on position in y-direction
+            [-1.1, 1.1],        # Bounds on velocity in x-direction
+            [-1.1, 1.1]         # Bounds on velocity in y-direction 
+        ])
+
+        # Define Parameters
+        step_size = 0.01
+        min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
+        max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
+        c_new   = np.zeros((cz.dim, 1))         # To store the new center
+        G_new   = np.zeros((cz.dim, cz.dim))    # To store the new generators
+        
+        G_hyper = np.array([
+            [3.0, 0.0, 0.0, 0.0],
+            [0.0, 3.0, 0.0, 0.0],
+            [0.0, 0.0, 2.0, 0.0],
+            [0.0, 0.0, 0.0, 2.0]
+        ])
+        C_hyper = np.array([
+            [0.0],
+            [0.0],
+            [0.0],
+            [0.0]
+        ])
+
+        hypercube = ConstrainedZonotope(G_hyper, C_hyper, np.zeros((0, 4)), np.zeros((0, 1)))
+
+        for d in range(cz.dim):
+            # Find maximum vertical value of dimension d
+            ctr = 0
+            original_G = hypercube.G[d, d]
+
+            hypercube.G[d, d] = step_size
+
+            # n_steps = int((bounds[d, 1] - bounds[d, 0]))
+            # Loop through the positive axis 
+            val = bounds[d, 0]
+            # while True and val < n_steps/2:
+            while True and val < bounds[d, 1]:
+                val += step_size
+                hypercube.C[d, 0] = val
+                inters = self.intersection_cz_cz(cz, hypercube)
+                if ctr == 0:
+                    if not self.is_empty_cz(inters):
+                        # min_val[d, 0] = val# + step_size
+                        min_val[d, 0] = val + step_size
+                        ctr += 1
+                elif ctr == 1:
+                    if self.is_empty_cz(inters):
+                        # max_val[d, 0] = val - 2*step_size
+                        max_val[d, 0] = val - 2*step_size
+                        break
+
+            # Reset G, C
+            hypercube.G[d, d] = original_G
+            hypercube.C[d, 0] = 0
+
+            # Compute the new center as the middle point of each dimension
+            c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2
+            G_new[d, d] = (max_val[d, 0] - min_val[d, 0]) / 2
+
+        print(f'x :\t[{min_val[0, 0]:+0,.2f} -> {max_val[0, 0]:+0,.2f}]')
+        print(f'y :\t[{min_val[1, 0]:+0,.2f} -> {max_val[1, 0]:+0,.2f}]')
+        print(f'vx:\t[{min_val[2, 0]:+0,.2f} -> {max_val[2, 0]:+0,.2f}]')
+        print(f'vy:\t[{min_val[3, 0]:+0,.2f} -> {max_val[3, 0]:+0,.2f}]')
+
+        # print(f'max_val = {max_val.T}')
+        # print(f'min_val = {min_val.T}')
+
+        return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))
 
     ############################################################################################################
     # Hybrid Zonotope methods

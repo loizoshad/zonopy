@@ -19,8 +19,7 @@ class DynamicsModel:
         ])
         self.v_min = -self.v_max
 
-        a_max = 5.0 # v1
-        a_max = 1.0 # v2
+        a_max = 2.0 # v2
 
         self.a_max = np.array([
             a_max,    # x - acceleration
