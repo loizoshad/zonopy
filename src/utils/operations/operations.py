@@ -382,6 +382,11 @@ class ZonoOperations:
         See work in [1] for details
         '''
         
+        # TODO: EXTRA (TEMPORARY)
+        cz = self.redundant_g_cz(cz)
+        if cz.ng == 0:
+            return True
+
         ## Step 1: Create a model
         model = gp.Model('is_empty_cz')
         model.Params.OutputFlag = 0         # Disable verbose output
@@ -989,20 +994,20 @@ class ZonoOperations:
         '''
 
         bounds = np.array([
-            [-2.5, 2.0],        # Bounds in x-direction
-            [-1.45, 1.45]         # Bounds in y-direction
+            [-0.5, 2.1],        # Bounds in x-direction
+            [-1.5, 1.1]         # Bounds in y-direction
         ])
 
         # Define Parameters
-        step_size = 0.05
+        step_size = 0.025
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
         max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
         c_new   = np.zeros((cz.dim, 1))         # To store the new center
         G_new   = np.zeros((cz.dim, cz.dim))    # To store the new generators
         
         G_hyper = np.array([
-            [2.5, 0.0],
-            [0.0, 2.5]
+            [3.0, 0.0],
+            [0.0, 3.0]
         ])
         C_hyper = np.array([
             [0.0],
@@ -1045,8 +1050,8 @@ class ZonoOperations:
             c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2
             G_new[d, d] = (max_val[d, 0] - min_val[d, 0]) / 2
 
-        print(f'max_val = {max_val.T}')
-        print(f'min_val = {min_val.T}')
+        # print(f'max_val = {max_val.T}')
+        # print(f'min_val = {min_val.T}')
 
         return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))
 
@@ -1090,7 +1095,7 @@ class ZonoOperations:
         ])
 
         # Define Parameters
-        step_size = 0.01
+        step_size = 0.02
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
         max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
         c_new   = np.zeros((cz.dim, 1))         # To store the new center
@@ -1145,10 +1150,11 @@ class ZonoOperations:
             c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2
             G_new[d, d] = (max_val[d, 0] - min_val[d, 0]) / 2
 
-        print(f'x :\t[{min_val[0, 0]:+0,.2f} -> {max_val[0, 0]:+0,.2f}]')
-        print(f'y :\t[{min_val[1, 0]:+0,.2f} -> {max_val[1, 0]:+0,.2f}]')
-        print(f'vx:\t[{min_val[2, 0]:+0,.2f} -> {max_val[2, 0]:+0,.2f}]')
-        print(f'vy:\t[{min_val[3, 0]:+0,.2f} -> {max_val[3, 0]:+0,.2f}]')
+        # print(f'x :\t[{min_val[0, 0]:+0,.2f} -> {max_val[0, 0]:+0,.2f}]')
+        # print(f'y :\t[{min_val[1, 0]:+0,.2f} -> {max_val[1, 0]:+0,.2f}]')
+        # print(f'vx:\t[{min_val[2, 0]:+0,.2f} -> {max_val[2, 0]:+0,.2f}]')
+        # print(f'vy:\t[{min_val[3, 0]:+0,.2f} -> {max_val[3, 0]:+0,.2f}]')
+        # print(f'')
 
         # print(f'max_val = {max_val.T}')
         # print(f'min_val = {min_val.T}')

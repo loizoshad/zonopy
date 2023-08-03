@@ -44,13 +44,26 @@ class ZonoVisualizer:
         self.manager = plt.get_current_fig_manager()
         self.manager.window.attributes('-zoomed', True)
 
-        # TODO: TEMPORARY
         # self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
         # self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
         # self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
-        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.1)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.1))    # Set ticks every 0.1 and 0.1
+
+
+        # # TODO: TEMPORARY
+        # # Use this when you don't run the command plt.show()
+        # self.fig, self.ax = plt.subplots(figsize=(12.5, 6.5))
+
+        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
         self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
         self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
+        # Set the tick label color to white
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_color('white')
+        for tick in self.ax.yaxis.get_major_ticks():
+            tick.label.set_color('white')
+
+
+
 
         self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
@@ -58,14 +71,27 @@ class ZonoVisualizer:
         self.fig, self.ax = plt.subplots()
         self.manager = plt.get_current_fig_manager()
         self.manager.window.attributes('-zoomed', True)
-        
-        # TODO: TEMPORARY
+                
         # self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
         # self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
         # self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
-        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.1)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.1))    # Set ticks every 0.1 and 0.1
+
+
+        # # TODO: TEMPORARY
+        # # Use this when you don't run the command plt.show()
+        # self.fig, self.ax = plt.subplots(figsize=(12.5, 6.5))
+
+        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
         self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
         self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
+        # Set the tick label color to white
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_color('white')
+        for tick in self.ax.yaxis.get_major_ticks():
+            tick.label.set_color('white')                                # Reduce font size of tick numbers
+
+
+
 
         self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
 
@@ -163,6 +189,16 @@ class ZonoVisualizer:
             self.vis_cz(cz, colors = colors, zorder = zorder, show_edges = show_edges)
             i += 1
 
+
+    def vis_hz_4d(self, hzonotopes: list, colors = [(0.835, 0.909, 0.831, 0.5)], zorder = None, show_edges = False):
+        # Extract the position states of the hybrid zonotopes and visualize them
+        hz_vis = []
+        for hz in hzonotopes:
+            hz_vis.append(HybridZonotope(hz.Gc[0:2, :], hz.Gb[0:2, :], hz.C[0:2, :], hz.Ac, hz.Ab, hz.b))
+
+        self.vis_hz(hz_vis, colors = colors, show_edges = show_edges, zorder = zorder)
+
+
     def vis_hz_brs(self, hz, brs_settings):
         '''
         Visualizes a backward reachable set repsented by a hybrid zonotope
@@ -170,15 +206,47 @@ class ZonoVisualizer:
         brs_settings.is_already_contained_xy = np.zeros((brs_settings.is_already_contained_xy.shape))
         new_points = self.zono_op.is_inside_hz_space(hz, brs_settings)
             
-        marker_size = 0.5 * 39.36           # 0.2m in inches
+        # marker_size = 0.5 * 39.36           # 0.2m in inches
+        # marker_size = marker_size**2        # area of the marker
+        marker_size = 0.25 * 39.36           # 0.1m in inches
         marker_size = marker_size**2        # area of the marker
 
         for p in new_points:
             self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#6C8EBF', alpha = 1.0, zorder = 11,
                             edgecolors = 'face'
                             )
+            
+    def vis_hz_brs_v2(self, hz, brs_settings):
+        '''
+        Visualizes a backward reachable set repsented by a hybrid zonotope
+
+        This version is particularly useful when you already know which points can be contained in the BRS
+        '''            
+        marker_size = 0.25 * 39.36           # 0.1m in inches
+        marker_size = marker_size**2        # area of the marker
+
+        space = brs_settings.space['points']
+        flags = brs_settings.space['flags']
+
+        # Loop through all points in the space
+        for i, point in enumerate(space):
+            # Check if the point is already contained in the BRS
+            # if flags[i] == 1:
+            #     continue
+
+            # Check if the point is inside the BRS
+            p = np.array([ [point[0]], [point[1]] ])
+            if self.zono_op.is_inside_hz(hz, p):
+                flags[i] = 1
+                self.ax.scatter(p[0], p[1], marker = 's', s = marker_size, color = '#6C8EBF', alpha = 1.0, zorder = 11,
+                                edgecolors = 'face'
+                                )
 
 
+        # Update flags
+        brs_settings.space['flags'] = flags
+
+ 
 
 class TreeVisualizer:
     '''

@@ -18,7 +18,8 @@ class DynamicsModel:
             [self.vy_max]
         ])
         self.v_min = -self.v_max
-        self.dt = 0.1       # [s] Time step
+        # self.dt = 0.1       # [s] Time step
+        self.dt = 0.05          # [s] Time step (This time step size, follows the step size of the environment)
         self.W = self.get_disturbance()
         
         self.A = np.array([
