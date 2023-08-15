@@ -374,7 +374,7 @@ class Ego:
 
 
 
-class NonEgoParamBRSV2:
+class ParamBRSNonEgo1:
     def __init__(self):
 
         step_size = 0.05
@@ -413,7 +413,7 @@ class NonEgo:
         self.vx_max = 1.0    # TODO: Define based on dynamics model
         self.vy_max = 1.0    # TODO: Define based on dynamics model
         self.vis = visualizer       # Class for visualizing the results        
-        self.brs_settings = NonEgoParamBRSV2()
+        self.brs_settings = ParamBRSNonEgo1()
 
         self.dynamics = DynamicsModel()    # Class for dynamics of the system
         self.A = self.dynamics.A         # System dynamics

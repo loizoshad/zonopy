@@ -135,3 +135,128 @@ obstacle with the BRS of that time step will be removed only from the BRS Safe S
     us in that unsafe state. However, computing the 1-step BRS will give us all the states from which is possible to end up in that unsafe state.
 
     Therefore in order to compute only the states that will INEVITABLY take us in that unsafe state, we need to compute the 1-step BRS
+
+
+
+
+
+
+# Finding a way to compute all the states that will inevitably get you in the obstacle
+
+# Step 1:
+First compute the BRS from the obstacle
+
+# Step 2:
+Then compute BRS from the complement of the obstacle. This show all the states such that there exists at least one input that will
+get you into a safe state.
+
+Maybe we don't even need to compute the BRS from the obstacle, maybe we just need Step 2. More precisely we need to compute the 
+n-step BRS from the complement of the n-step FRS of the moving obstacle. Then we compute the intersection of that BRS
+with the BRS we previously computed starting from the parking spot (ego vehicle BRS).
+
+
+
+
+
+
+
+
+# Main Loop:
+
+# Step 1:
+    - Compute the n-step brs from the parking spot (brs_n)
+
+# Step 2: # Finding the static image of the obstacle
+    - Compute the n-step frs from the non-ego vehicle (frs_n)
+
+# Step 3: 
+    - Compute the commplement of frs_n compl(frs_n)
+    - Compute the intersection of compl(frs_n) and the entire ego-vehicle state space  inters(compl(frs_n), ss)
+    
+    - Compute the n-step brs from inters(compl(frs_n), ss) (safe_n)
+
+    - Compute the intersection of safe_n with safe_1_(n-1)  safe_full_n
+
+# end of loop
+
+- Compute the intersection of safe_1_full_n with the full brs (union of all brs_n) space
+
+
+
+
+
+## Test 1:
+ - Setup an example where we know that the full brs_n is the full space
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Improvements:
+
+    # Step 1:
+        - Reduce the dimensions of the state space to account for the fact that the ego-vehicle is not a point mass
+
+
+
+
+# Ideas - Results:
+    - Add multiple ego and non-ego vehicles
+    - Compute the full BRS space without any obstacles
+    - Remove the non-safe space due to static obstacles
+    - Remove the non-safe space due to dynamic obstacles
+    - Perform model checking for each ego vehicle
+        - Set membership for each ego vehicle
+        - If ego vehicle belongs in safe space then it is safe
+        - If ego vehicle belongs does not belong in safe space then it is not safe
+    - Manually move all ego and non-ego vehicles one step forward
+    - Repeat the full process
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. Describe in maximum 500 characters why you are interested in this particular Doctoral student-position and project?
+
+While working on my MSc thesis project I've been exposed to the use of formal methods for guaranteeing safety for autonomous systems under complicated tasks described using the temporal logic formalism. During that time I developed a great interest in the notion of formally providing guarantees for robotic and autonomous systems in general and I would like to extend my knowledge in this field. I believe that the PerCoSo project and in particular this Doctoral position will allow me to do so.
+
+
+2. Describe in maximum 500 characters what you think you can contribute with to the project and the research group.
+
+- Recent experience with formal methods for autonomous systems
+- Research oriented mindset developed during my previous academic research projects contributing to the publication of two papers
+- My Electrical Engineering background combined with my exposure to practical experience developed through work with the FoilCart project
+  gives me the necessarry skills to approach the problem from both a theoretical and practical perspective
+
+
+I believe that my previous academic research projects and my recent experience with formal methods for autonomous systems will allow me to contribute to the project and the research group. Furthermore, my Electrical Engineering background combined with my exposure to practical experience developed through work with the KTH FoilCart project gives me the necessarry skills to approach the problem from both a theoretical and practical perspective.
+
+
+
+My research background in formal methods for autonomous systems alongside previous academic experience equips me to provide valuable insights into the project. I plan to leverage my experience from the KTH FoilCart project to bridge theoretical concepts with practical implementation. With a blend of robotics expertise and hands-on problem-solving, I'm prepared to contribute to innovative solutions that integrate theory and real-world application.
+
+

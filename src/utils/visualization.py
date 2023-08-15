@@ -245,7 +245,6 @@ class ZonoVisualizer:
 
         # Update flags
         brs_settings.space['flags'] = flags
-
  
 
 class TreeVisualizer:
