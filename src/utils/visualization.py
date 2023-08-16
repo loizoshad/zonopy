@@ -53,19 +53,21 @@ class ZonoVisualizer:
         # # Use this when you don't run the command plt.show()
         # self.fig, self.ax = plt.subplots(figsize=(12.5, 6.5))
 
-        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
+        # self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
+        self.ax.set_xticks(np.arange(-1.65, 1.65, 0.1)); self.ax.set_yticks(np.arange(-1.05, 1.05, 0.1))    # Set ticks every 0.1 and 0.1
         self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
         self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
-        # Set the tick label color to white
-        for tick in self.ax.xaxis.get_major_ticks():
-            tick.label.set_color('white')
-        for tick in self.ax.yaxis.get_major_ticks():
-            tick.label.set_color('white')
+        # # Set the tick label color to white
+        # for tick in self.ax.xaxis.get_major_ticks():
+        #     tick.label.set_color('white')
+        # for tick in self.ax.yaxis.get_major_ticks():
+        #     tick.label.set_color('white')
 
 
 
 
-        self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
+        # self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
+        self.ax.set_xlim(-1.65, 1.65); self.ax.set_ylim(-1.05, 1.05)
 
     def new_fig(self):
         self.fig, self.ax = plt.subplots()
@@ -81,19 +83,21 @@ class ZonoVisualizer:
         # # Use this when you don't run the command plt.show()
         # self.fig, self.ax = plt.subplots(figsize=(12.5, 6.5))
 
-        self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
+        # self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
+        self.ax.set_xticks(np.arange(-1.65, 1.65, 0.1)); self.ax.set_yticks(np.arange(-1.05, 1.05, 0.1))    # Set ticks every 0.1 and 0.1
         self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
         self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
-        # Set the tick label color to white
-        for tick in self.ax.xaxis.get_major_ticks():
-            tick.label.set_color('white')
-        for tick in self.ax.yaxis.get_major_ticks():
-            tick.label.set_color('white')                                # Reduce font size of tick numbers
+        # # Set the tick label color to white
+        # for tick in self.ax.xaxis.get_major_ticks():
+        #     tick.label.set_color('white')
+        # for tick in self.ax.yaxis.get_major_ticks():
+        #     tick.label.set_color('white')                                # Reduce font size of tick numbers
 
 
 
 
-        self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
+        # self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)
+        self.ax.set_xlim(-1.65, 1.65); self.ax.set_ylim(-1.05, 1.05)
 
     def save(self, path: str) -> None:
         self.fig.savefig(path, dpi=300)
