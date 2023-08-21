@@ -124,7 +124,8 @@ class Ego:
     def vis_background(self):
         # Visualize background
         img = mpimg.imread('./images/park_env_dynamic.png')
-        self.vis.ax.imshow(img, extent=[-1.65, 1.65, -1.05, 1.05], zorder = 1)
+        # self.vis.ax.imshow(img, extent=[-1.65, 1.65, -1.05, 1.05], zorder = 1)
+        self.vis.ax.imshow(img, extent=[-1.5, 1.8, -1.05, 1.05], zorder = 1)
 
     def vis_safe_space(self, hz):
         '''

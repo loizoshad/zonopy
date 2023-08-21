@@ -1094,7 +1094,7 @@ class ZonoOperations:
 
 
         # Define Parameters
-        step_size = 0.02
+        step_size = 0.025
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
         max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
         c_new   = np.zeros((cz.dim, 1))         # To store the new center
@@ -2502,6 +2502,41 @@ class ZonoOperations:
         X_intersection_A_I_plus_B_U_plus_W = self.intersection_hz_hz(hz1 = X, hz2 = A_I_plus_B_U_plus_W)
         
         return X_intersection_A_I_plus_B_U_plus_W
+
+    def one_step_frs_hz_v2(self, X: HybridZonotope, I: HybridZonotope, A: np.ndarray) -> HybridZonotope:
+        '''
+        X: Augmented State Space (State Space + Input Space)
+        I: Starting set (Initial set)
+        A: Augmented System Matrix
+
+        FRS = X \cap (A @ I)
+
+        '''
+
+        A_I = self.lt_hz(A, I)
+        X_intersection_A_I = self.intersection_hz_hz(hz1 = X, hz2 = A_I)
+        
+        return X_intersection_A_I
+
+    def one_step_frs_hz_v3(self, X: HybridZonotope, U: HybridZonotope, I: HybridZonotope, A: np.ndarray, B: np.ndarray) -> HybridZonotope:
+        '''
+        X: State space (Obstacles are not included)
+        U: Input space
+        I: Starting set (Initial set)
+        A: System matrix
+        B: Input matrix
+
+        FRS = X \cap (A @ I + B @ U)
+
+        '''
+
+        A_I = self.lt_hz(A, I)                                              # A @ I
+        B_U = self.lt_hz(B, U)                                              # B @ U
+        A_I_plus_B_U = self.ms_hz_hz(hz1 = A_I, hz2 = B_U)                  # A @ I + B @ U
+
+        X_intersection_A_I_plus_B_U = self.intersection_hz_hz(hz1 = X, hz2 = A_I_plus_B_U)
+
+        return X_intersection_A_I_plus_B_U
 
     ##### TODO:
 

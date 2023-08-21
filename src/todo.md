@@ -232,6 +232,87 @@ with the BRS we previously computed starting from the parking spot (ego vehicle 
 
 
 
+# Code structure
+    - Environment:
+        - Static Obstacles
+        - Targets
+            - Safety
+            - Reach Parking Spot
+            - Exit Space
+        - Cars
+            - Car 1
+                - State Space
+                - Dynamics
+                - Initial State
+            - Car 2
+                - State Space
+                - Dynamics
+                - Initial State
+            - Car 3
+                - State Space
+                - Dynamics
+                - Initial State
+            ...
+
+
+# Todo:
+    - Compute the full BRS for the new state space
+        - Use this to ensure that the full state space is inside the BRS (39 steps in total are needed to cover the entire space)
+
+    - Compute the FRS for each car
+        - Think of how many steps you need to compute the FRS for
+            - One idea is to keep record of how many steps you needed to compute the BRS to cover the entire state space
+                - However, that might be way too expensive
+                - This metehod however, is not going to give guarantees cause for the FRS we need over-approximation and this will be under-approximation
+            
+
+            - Compute FRS until all agents safety status is determined
+                - Status 1: Agent can safely exit the parking lot
+                - Status 2: Agent is not safe
+                - I am not sure if this method can be rigorous or not
+
+            - Think of assumptions you can make on the dynamic obstacles that would allow you to set a limit in the number of FRS steps and still compute the FRS and provide guarantees rigorously
+                - One idea is to see if you can prove that if you have an 'n' number of cars and 'm' number of roads or intersections, there is always a way for the cars to be safe.
+                    - However, I do not like this idea.
+                
+
+
+            - Actually, it should converge, cause there are alternative paths for the ego car to follow. Just take a turn prior to that.
+                - This is gonna give true guarantees.
+                - You need to mention that as long as the influence of the dynamic obstacle converges
+                - Now you just need to experimentally determine the number of steps to do so.
+                - Alternatively, maybe there is some smart and computationally efficient way to check for the convergence.
+                    - Maybe over-approximate as CZ, compute its comeplement and check if its intersection with... is empty or not
+
+                    - If intersection between the complement of FRS_{t-1} and FRS_t is empty, then the influence of the dynamic obstacle has converged
+
+
+                - How can I prove that the example I am now working on will indeed converge?
+
+
+
+
+
+
+    - For each intersection define a dictionary containing the space right before it, and the state space of interest to it.
+        - State Space: Hybrid Zonotope
+        - coming: integer
+
+    - Each car object will have a variable that will keep track of the intersection it is currently in
+        - integer
+
+    - For each car object its method defining its state space will simply read the integer value of the road it is in right now and return the state space from the equivalent intersection dictionary.
+        - For now keep this state space separate from the full state space method.
+
+
+    - Define a class containing definitions for all parts of the road and all intersections
+        - This can be used to automatically detect in which region the center of each car is in so that we can assign the appropriate 'coming' number to it
+
+
+
+
+
+
 
 
 
