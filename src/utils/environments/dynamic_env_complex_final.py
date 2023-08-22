@@ -1,11 +1,13 @@
 import numpy as np
 import matplotlib.image as mpimg
 import math
+import time
 
 from utils.sets.hybrid_zonotopes import HybridZonotope
 from utils.operations.operations import ZonoOperations
 
-from utils.cars import Car1, DynamicsModel, DynamicsModel4D
+from utils.cars import Car1, Car2
+from utils.cars import DynamicsModel, DynamicsModel4D
 from utils.targets import Targets
 
 
@@ -14,6 +16,7 @@ class Environment:
     def __init__(self, vis) -> None:
         # Step 0: Initialize parameters and objects
         car1 = Car1()
+        car2 = Car2()
         self.vis = vis
         self.zono_op = ZonoOperations()
         self.dynamics = DynamicsModel()     # 2D dynamics model # TODO: Create a new file to add the definition of the dynamics model
@@ -31,7 +34,7 @@ class Environment:
         self.brs = self.target                  # Initialize brs as the target
 
         # Step 4: Initialize cars (All cars have the same dynamics)
-        self.cars = [car1]
+        self.cars = [car1, car2]
         
         # Step 5: Initialize visualization
         self.init_vis_space()
@@ -61,26 +64,32 @@ class Environment:
         
         # Init 2D list of obstacles, where each sublist contains all the obstacles introduced by each car
         obs = [[] for i in range(len(self.cars))]
-
         safe_space = self.static_brs
-        # Step 1: Compute the non-safe space introduced by each car
+
+        start_time = time.perf_counter()
         for i, car in enumerate(self.cars):
-            print(f'Computing obs for car {i}')
+            print(f'******************************************************************')
+            print(f'Car {i}')
             obs[i] = self.compute_obs(car, N)
+        end_time = time.perf_counter()
+        print(f'time taken to compute obs = {end_time - start_time}')
 
+        # return self.zono_op.cz_to_hz(obs[0][N-1])
 
-        for c in range(len(self.cars)):
+        for c_i, car in enumerate(self.cars):   # range(len(self.cars))
             # Loop through the obs list for each car
-            for i in range(len(obs[c])):
-                obs_compl = self.zono_op.complement_cz_to_hz(obs[c][i])
+            for i in range(len(obs[c_i])):
+                
+                # Check if the obstacle can be ignored
+                if obs[c_i][i] is not None:
+                    obs_compl = self.zono_op.complement_cz_to_hz(obs[c_i][i])
+                    # Compute the 'i'-step BRS from the obstacle complement
+                    for j in range(i):
+                        obs_compl = self.zono_op.one_step_brs_hz(X = self.state_space, T = obs_compl, D = np.block([self.dynamics.A, self.dynamics.B]))
 
-                print(f'obs_compl: ng = {obs_compl.ng}, nc = {obs_compl.nc}, nb = {obs_compl.nb}')
-
-                # Compute the 'i'-step BRS from the obstacle complement
-                for j in range(i):
-                    obs_compl = self.zono_op.one_step_brs_hz(X = self.state_space, T = obs_compl, D = np.block([self.dynamics.A, self.dynamics.B]))
-
-                safe_space = self.zono_op.intersection_hz_hz(safe_space, obs_compl)
+                    safe_space = self.zono_op.intersection_hz_hz(safe_space, obs_compl)
+                
+            safe_space = self.zono_op.union_hz_hz_v2(safe_space, car.current_road)
 
         return safe_space
 
@@ -93,24 +102,47 @@ class Environment:
 
         obs = car.initial_space4D
         obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
-        obs_pos = self.zono_op.oa_hz_to_cz(obs_pos)
-        obs_pos = self.zono_op.oa_cz_to_hypercube_tight_2d(obs_pos, bounds = car.bounds)
-        obs_pos = self.zono_op.redundant_g_cz(obs_pos)
-        full_obs = [obs_pos]
-
-        for i in range(N):
-            # print(f'Computing obs for car {i}, step {i}')
-            obs = self.zono_op.one_step_frs_hz_v3(X = car.state_spaceFRS, U = car.input_space, I = obs, A = car.dynamics.A, B = car.dynamics.B)
-            obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
+        
+        # Check if the obstacle is inside the conflict zone of its state space of interest
+        inters = self.zono_op.intersection_hz_hz(obs_pos, car.conflict_zone)
+        if self.zono_op.is_empty_hz(inters):
+            print(f'--intersection is empty for time step {0}')
+            full_obs = [None]
+        else:
+            print(f'--intersection is not empty for time step {0}')
             obs_pos = self.zono_op.oa_hz_to_cz(obs_pos)
             obs_pos = self.zono_op.oa_cz_to_hypercube_tight_2d(obs_pos, bounds = car.bounds)
             obs_pos = self.zono_op.redundant_g_cz(obs_pos)
+            full_obs = [obs_pos]
 
-            full_obs.append(obs_pos)
+        for i in range(N):
+            # print(f'******************************************************************')
+            obs = self.zono_op.one_step_frs_hz_v3(X = car.state_spaceFRS, U = car.input_space, I = obs, A = car.dynamics.A, B = car.dynamics.B)
+            obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
 
-        return full_obs
+            inters = self.zono_op.intersection_hz_hz(obs_pos, car.conflict_zone)
+            if self.zono_op.is_empty_hz(inters):
+                print(f'intersection is empty for time step {i}')
+                full_obs.append(None)
+            else:
+                print(f'intersection is not empty for time step {i}')
+                obs_pos = self.zono_op.oa_hz_to_cz(obs_pos)
+                obs_pos = self.zono_op.oa_cz_to_hypercube_tight_2d(obs_pos, bounds = car.bounds)
+                obs_pos = self.zono_op.redundant_g_cz(obs_pos)
+                full_obs.append(obs_pos)
+    
+        return full_obs    
+    
 
+    def set_bounds(self, car, obs):
+        min_val = np.zeros((obs.dim, 1))
+        max_val = np.zeros((obs.dim, 1))
 
+        for n in range(obs.dim):
+            min_val[n, 0] = obs.C[n, 0] - abs(obs.G[n, n]) - 2*self.step_size
+            max_val[n, 0] = obs.C[n, 0] + abs(obs.G[n, n]) + 2*self.step_size
+
+        car.bounds = np.block([ [min_val, max_val] ])
 
 
 
@@ -166,7 +198,20 @@ class Environment:
             self.vis_space['points'].append([x, y])
             self.vis_space['flags'].append(0)
 
-        # print(f'Number of points in the space: {len(self.vis_space["points"])}')
+        print(f'Number of points in the space: {len(self.vis_space["points"])}')
+
+        # # Horizontal middle lane : # TODO: TEMP
+        # for x in np.arange(-1.4 + self.step_size/2, 1.9 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.15 + self.step_size/2, 0.25 - self.step_size/2, self.step_size):            
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)
+
+        # # Vertical right lane : # TODO: TEMP
+        # for x in np.arange(-0.6 + self.step_size/2, -0.2 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.95 + self.step_size/2, 0.95 - self.step_size/2, self.step_size):
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)
+
 
     def vis_safe_space(self, safe_space):
         '''

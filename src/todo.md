@@ -309,7 +309,12 @@ with the BRS we previously computed starting from the parking spot (ego vehicle 
         - This can be used to automatically detect in which region the center of each car is in so that we can assign the appropriate 'coming' number to it
 
 
-
+    - IMPORTANT:
+        - Define the conflicting areas in the map (road intersections).
+        - Compute the intersection between the FRS and the road intersection area (elarge the area).
+            - If the intersection is empty then there are no unsafe areas imposed by that dynamic obstacle at that time step in the future.
+            - If the intersection is not empty then:
+                - Overapproximated as a hypercube constrained zonotope their intersection and continue with the normal process.
 
 
 

@@ -462,8 +462,8 @@ class ZonoOperations:
         ng_nncngng_zero = np.zeros((ng, n + nc + 2*ng))
 
 
-        dm = 50 # TODO
-        lm = 50 # TODO
+        dm = 1000 # TODO
+        lm = 1000 # TODO
         m = dm + 1
 
 
@@ -1092,9 +1092,8 @@ class ZonoOperations:
                 [-1.5, 1.5]         # Bounds on position in y-direction
             ])
 
-
         # Define Parameters
-        step_size = 0.025
+        step_size = 0.05
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
         max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
         c_new   = np.zeros((cz.dim, 1))         # To store the new center
@@ -1141,7 +1140,7 @@ class ZonoOperations:
             c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2
             G_new[d, d] = (max_val[d, 0] - min_val[d, 0]) / 2
 
-        return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))
+        return ConstrainedZonotope(G_new, c_new, np.zeros((0, G_new.shape[1])), np.zeros((0, 1)))  
 
     def oa_cz_to_hypercube_tight_4d(self, cz: ConstrainedZonotope, bounds = None) -> ConstrainedZonotope:
         '''
@@ -2474,9 +2473,9 @@ class ZonoOperations:
         #     return True
         ## Step 5: Check if the solution is feasible
         if model.status == gp.GRB.OPTIMAL:
-            for i in range(hz.ng):      # Check if each value of the solution are less than '1'
-                if abs(x_c[i].X) > 1:
-                    return True
+            # for i in range(hz.ng):      # Check if each value of the solution are less than '1'
+                # if abs(x_c[i].X) > 1:
+                #     return True
             return False
         else:
             return True
