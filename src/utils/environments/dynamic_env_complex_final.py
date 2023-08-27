@@ -6,7 +6,7 @@ import time
 from utils.sets.hybrid_zonotopes import HybridZonotope
 from utils.operations.operations import ZonoOperations
 
-from utils.cars import Car1, Car2
+from utils.cars import Car1, Car2, Car3, Car4, Car5
 from utils.cars import DynamicsModel, DynamicsModel4D
 from utils.targets import Targets
 
@@ -17,6 +17,9 @@ class Environment:
         # Step 0: Initialize parameters and objects
         car1 = Car1()
         car2 = Car2()
+        car3 = Car3()
+        car4 = Car4()
+        car5 = Car5()
         self.vis = vis
         self.zono_op = ZonoOperations()
         self.dynamics = DynamicsModel()     # 2D dynamics model # TODO: Create a new file to add the definition of the dynamics model
@@ -34,7 +37,8 @@ class Environment:
         self.brs = self.target                  # Initialize brs as the target
 
         # Step 4: Initialize cars (All cars have the same dynamics)
-        self.cars = [car1, car2]
+        self.cars = [car1, car2, car3, car4, car5]
+        # self.cars = [car5]
         
         # Step 5: Initialize visualization
         self.init_vis_space()
@@ -50,7 +54,7 @@ class Environment:
 
         return self.brs
 
-    def compute_full_safe_space(self, N):
+    def compute_full_safe_space_v0(self, N):
         '''
         Computes the safe after taking into account dynamic obstacles
         
@@ -64,17 +68,19 @@ class Environment:
         
         # Init 2D list of obstacles, where each sublist contains all the obstacles introduced by each car
         obs = [[] for i in range(len(self.cars))]
-        safe_space = self.static_brs
+        safe_space = [self.static_brs for i in range(len(self.cars))]
 
         start_time = time.perf_counter()
         for i, car in enumerate(self.cars):
             print(f'******************************************************************')
-            print(f'Car {i}')
-            obs[i] = self.compute_obs(car, N)
+            print(f'Car {i + 1} :')
+            print(f'******************************************************************')
+            obs[i] = self.compute_obs_v0(car, N)
         end_time = time.perf_counter()
         print(f'time taken to compute obs = {end_time - start_time}')
-
-        # return self.zono_op.cz_to_hz(obs[0][N-1])
+        
+        return self.zono_op.cz_to_hz(obs[0][N])
+        # return obs[0][N]
 
         for c_i, car in enumerate(self.cars):   # range(len(self.cars))
             # Loop through the obs list for each car
@@ -87,13 +93,20 @@ class Environment:
                     for j in range(i):
                         obs_compl = self.zono_op.one_step_brs_hz(X = self.state_space, T = obs_compl, D = np.block([self.dynamics.A, self.dynamics.B]))
 
-                    safe_space = self.zono_op.intersection_hz_hz(safe_space, obs_compl)
+                    safe_space[c_i] = self.zono_op.intersection_hz_hz(safe_space[c_i], obs_compl)
                 
-            safe_space = self.zono_op.union_hz_hz_v2(safe_space, car.current_road)
+            safe_space[c_i] = self.zono_op.union_hz_hz_v2(safe_space[c_i], car.current_road)
+            # print(f'safe_space car {c_i + 1}: ng = {safe_space.ng}, nc = {safe_space.nc}, nb = {safe_space.nb}')            
 
-        return safe_space
+        # Compute the intersection of safe space for all cars
+        full_safe_space = safe_space[0]
+        for c_i in range(1, len(self.cars)):
+            full_safe_space = self.zono_op.intersection_hz_hz(full_safe_space, safe_space[c_i])
 
-    def compute_obs(self, car, N):
+
+        return full_safe_space
+
+    def compute_obs_v0(self, car, N):
         '''
         This method computes the non-safe space introduced due to the input moving obstacles 'cars'
 
@@ -106,17 +119,14 @@ class Environment:
         # Check if the obstacle is inside the conflict zone of its state space of interest
         inters = self.zono_op.intersection_hz_hz(obs_pos, car.conflict_zone)
         if self.zono_op.is_empty_hz(inters):
-            print(f'--intersection is empty for time step {0}')
             full_obs = [None]
         else:
-            print(f'--intersection is not empty for time step {0}')
             obs_pos = self.zono_op.oa_hz_to_cz(obs_pos)
             obs_pos = self.zono_op.oa_cz_to_hypercube_tight_2d(obs_pos, bounds = car.bounds)
             obs_pos = self.zono_op.redundant_g_cz(obs_pos)
             full_obs = [obs_pos]
 
         for i in range(N):
-            # print(f'******************************************************************')
             obs = self.zono_op.one_step_frs_hz_v3(X = car.state_spaceFRS, U = car.input_space, I = obs, A = car.dynamics.A, B = car.dynamics.B)
             obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
 
@@ -133,6 +143,90 @@ class Environment:
     
         return full_obs    
     
+    def compute_full_safe_space(self, N):
+        '''
+        Computes the safe after taking into account dynamic obstacles
+        
+        # Step 1: Compute 'obs'
+
+        obs is a list containing the non-safe space introduced due to each vehicle.
+        
+        # TODO: Replace N with a check if the safe space has converged
+
+        '''
+        
+        # Init 2D list of obstacles, where each sublist contains all the obstacles introduced by each car
+        obs = [[] for i in range(len(self.cars))]
+        safe_space = [self.static_brs for i in range(len(self.cars))]
+
+        for i, car in enumerate(self.cars):
+            print(f'******************************************************************')
+            print(f'Car {i + 1} :')
+            print(f'******************************************************************')
+            obs = car.initial_space4D
+
+            # # TESTING
+            # obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
+            # return obs_pos
+
+            for n in range(N):
+                print(f'Time step: {n + 1}')
+                obs = self.zono_op.one_step_frs_hz_v3(X = car.state_spaceFRS, U = car.input_space, I = obs, A = car.dynamics.A, B = car.dynamics.B)
+                obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
+                obs_pos_h = obs_pos
+
+                obstacles = self.conflict_zone_intersections(car, obs_pos)
+
+                for obs_i, obstacle in enumerate(obstacles):
+                    if obstacle is not None:
+                        print(f'conflict_zone[{obs_i}] is NOT empty for time step {n + 1}')
+                        obs_pos = self.zono_op.oa_hz_to_cz(obstacle)
+                        bounds = self.compute_conflict_zone_bounds(car, obs_i)
+                        obs_pos = self.zono_op.oa_cz_to_hypercube_tight_2d(obs_pos, bounds = bounds)
+                        obs_pos = self.zono_op.redundant_g_cz(obs_pos)
+                    
+                        # TODO: Implement: safe space update
+                        obs_compl = self.zono_op.complement_cz_to_hz(obs_pos)
+                        for n_i in range(n):
+                            obs_compl = self.zono_op.one_step_brs_hz(X = self.state_space, T = obs_compl, D = np.block([self.dynamics.A, self.dynamics.B]))
+
+                        safe_space[i] = self.zono_op.intersection_hz_hz(safe_space[i], obs_compl)
+                    else:
+                        print(f'conflict_zone[{obs_i}] is empty for time step {n + 1}')
+  
+            safe_space[i] = self.zono_op.union_hz_hz_v2(safe_space[i], car.current_road)
+
+        # # TESTING
+        # return obs_pos_h
+
+        full_safe_space = safe_space[0]
+        for c_i in range(1, len(self.cars)):
+            full_safe_space = self.zono_op.intersection_hz_hz(full_safe_space, safe_space[c_i])
+
+        return full_safe_space
+
+    def conflict_zone_intersections(self, car, obs):
+        obstacles = []
+        for cz in car.conflict_zone:
+            inters = self.zono_op.intersection_hz_hz(obs, cz)
+            if self.zono_op.is_empty_hz(inters):
+                obstacles.append(None)
+            else:
+                obstacles.append(inters)
+
+        return obstacles
+
+    def compute_conflict_zone_bounds(self, car, i):
+        cx = car.conflict_zone[i].C[0, 0]; gx = car.conflict_zone[i].Gc[0, 0]
+        cy = car.conflict_zone[i].C[1, 0]; gy = car.conflict_zone[i].Gc[1, 1]
+
+        min_x = cx - abs(gx) - 2*self.step_size
+        max_x = cx + abs(gx) + 2*self.step_size
+        min_y = cy - abs(gy) - 2*self.step_size
+        max_y = cy + abs(gy) + 2*self.step_size
+
+        return np.array([ [min_x, max_x], [min_y, max_y] ])
+
 
     def set_bounds(self, car, obs):
         min_val = np.zeros((obs.dim, 1))
@@ -198,19 +292,67 @@ class Environment:
             self.vis_space['points'].append([x, y])
             self.vis_space['flags'].append(0)
 
-        print(f'Number of points in the space: {len(self.vis_space["points"])}')
+        # print(f'Number of points in the space: {len(self.vis_space["points"])}')
 
+        # # TODO: TEMP FOR CAR1
+        # # Horizontal middle lane : # TODO: TEMP
+        # for x in np.arange(-1.7 + self.step_size/2, 0.3 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.35 + self.step_size/2, 0.35 - self.step_size/2, self.step_size):            
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)
+        # # Vertical right lane : # TODO: TEMP
+        # for x in np.arange(-1.7 + self.step_size/2, -1.0 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.55 + self.step_size/2, 1.05 - self.step_size/2, self.step_size):
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)
+
+        # # TODO: TEMP FOR CAR2
         # # Horizontal middle lane : # TODO: TEMP
         # for x in np.arange(-1.4 + self.step_size/2, 1.9 - self.step_size/2, self.step_size):
         #     for y in np.arange(-0.15 + self.step_size/2, 0.25 - self.step_size/2, self.step_size):            
         #         self.vis_space['points'].append([x, y])
         #         self.vis_space['flags'].append(0)
-
         # # Vertical right lane : # TODO: TEMP
         # for x in np.arange(-0.6 + self.step_size/2, -0.2 - self.step_size/2, self.step_size):
         #     for y in np.arange(-0.95 + self.step_size/2, 0.95 - self.step_size/2, self.step_size):
         #         self.vis_space['points'].append([x, y])
         #         self.vis_space['flags'].append(0)
+
+        # # TODO: TEMP FOR CAR3
+        # # Horizontal middle lane : # TODO: TEMP
+        # for x in np.arange(-0.9 + self.step_size/2, 0.4 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.15 + self.step_size/2, 0.25 - self.step_size/2, self.step_size):            
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)
+        # # Vertical right lane : # TODO: TEMP
+        # for x in np.arange(-0.6 + self.step_size/2, 0.2 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.95 + self.step_size/2, 1.05 - self.step_size/2, self.step_size):
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)        
+
+        # # TODO: TEMP FOR CAR4
+        # # Horizontal middle lane : # TODO: TEMP
+        # for x in np.arange(0.1 + self.step_size/2, 1.7 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.35 + self.step_size/2, 0.35 - self.step_size/2, self.step_size):            
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)
+        # # Vertical right lane : # TODO: TEMP
+        # for x in np.arange(0.1 + self.step_size/2, 0.8 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.55 + self.step_size/2, 1.05 - self.step_size/2, self.step_size):
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)  
+        
+        # # TODO: TEMP FOR CAR5
+        # # Horizontal middle lane : # TODO: TEMP
+        # for x in np.arange(0.6 + self.step_size/2, 1.4 - self.step_size/2, self.step_size):
+        #     for y in np.arange(0.55 + self.step_size/2, 1.25 - self.step_size/2, self.step_size):            
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)
+        # # Vertical right lane : # TODO: TEMP
+        # for x in np.arange(1.0 + self.step_size/2, 2.0 - self.step_size/2, self.step_size):
+        #     for y in np.arange(-0.75 + self.step_size/2, 1.25 - self.step_size/2, self.step_size):
+        #         self.vis_space['points'].append([x, y])
+        #         self.vis_space['flags'].append(0)          
 
 
     def vis_safe_space(self, safe_space):

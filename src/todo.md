@@ -316,10 +316,24 @@ with the BRS we previously computed starting from the parking spot (ego vehicle 
             - If the intersection is not empty then:
                 - Overapproximated as a hypercube constrained zonotope their intersection and continue with the normal process.
 
+    - NEW IDEA:
+        - Only compute the unsafe space induced by cars that are in the 'coming' region of the dangerous intersections.
+
+    - FIX:
+        - Fix the issue with 'current_road' for intersections where cars can come from multiple roads
 
 
 
+    - Red roads: Indicate all the 'current_roads' of importance that a car could be in at time zero.
+    - Red intersection: Closest intersection (in the FRS set)
+    - Green intersection: Intersection that might affected by the FRS but later on.
+    - Each read 'current_road' should also include the red intersection
+    - When initializing the FRS state space, conflict space, ..., for the cars run a loop checking if the center of the car Hybrid zonotope is inside the 'current road' of each intersection
 
+
+- TODO : 27/08/2023
+    - Change all intersection methods to create a list of all conflict areas.
+    - Add different bounds for each conflict zone
 
 
 

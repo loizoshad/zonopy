@@ -462,8 +462,8 @@ class ZonoOperations:
         ng_nncngng_zero = np.zeros((ng, n + nc + 2*ng))
 
 
-        dm = 1000 # TODO
-        lm = 1000 # TODO
+        dm = 3000 # TODO
+        lm = 3000 # TODO
         m = dm + 1
 
 

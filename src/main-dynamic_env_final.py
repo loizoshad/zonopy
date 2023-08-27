@@ -6,12 +6,13 @@ Therefore, we can precompute the full BRS offline and optimize the HZ representa
 
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
 from utils.environments.dynamic_env_complex_final import Environment
 
-from utils.cars import Car1, Car2
+from utils.cars import Car1, Car2, Car3, Car4, Car5
 from utils.sets.hybrid_zonotopes import HybridZonotope
 
 
@@ -28,7 +29,7 @@ zono_op = ZonoOperations()
 vis = ZonoVisualizer(zono_op = zono_op)    # Object for visualization
 env = Environment(vis)                              # Environment object
 
-N = 10
+N = 5
 print(f'N = {N}')
 
 ################################################################################################
@@ -39,24 +40,13 @@ brs = env.static_brs
 ###############################################################################################
 # Step 1: Remove The Non-Safe Space Due To Dynamic Obstacles
 ###############################################################################################
+start_time = time.perf_counter()
 full_safe_space = env.compute_full_safe_space(N)
+end_time = time.perf_counter()
+print(f'******************************************************************')
 print(f'full_safe_space: ng = {full_safe_space.ng}, nc = {full_safe_space.nc}, nb = {full_safe_space.nb}')
-
-# car = Car1()
-# obs = car.initial_space4D
-# obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
-
-# for i in range(N):
-#     # print(f'******************************************************************')
-#     print(f'Computing obs for step {i}')
-#     obs = zono_op.one_step_frs_hz_v3(X = car.state_spaceFRS, U = car.input_space, I = obs, A = car.dynamics.A, B = car.dynamics.B)
-#     obs_pos = HybridZonotope(obs.Gc[0:2, :],  obs.Gb[0:2, :], obs.C[0:2, :], obs.Ac, obs.Ab, obs.b)
-    
-#     obs_pos = zono_op.oa_hz_to_cz(obs_pos)
-#     # obs_pos = zono_op.oa_cz_to_hypercube_tight_2d(obs_pos, bounds = car.bounds)
-#     obs_pos = zono_op.redundant_g_cz(obs_pos)
-#     obs_pos = zono_op.cz_to_hz(obs_pos)
-
+print(f'Safe Space Computation Time = {end_time - start_time}')
+print(f'******************************************************************')
 
 ###############################################################################################
 # Step 2: Perform Model Checking For All Cars In The Environment
@@ -66,18 +56,22 @@ print(f'full_safe_space: ng = {full_safe_space.ng}, nc = {full_safe_space.nc}, n
 ###############################################################################################
 # Step 3: Visualize Results 
 ###############################################################################################
-# env.vis_env()
-# env.vis.vis_hz_4d([env.car2.state_spaceFRS], colors = obs_color, show_edges=True, zorder=11)
+env.vis_env()
+# env.vis.vis_hz_4d([env.cars[0].current_road], colors = obs_color, show_edges=True, zorder=11)
+# env.vis.vis_hz_4d(env.cars[0].conflict_zone, colors = obs_color, show_edges=True, zorder=11)
+
 
 env.vis_safe_space(full_safe_space)
-# env.vis_safe_space(obs_pos)
-
+env.vis.ax.set_title(f'N = {N}, ng = {full_safe_space.ng}, nc = {full_safe_space.nc}, nb = {full_safe_space.nb}, comp_time = {(end_time - start_time):4f} [s]', fontsize=16)
 plt.show()
+
 name = f'safe_space_{N}'
-env.vis.fig.savefig(f'./results/dynamic_env_final/safe_space_car_1_2/{name}.pdf', dpi=300)
+env.vis.fig.savefig(f'./results/dynamic_env_final_v2/safe_space_car_full/{name}.pdf', dpi=300)
+
 # name = f'obs_{N}'
-# env.vis.fig.savefig(f'./results/dynamic_env_final/obs_car3/{name}.pdf', dpi=300)
-plt.close(env.vis.fig); env.vis.new_fig()
+# env.vis.fig.savefig(f'./results/dynamic_env_final_v2/obs_car_5/{name}.pdf', dpi=300)
+
+
 
 
 
