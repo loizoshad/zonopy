@@ -38,7 +38,6 @@ class Environment:
 
         # Step 4: Initialize cars (All cars have the same dynamics)
         self.cars = [car1, car2, car3, car4, car5]
-        # self.cars = [car5]
         
         # Step 5: Initialize visualization
         self.init_vis_space()

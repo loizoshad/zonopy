@@ -29,7 +29,7 @@ zono_op = ZonoOperations()
 vis = ZonoVisualizer(zono_op = zono_op)    # Object for visualization
 env = Environment(vis)                              # Environment object
 
-N = 5
+N = 21
 print(f'N = {N}')
 
 ################################################################################################
@@ -66,10 +66,10 @@ env.vis.ax.set_title(f'N = {N}, ng = {full_safe_space.ng}, nc = {full_safe_space
 plt.show()
 
 name = f'safe_space_{N}'
-env.vis.fig.savefig(f'./results/dynamic_env_final_v2/safe_space_car_full/{name}.pdf', dpi=300)
+env.vis.fig.savefig(f'./results/dynamic_env_final_v1/safe_space_car_full/{name}.pdf', dpi=300)
 
 # name = f'obs_{N}'
-# env.vis.fig.savefig(f'./results/dynamic_env_final_v2/obs_car_5/{name}.pdf', dpi=300)
+# env.vis.fig.savefig(f'./results/dynamic_env_final_v1/obs_car_5/{name}.pdf', dpi=300)
 
 
 

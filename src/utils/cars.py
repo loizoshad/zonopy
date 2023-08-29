@@ -397,7 +397,467 @@ class Intersections:
         self.zono_op = ZonoOperations()
         self.step_size = 0.1
 
-        self.intersections = [self.i_13_u, self.i_13_l, self.i_12_l, self.i_12_d, self.i_02_l, self.i_02_d, self.i_11_u, self.i_11_l, self.i_21_u, self.i_21_r]
+        # self.intersections = [self.i_13_u, self.i_13_l, self.i_12_l, self.i_12_d, self.i_02_l, self.i_02_d, self.i_11_u, self.i_11_l, self.i_21_u, self.i_21_r]
+        self.intersections = [self.i_13_u, self.i_13_l, self.i_12_l, self.i_12_d, self.i_02_d, self.i_11_u, self.i_11_l, self.i_21_u, self.i_21_r]
+
+    @property
+    def i_02_l(self):
+        '''
+        i: Intersection - First row from top, third column from left
+        l: Coming direction - Left
+        '''
+        ####################################################
+        # State Space
+        ####################################################        
+        # Horizontal Road Sections
+        Gc = np.diag(np.array([ 1.05, 3*self.step_size/2, 0.025, 0.5 ]))
+        Gb = np.array([ [0.0], [0.45], [0.0], [0.0] ])
+        c = np.array([ [-0.45], [0.45], [1.05], [-0.5] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 1))
+        b = np.zeros((0, 1))
+        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        # Vertical Road Sections
+        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.025 ]))
+        Gb = np.array([ [0.45], [0.0], [0.0], [-1.05]])
+        c = np.array([ [-0.9], [0.0], [0.5], [0.0] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 1))
+        b = np.zeros((0, 1))
+        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
+        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
+        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
+
+        ####################################################
+        # Conflict Zone
+        ####################################################
+        # Gc = np.diag(np.array([ 0.15, 0.15]))
+        # Gb = np.zeros((2, 0))
+        # c = np.array([ [0.45], [0.9] ])
+        # Ac = np.zeros((0, 2))
+        # Ab = np.zeros((0, 0))
+        # b = np.zeros((0, 1))
+        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b)     
+
+        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
+        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+        
+        c = np.array([ [0.45], [0.9] ])
+        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [-0.45], [0.0] ])
+        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ####################################################
+        # Current road
+        ####################################################
+        Gc = np.diag(np.array([ 0.75, 0.15]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [-0.45], [0.9] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        i_02_l = {
+            'ss': ss,
+            # 'conflict_zone': conflict_zone,
+            'conflict_zone': [conflict_zone_1, conflict_zone_2],
+            'current_road': current_road
+        }
+
+        return i_02_l
+
+    @property
+    def i_02_d(self):
+        '''
+        i: Intersection - First row from top, third column from left
+        d: Coming direction - Down
+        '''
+        ####################################################
+        # State Space
+        ####################################################        
+        # Vertical Road Sections
+        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.05 ]))
+        Gb = np.zeros((4, 0))
+        c = np.array([ [0.45], [0.6], [0.5], [1.15] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        ss = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ####################################################
+        # Conflict Zone
+        ####################################################
+        Gc = np.diag(np.array([ 0.15, 0.15]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [0.45], [0.9] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
+
+        ####################################################
+        # Current road
+        ####################################################
+        Gc = np.diag(np.array([ 0.15, 0.45]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [0.45], [0.6] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        i_02_d = {
+            'ss': ss,
+            'conflict_zone': [conflict_zone],
+            'current_road': current_road
+        }
+
+        return i_02_d
+
+    # Changed conflict zones
+    @property
+    def i_11_u(self):
+        '''
+        i: Intersection - Second row from top, second column from left
+        u: Coming direction - up
+        '''
+        ####################################################
+        # State Space
+        ####################################################        
+        # Horizontal Road Sections
+        Gc = np.diag(np.array([ 1.05, 3*self.step_size/2, 0.05, 0.5 ]))
+        Gb = np.array([ [0.0], [0.45], [0.0], [0.0] ])
+        c = np.array([ [-0.45], [0.45], [1.15], [-0.5] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 1))
+        b = np.zeros((0, 1))
+        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        # Vertical Road Sections
+        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.05 ]))
+        Gb = np.zeros((4, 0))
+        c = np.array([ [-0.45], [0.0], [0.5], [-1.15] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
+        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
+        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
+
+        ####################################################
+        # Conflict Zone
+        ####################################################
+        # Gc = np.diag(np.array([ 0.15, 0.15]))
+        # Gb = np.array([ [0.45, 0.0, 0.0], [0.0, 0.45, 0.45] ])
+        # c = np.array([ [0.0], [0.0] ])
+        # Ac = np.zeros((0, 2))
+        # Ab = np.zeros((0, 3))
+        # b = np.zeros((0, 1))
+        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
+
+        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
+        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+        
+        c = np.array([ [-0.45], [0.0] ])
+        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [0.45], [0.0] ])
+        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [0.45], [0.9] ])
+        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [-0.45], [-0.9] ])
+        conflict_zone_4 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ####################################################
+        # Current road
+        ####################################################
+        Gc = np.diag(np.array([ 0.6, 0.45]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [-0.9], [0.6] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        i_11_u = {
+            'ss': ss,
+            # 'conflict_zone': conflict_zone,
+            # 'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3, conflict_zone_4],
+            'conflict_zone': [conflict_zone_1],
+            'current_road': current_road
+        }
+
+        return i_11_u
+
+    # Changed conflict zones
+    @property
+    def i_11_l(self):
+        '''
+        i: Intersection - Second row from top, second column from left
+        l: Coming direction - left
+        '''
+        ####################################################
+        # State Space
+        ####################################################        
+        # Horizontal Road Sections
+        # Gc = np.diag(np.array([ 0.9, 3*self.step_size/2, 0.025, 0.5 ]))
+        # Gb = np.zeros((4, 0))
+        # c = np.array([ [-0.3], [0.0], [1.05], [-0.5] ])
+        # Ac = np.zeros((0, 4))
+        # Ab = np.zeros((0, 0))
+        # b = np.zeros((0, 1))
+        # road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        Gc = np.diag(np.array([ 0.9, 3*self.step_size/2, 0.025, 0.5 ]))
+        Gb = np.array([ [0.9], [0.0], [0.0], [-0.5] ])
+        c = np.array([ [-1.2], [0.0], [1.05], [0.0] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 1))
+        b = np.zeros((0, 1))
+        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)        
+
+        # Vertical Road Sections
+        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.025 ]))
+        Gb = np.array([ [0.45], [0.0], [0.0], [-1.05] ])
+        c = np.array([ [-0.9], [0.0], [0.5], [0.0] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 1))
+        b = np.zeros((0, 1))
+        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
+        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
+        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
+
+        ####################################################
+        # Conflict Zone
+        ####################################################
+        # Gc = np.diag(np.array([ 0.15, 0.15]))
+        # Gb = np.array([ [0.45, 0.0], [0.0, 0.45] ])
+        # c = np.array([ [0.0], [-0.45] ])
+        # Ac = np.zeros((0, 2))
+        # Ab = np.zeros((0, 2))
+        # b = np.zeros((0, 1))
+        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
+
+        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
+        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+        
+        c = np.array([ [-0.45], [0.0] ])
+        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [0.45], [0.0] ])
+        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [-0.45], [-0.9] ])
+        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ####################################################
+        # Current road
+        ####################################################
+        Gc = np.diag(np.array([ 0.45, 0.6]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [-1.05], [-0.45] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        current_road_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        Gc = np.diag(np.array([ 0.15, 0.15]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [-0.45], [0.0] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        current_road_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        current_road = self.zono_op.union_hz_hz_v2(current_road_1, current_road_2)
+        current_road = self.zono_op.redundant_c_gc_hz_v2(current_road)
+        current_road = self.zono_op.redundant_c_gc_hz_v1(current_road)
+
+        i_11_l = {
+            'ss': ss,
+            # 'conflict_zone': conflict_zone,
+            # 'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3],
+            'conflict_zone': [conflict_zone_1],
+            'current_road': current_road
+        }
+
+        return i_11_l
+
+    @property
+    def i_12_l(self):
+        '''
+        i: Intersection - Second row from top, third column from left
+        l: Coming direction - Left
+        '''
+        ####################################################
+        # State Space
+        ####################################################        
+        # Horizontal Road Sections
+        Gc = np.diag(np.array([ 0.9, 3*self.step_size/2, 0.05, 0.5 ]))
+        Gb = np.zeros((4, 0))
+        c = np.array([ [0.6], [0.0], [1.15], [0.5] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        # Vertical Road Sections
+        Gc = np.diag(np.array([3*self.step_size/2, 0.9, 0.5, 0.05 ]))
+        Gb = np.zeros((4, 0))
+        c = np.array([ [0.45], [0.15], [0.5], [1.15] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
+        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
+        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
+
+        ####################################################
+        # Conflict Zone
+        ####################################################
+        # Gc = np.diag(np.array([ 0.15, 0.15]))
+        # Gb = np.array([ [0.45, 0.0], [0.0, 0.45] ])
+        # c = np.array([ [0.9], [0.45] ])
+        # Ac = np.zeros((0, 2))
+        # Ab = np.zeros((0, 2))
+        # b = np.zeros((0, 1))
+        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
+
+        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
+        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+        
+        c = np.array([ [0.45], [0.0] ])
+        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [1.35], [0.0] ])
+        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [0.45], [0.9] ])
+        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ####################################################
+        # Current road
+        ####################################################
+        Gc = np.diag(np.array([ 0.45, 0.15]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [0.15], [0.0] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        i_12_l = {
+            'ss': ss,
+            # 'conflict_zone': conflict_zone,
+            'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3],
+            'current_road': current_road
+        }
+
+        return i_12_l  
+
+    # Changed conflict zones
+    @property
+    def i_12_d(self):
+        '''
+        i: Intersection - Second row from top, third column from left
+        d: Coming direction - Down
+        '''
+        ####################################################
+        # State Space
+        ####################################################        
+        # Horizontal Road Sections
+        Gc = np.diag(np.array([ 1.05, 3*self.step_size/2, 0.025, 0.5 ]))
+        Gb = np.array([ [0.0], [0.45], [1.05], [0.0] ])
+        c = np.array([ [0.45], [-0.45], [0.0], [0.5] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 1))
+        b = np.zeros((0, 1))
+        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        # Vertical Road Sections
+        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.025 ]))
+        Gb = np.zeros((4, 0))
+        c = np.array([ [0.45], [0.3], [0.5], [1.05] ])
+        Ac = np.zeros((0, 4))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
+        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
+        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
+
+        ####################################################
+        # Conflict Zone
+        ####################################################
+        # Gc = np.diag(np.array([ 0.15, 0.15]))
+        # Gb = np.array([ [0.45, 0.0], [0.0, 0.45] ])
+        # c = np.array([ [0.9], [0.45] ])
+        # Ac = np.zeros((0, 2))
+        # Ab = np.zeros((0, 2))
+        # b = np.zeros((0, 1))
+        # conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
+
+        # Gc = np.diag(np.array([ 0.15, 0.15]))
+        # Gb = np.zeros((2, 0))
+        # c = np.array([ [-0.45], [-0.9] ])
+        # Ac = np.zeros((0, 2))
+        # Ab = np.zeros((0, 0))
+        # b = np.zeros((0, 1))
+        # conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
+
+        # conflict_zone = self.zono_op.union_hz_hz_v2(conflict_zone_1, conflict_zone_2)
+        # conflict_zone = self.zono_op.redundant_c_gc_hz_v2(conflict_zone)
+        # conflict_zone = self.zono_op.redundant_c_gc_hz_v1(conflict_zone)
+
+        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
+        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+        
+        c = np.array([ [0.45], [0.0] ])
+        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [1.35], [0.0] ])
+        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [0.45], [0.9] ])
+        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        c = np.array([ [-0.45], [-0.9] ])
+        conflict_zone_4 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+
+        ####################################################
+        # Current road
+        ####################################################
+        Gc = np.diag(np.array([ 0.6, 0.45]))
+        Gb = np.zeros((2, 0))
+        c = np.array([ [0.9], [-0.6] ])
+        Ac = np.zeros((0, 2))
+        Ab = np.zeros((0, 0))
+        b = np.zeros((0, 1))
+        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        i_12_d = {
+            'ss': ss,
+            # 'conflict_zone': conflict_zone,
+            # 'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3, conflict_zone_4],
+            'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_4],
+            'current_road': current_road
+        }
+
+        return i_12_d
 
     @property
     def i_13_u(self):
@@ -522,462 +982,6 @@ class Intersections:
         }
 
         return i_13_l  
-
-    @property
-    def i_12_l(self):
-        '''
-        i: Intersection - Second row from top, third column from left
-        l: Coming direction - Left
-        '''
-        ####################################################
-        # State Space
-        ####################################################        
-        # Horizontal Road Sections
-        Gc = np.diag(np.array([ 0.9, 3*self.step_size/2, 0.05, 0.5 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [0.6], [0.0], [1.15], [0.5] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        # Vertical Road Sections
-        Gc = np.diag(np.array([3*self.step_size/2, 0.9, 0.5, 0.05 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [0.45], [0.15], [0.5], [1.15] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
-
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        # Gc = np.diag(np.array([ 0.15, 0.15]))
-        # Gb = np.array([ [0.45, 0.0], [0.0, 0.45] ])
-        # c = np.array([ [0.9], [0.45] ])
-        # Ac = np.zeros((0, 2))
-        # Ab = np.zeros((0, 2))
-        # b = np.zeros((0, 1))
-        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
-
-        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
-        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
-        
-        c = np.array([ [0.45], [0.0] ])
-        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [1.35], [0.0] ])
-        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [0.45], [0.9] ])
-        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.45, 0.15]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [0.15], [0.0] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        i_12_l = {
-            'ss': ss,
-            # 'conflict_zone': conflict_zone,
-            'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3],
-            'current_road': current_road
-        }
-
-        return i_12_l  
-
-    # TESTED: Works but could be improved
-    @property
-    def i_12_d(self):
-        '''
-        i: Intersection - Second row from top, third column from left
-        d: Coming direction - Down
-        '''
-        ####################################################
-        # State Space
-        ####################################################        
-        # Horizontal Road Sections
-        Gc = np.diag(np.array([ 1.05, 3*self.step_size/2, 0.025, 0.5 ]))
-        Gb = np.array([ [0.0], [0.45], [1.05], [0.0] ])
-        c = np.array([ [0.45], [-0.45], [0.0], [0.5] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 1))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        # Vertical Road Sections
-        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.025 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [0.45], [0.3], [0.5], [1.05] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
-
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        # Gc = np.diag(np.array([ 0.15, 0.15]))
-        # Gb = np.array([ [0.45, 0.0], [0.0, 0.45] ])
-        # c = np.array([ [0.9], [0.45] ])
-        # Ac = np.zeros((0, 2))
-        # Ab = np.zeros((0, 2))
-        # b = np.zeros((0, 1))
-        # conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
-
-        # Gc = np.diag(np.array([ 0.15, 0.15]))
-        # Gb = np.zeros((2, 0))
-        # c = np.array([ [-0.45], [-0.9] ])
-        # Ac = np.zeros((0, 2))
-        # Ab = np.zeros((0, 0))
-        # b = np.zeros((0, 1))
-        # conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
-
-        # conflict_zone = self.zono_op.union_hz_hz_v2(conflict_zone_1, conflict_zone_2)
-        # conflict_zone = self.zono_op.redundant_c_gc_hz_v2(conflict_zone)
-        # conflict_zone = self.zono_op.redundant_c_gc_hz_v1(conflict_zone)
-
-        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
-        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
-        
-        c = np.array([ [0.45], [0.0] ])
-        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [1.35], [0.0] ])
-        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [0.45], [0.9] ])
-        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [-0.45], [-0.9] ])
-        conflict_zone_4 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.6, 0.45]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [0.9], [-0.6] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        i_12_d = {
-            'ss': ss,
-            # 'conflict_zone': conflict_zone,
-            'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3, conflict_zone_4],
-            'current_road': current_road
-        }
-
-        return i_12_d
-
-    # TESTED: Works
-    @property
-    def i_02_l(self):
-        '''
-        i: Intersection - First row from top, third column from left
-        l: Coming direction - Left
-        '''
-        ####################################################
-        # State Space
-        ####################################################        
-        # Horizontal Road Sections
-        Gc = np.diag(np.array([ 1.05, 3*self.step_size/2, 0.025, 0.5 ]))
-        Gb = np.array([ [0.0], [0.45], [0.0], [0.0] ])
-        c = np.array([ [-0.45], [0.45], [1.05], [-0.5] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 1))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        # Vertical Road Sections
-        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.025 ]))
-        Gb = np.array([ [0.45], [0.0], [0.0], [-1.05]])
-        c = np.array([ [-0.9], [0.0], [0.5], [0.0] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 1))
-        b = np.zeros((0, 1))
-        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
-
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        # Gc = np.diag(np.array([ 0.15, 0.15]))
-        # Gb = np.zeros((2, 0))
-        # c = np.array([ [0.45], [0.9] ])
-        # Ac = np.zeros((0, 2))
-        # Ab = np.zeros((0, 0))
-        # b = np.zeros((0, 1))
-        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b)     
-
-        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
-        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
-        
-        c = np.array([ [0.45], [0.9] ])
-        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [-0.45], [0.0] ])
-        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.75, 0.15]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [-0.45], [0.9] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        i_02_l = {
-            'ss': ss,
-            # 'conflict_zone': conflict_zone,
-            'conflict_zone': [conflict_zone_1, conflict_zone_2],
-            'current_road': current_road
-        }
-
-        return i_02_l
-
-    @property
-    def i_02_d(self):
-        '''
-        i: Intersection - First row from top, third column from left
-        d: Coming direction - Down
-        '''
-        ####################################################
-        # State Space
-        ####################################################        
-        # Vertical Road Sections
-        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.05 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [0.45], [0.6], [0.5], [1.15] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        ss = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        Gc = np.diag(np.array([ 0.15, 0.15]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [0.45], [0.9] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
-
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.15, 0.45]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [0.45], [0.6] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        i_02_d = {
-            'ss': ss,
-            'conflict_zone': [conflict_zone],
-            'current_road': current_road
-        }
-
-        return i_02_d
-
-    @property
-    def i_11_u(self):
-        '''
-        i: Intersection - Second row from top, second column from left
-        u: Coming direction - up
-        '''
-        ####################################################
-        # State Space
-        ####################################################        
-        # Horizontal Road Sections
-        Gc = np.diag(np.array([ 1.05, 3*self.step_size/2, 0.05, 0.5 ]))
-        Gb = np.array([ [0.0], [0.45], [0.0], [0.0] ])
-        c = np.array([ [-0.45], [0.45], [1.15], [-0.5] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 1))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        # Vertical Road Sections
-        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.05 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [-0.45], [0.0], [0.5], [-1.15] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
-
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        # Gc = np.diag(np.array([ 0.15, 0.15]))
-        # Gb = np.array([ [0.45, 0.0, 0.0], [0.0, 0.45, 0.45] ])
-        # c = np.array([ [0.0], [0.0] ])
-        # Ac = np.zeros((0, 2))
-        # Ab = np.zeros((0, 3))
-        # b = np.zeros((0, 1))
-        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
-
-        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
-        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
-        
-        c = np.array([ [-0.45], [0.0] ])
-        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [0.45], [0.0] ])
-        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [0.45], [0.9] ])
-        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [-0.45], [-0.9] ])
-        conflict_zone_4 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.6, 0.45]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [-0.9], [0.6] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        i_11_u = {
-            'ss': ss,
-            # 'conflict_zone': conflict_zone,
-            'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3, conflict_zone_4],
-            'current_road': current_road
-        }
-
-        return i_11_u
-
-    # TESTED: Works but could be improved
-    @property
-    def i_11_l(self):
-        '''
-        i: Intersection - Second row from top, second column from left
-        l: Coming direction - left
-        '''
-        ####################################################
-        # State Space
-        ####################################################        
-        # Horizontal Road Sections
-        # Gc = np.diag(np.array([ 0.9, 3*self.step_size/2, 0.025, 0.5 ]))
-        # Gb = np.zeros((4, 0))
-        # c = np.array([ [-0.3], [0.0], [1.05], [-0.5] ])
-        # Ac = np.zeros((0, 4))
-        # Ab = np.zeros((0, 0))
-        # b = np.zeros((0, 1))
-        # road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-        Gc = np.diag(np.array([ 0.9, 3*self.step_size/2, 0.025, 0.5 ]))
-        Gb = np.array([ [0.9], [0.0], [0.0], [-0.5] ])
-        c = np.array([ [-1.2], [0.0], [1.05], [0.0] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 1))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)        
-
-        # Vertical Road Sections
-        Gc = np.diag(np.array([3*self.step_size/2, 1.05, 0.5, 0.025 ]))
-        Gb = np.array([ [0.45], [0.0], [0.0], [-1.05] ])
-        c = np.array([ [-0.9], [0.0], [0.5], [0.0] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 1))
-        b = np.zeros((0, 1))
-        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
-
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        # Gc = np.diag(np.array([ 0.15, 0.15]))
-        # Gb = np.array([ [0.45, 0.0], [0.0, 0.45] ])
-        # c = np.array([ [0.0], [-0.45] ])
-        # Ac = np.zeros((0, 2))
-        # Ab = np.zeros((0, 2))
-        # b = np.zeros((0, 1))
-        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
-
-        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
-        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
-        
-        c = np.array([ [-0.45], [0.0] ])
-        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [0.45], [0.0] ])
-        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [-0.45], [-0.9] ])
-        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.45, 0.6]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [-1.05], [-0.45] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        Gc = np.diag(np.array([ 0.15, 0.15]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [-0.45], [0.0] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        current_road = self.zono_op.union_hz_hz_v2(current_road_1, current_road_2)
-        current_road = self.zono_op.redundant_c_gc_hz_v2(current_road)
-        current_road = self.zono_op.redundant_c_gc_hz_v1(current_road)
-
-        i_11_l = {
-            'ss': ss,
-            # 'conflict_zone': conflict_zone,
-            'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3],
-            'current_road': current_road
-        }
-
-        return i_11_l
 
     @property
     def i_21_u(self):
