@@ -21,8 +21,6 @@ import time
 import math
  
 
-
-
 class ZonoVisualizer:
     '''
     This class allows the visualization of sets in 2D.
@@ -31,7 +29,7 @@ class ZonoVisualizer:
     min_x = 0; max_x = 0; min_y = 0; max_y = 0  # Plot limits
 
     def __init__(self, zono_op) -> None:
-        
+
         self.colors = [
             (0.423, 0.556, 0.749, 0.5),
             (0.835, 0.909, 0.831, 0.5),
@@ -44,25 +42,26 @@ class ZonoVisualizer:
         self.manager = plt.get_current_fig_manager()
         self.manager.window.attributes('-zoomed', True)
 
-        # self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
-        # self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
-        # self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
+        self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
+        self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
 
 
         # # TODO: TEMPORARY
         # # Use this when you don't run the command plt.show()
         # self.fig, self.ax = plt.subplots(figsize=(12.5, 6.5))
 
-        # self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
-        # self.ax.set_xticks(np.arange(-1.65, 1.65, 0.1)); self.ax.set_yticks(np.arange(-1.05, 1.05, 0.1))    # Set ticks every 0.1 and 0.1
-        self.ax.set_xticks(np.arange(-1.5, 1.8, 0.1)); self.ax.set_yticks(np.arange(-1.05, 1.05, 0.1))    # Set ticks every 0.1 and 0.1
-        self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
-        self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
-        # # Set the tick label color to white
-        # for tick in self.ax.xaxis.get_major_ticks():
-        #     tick.label.set_color('white')
-        # for tick in self.ax.yaxis.get_major_ticks():
-        #     tick.label.set_color('white')
+        # step_size = 0.1
+        # # self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
+        # self.ax.set_xticks(np.arange(-1.65, 1.65, step_size)); self.ax.set_yticks(np.arange(-1.05, 1.05, step_size))    # Set ticks every 0.1 and 0.1
+        # self.ax.set_xticks(np.arange(-1.5, 1.8, step_size)); self.ax.set_yticks(np.arange(-1.05, 1.05, step_size))    # Set ticks every 0.1 and 0.1
+        # self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
+        # self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
+        # Set the tick label color to white
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_color('white')
+        for tick in self.ax.yaxis.get_major_ticks():
+            tick.label.set_color('white')
 
 
 
@@ -76,9 +75,9 @@ class ZonoVisualizer:
         self.manager = plt.get_current_fig_manager()
         self.manager.window.attributes('-zoomed', True)
                 
-        # self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
-        # self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
-        # self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
+        self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
+        self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
 
 
         # # TODO: TEMPORARY
@@ -87,14 +86,14 @@ class ZonoVisualizer:
 
         # self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
         # self.ax.set_xticks(np.arange(-1.65, 1.65, 0.1)); self.ax.set_yticks(np.arange(-1.05, 1.05, 0.1))    # Set ticks every 0.1 and 0.1
-        self.ax.set_xticks(np.arange(-1.5, 1.8, 0.1)); self.ax.set_yticks(np.arange(-1.05, 1.05, 0.1))    # Set ticks every 0.1 and 0.1
-        self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
-        self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
-        # # Set the tick label color to white
-        # for tick in self.ax.xaxis.get_major_ticks():
-        #     tick.label.set_color('white')
-        # for tick in self.ax.yaxis.get_major_ticks():
-        #     tick.label.set_color('white')                                # Reduce font size of tick numbers
+        # self.ax.set_xticks(np.arange(-1.5, 1.8, 0.1)); self.ax.set_yticks(np.arange(-1.05, 1.05, 0.1))    # Set ticks every 0.1 and 0.1
+        # self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
+        # self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
+        # Set the tick label color to white
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_color('white')
+        for tick in self.ax.yaxis.get_major_ticks():
+            tick.label.set_color('white')                                # Reduce font size of tick numbers
 
 
 

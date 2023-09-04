@@ -1093,7 +1093,9 @@ class ZonoOperations:
             ])
 
         # Define Parameters
-        step_size = 0.05
+        # step_size = 0.05
+        # step_size = 0.05/2
+        step_size = 0.05/4
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
         max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
         c_new   = np.zeros((cz.dim, 1))         # To store the new center
@@ -1135,6 +1137,7 @@ class ZonoOperations:
             # Reset G, C
             hypercube.G[d, d] = original_G
             hypercube.C[d, 0] = 0
+
 
             # Compute the new center as the middle point of each dimension
             c_new[d, 0] = (max_val[d, 0] + min_val[d, 0]) / 2

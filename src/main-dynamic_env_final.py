@@ -21,16 +21,21 @@ obs_color  = (0.949, 0.262, 0.227, 0.6)
 brs_color  = (0.423, 0.556, 0.749, 0.5)
 road_color = (0.717, 0.694, 0.682, 0.5)
 
+Gc = np.diag(np.array([ 0.2, 0.05]))
+c = np.array([ [1.6], [0.0] ])
+Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+exit_space = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
 
 ################################################################################################
 # Step 0: Initialize Environment
 ################################################################################################
+t = 6
+N = 20
+
 zono_op = ZonoOperations()
 vis = ZonoVisualizer(zono_op = zono_op)    # Object for visualization
-env = Environment(vis)                              # Environment object
-
-N = 21
-print(f'N = {N}')
+env = Environment(vis, t = t)                              # Environment object
 
 ################################################################################################
 # Step 1: Compute Full BRS From The Exit Of The Parking Slot
@@ -44,62 +49,37 @@ start_time = time.perf_counter()
 full_safe_space = env.compute_full_safe_space(N)
 end_time = time.perf_counter()
 print(f'******************************************************************')
-print(f'full_safe_space: ng = {full_safe_space.ng}, nc = {full_safe_space.nc}, nb = {full_safe_space.nb}')
-print(f'Safe Space Computation Time = {end_time - start_time}')
+print(f't = {t}')
+print(f'ng = {full_safe_space.ng}'); print(f'nc = {full_safe_space.nc}'); print(f'nb = {full_safe_space.nb}')
+print(f'tc = {end_time - start_time}')  # Computation time
+
+###############################################################################################
+# Step 2: Visualize Results 
+###############################################################################################
+# env.vis.vis_hz_4d(env.cars[0].conflict_zone, colors = obs_color, show_edges=True, zorder=11)
+# env.vis.vis_hz_4d([env.cars[0].current_road], colors = obs_color, show_edges=True, zorder=11)
+# env.vis.vis_hz_4d([env.cars[0].state_spaceFRS], colors = obs_color, show_edges=True, zorder=11)
+
+
+env.vis_env()
+start_time_2 = time.perf_counter()
+env.vis_safe_space(full_safe_space)
+end_time_2 = time.perf_counter()
+env.vis_exit_space()
+
+print(f'tv = {end_time_2 - start_time_2}')  # Visulaitzaiton time
 print(f'******************************************************************')
 
-###############################################################################################
-# Step 2: Perform Model Checking For All Cars In The Environment
-###############################################################################################
 
 
-###############################################################################################
-# Step 3: Visualize Results 
-###############################################################################################
-env.vis_env()
-# env.vis.vis_hz_4d([env.cars[0].current_road], colors = obs_color, show_edges=True, zorder=11)
-# env.vis.vis_hz_4d(env.cars[0].conflict_zone, colors = obs_color, show_edges=True, zorder=11)
 
-
-env.vis_safe_space(full_safe_space)
-env.vis.ax.set_title(f'N = {N}, ng = {full_safe_space.ng}, nc = {full_safe_space.nc}, nb = {full_safe_space.nb}, comp_time = {(end_time - start_time):4f} [s]', fontsize=16)
 plt.show()
-
-name = f'safe_space_{N}'
-env.vis.fig.savefig(f'./results/dynamic_env_final_v1/safe_space_car_full/{name}.pdf', dpi=300)
-
-# name = f'obs_{N}'
-# env.vis.fig.savefig(f'./results/dynamic_env_final_v1/obs_car_5/{name}.pdf', dpi=300)
+name = f'safe_space_{t}'
+env.vis.fig.savefig(f'./results/animation/pdf/{name}.pdf', dpi=300)
+env.vis.fig.savefig(f'./results/animation/png/{name}.png', dpi=300)
 
 
 
 
 
-###############################################################################################
-# Step 4: Move To Next Time Step
-# Move each vehicle one time-step forward
-# ...
-###############################################################################################
-
-
-
-
-
-
-
-
-
-
-# N = 1
-
-# for i in range(N):
-#     print(f'Iteration = {i}')
-
-#     # Visualize
-#     print(f'brs: ng = {brs.ng}, nc = {brs.nc}, nb = {brs.nb}')
-#     env.vis_safe_space(brs)
-#     plt.show()
-#     # name = f'brs_{i}'
-#     # env.vis.fig.savefig(f'./results/dynamic_env_final/brs/{name}.pdf', dpi=300)
-#     # plt.close(env.vis.fig); env.vis.new_fig()
 
