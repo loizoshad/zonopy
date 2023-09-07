@@ -1094,8 +1094,8 @@ class ZonoOperations:
 
         # Define Parameters
         # step_size = 0.05
-        # step_size = 0.05/2
-        step_size = 0.05/4
+        step_size = 0.05/2
+        # step_size = 0.05/4
         min_val = np.zeros((cz.dim, 1))         # To store the minimum value of each dimension
         max_val = np.zeros((cz.dim, 1))         # To store the maximum value of each dimension
         c_new   = np.zeros((cz.dim, 1))         # To store the new center

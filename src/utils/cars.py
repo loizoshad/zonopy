@@ -20,106 +20,102 @@ def cars_input_space():
 step_size = 0.05
 
 # # t = 1
-# car_1_c = np.array([ [-1.35], [0.5], [0.5], [0.95] ])
+# car_1_c = np.array([ [-1.35], [0.7], [0.0], [0.95] ])
 # car_2_c = np.array([ [-0.55], [0.0], [ 0.95], [0.0] ])
-# car_3_c = np.array([ [-0.45], [0.65], [ 0.0], [-0.95] ])
-# car_4_c = np.array([ [0.45], [-0.2], [ 0.0], [0.95] ])
-# car_5_c = np.array([ [1.05], [0.9], [ 0.95], [0.0] ])
+# car_3_c = np.array([ [-0.45], [0.75], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [-0.3], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [0.0], [0.9], [ 0.95], [0.0] ])
 # #
-# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.25, 0.05 ]))
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 
 # # t = 2
-# car_1_c = np.array([ [-1.35], [0.55], [0.5], [0.95] ])
-# car_2_c = np.array([ [-0.50], [0.0], [ 0.95], [0.0] ])
-# car_3_c = np.array([ [-0.45], [0.60], [ 0.0], [-0.95] ])
-# car_4_c = np.array([ [0.45], [-0.15], [ 0.0], [0.95] ])
-# car_5_c = np.array([ [1.10], [0.9], [ 0.95], [0.0] ])
+# car_1_c = np.array([ [-1.30], [0.80], [0.95], [0.00] ])
+# car_2_c = np.array([ [-0.50], [ 0.00], [ 0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.45], [0.70], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [-0.25], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.05], [ 0.90], [ 0.95], [ 0.00] ])
 # #
-# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.25, 0.05 ]))
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 
 # # t = 3
-# car_1_c = np.array([ [-1.35], [0.60], [0.5], [0.95] ])
+# car_1_c = np.array([ [-1.25], [0.80], [0.95], [0.0] ])
 # car_2_c = np.array([ [-0.45], [0.0], [ 0.95], [0.0] ])
-# car_3_c = np.array([ [-0.45], [0.55], [ 0.0], [-0.95] ])
-# car_4_c = np.array([ [0.45], [-0.10], [ 0.0], [0.95] ])
-# car_5_c = np.array([ [1.15], [0.9], [ 0.95], [0.0] ])
+# car_3_c = np.array([ [-0.45], [0.65], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [-0.20], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.10], [ 0.90], [ 0.95], [ 0.00] ])
 # #
-# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.25, 0.05 ]))
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 
 # # t = 4
-# car_1_c = np.array([ [-1.35], [0.65], [0.00], [0.95] ])
+# car_1_c = np.array([ [-1.20], [0.80], [0.95], [0.0] ])
 # car_2_c = np.array([ [-0.40], [0.00], [0.95], [0.00] ])
-# car_3_c = np.array([ [-0.45], [0.50], [ 0.0], [-0.95]])
-# car_4_c = np.array([ [0.45], [-0.05], [ 0.0], [0.95] ])
-# # car_5_c = np.array([ [1.225], [0.875], [ 0.87769], [-0.36355] ])
-# car_5_c = np.array([ [1.35], [0.85], [ 0.0], [-0.95] ])
+# car_3_c = np.array([ [-0.45], [0.60], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [-0.15], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.15], [ 0.90], [ 0.95], [ 0.00] ])
 # #
-# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.25, 0.05 ]))
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
-# # car_5_gc = np.array([ [0.13858, 0.03827, 0.000000, 0.000000], [0.57400, 0.09239, 0.000000, 0.000000], [0.00000, 0.00000, 0.046190, 0.000000], [0.00000, 0.00000, 0.000000, -0.01913] ])
 
 # # t = 5
-# car_1_c = np.array([ [-1.35], [0.70], [0.00], [ 0.95] ])
-# # car_2_c = np.array([ [-0.35], [0.00], [0.95], [ 0.00] ])
-# car_2_c = np.array([ [-0.375], [0.00], [0.95], [ 0.00] ])
-# car_3_c = np.array([ [-0.45], [0.45], [0.00], [-0.95] ])
-# car_4_c = np.array([ [ 0.45], [0.00], [0.00], [ 0.95] ])
-# car_5_c = np.array([ [ 1.35], [0.80], [0.00], [-0.95] ])
+# car_1_c = np.array([ [-1.15], [0.80], [0.95], [0.0] ])
+# car_2_c = np.array([ [-0.35], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.45], [0.55], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [-0.10], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.20], [ 0.90], [ 0.95], [ 0.00] ])
 # #
-# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.25, 0.05 ]))
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.25 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
-# # car_5_gc = np.array([ [ 0.10607, 0.10607, 0.000000, 0.000000], [ 0.10607, 0.10607, 0.000000, 0.000000], [ 0.00000, 0.00000, 0.035360, 0.000000],[ 0.00000, 0.00000, 0.000000, -0.03536] ])
 
-# t = 6
-car_1_c = np.array([ [-1.30], [0.90], [0.95], [ 0.00] ])
-car_2_c = np.array([ [-0.30], [0.00], [0.95], [ 0.00] ])
-car_3_c = np.array([ [-0.45], [0.40], [0.00], [-0.95] ])
-car_4_c = np.array([ [ 0.45], [0.05], [0.00], [ 0.95] ])
-car_5_c = np.array([ [ 1.35], [0.75], [0.00], [-0.95] ])
-#
-car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
-car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
-car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
-car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
-car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# # t = 6
+# car_1_c = np.array([ [-1.10], [0.80], [0.95], [0.0] ])
+# car_2_c = np.array([ [-0.30], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.45], [0.50], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [-0.05], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.25], [ 0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 
 # # t = 7
-# car_1_c = np.array([ [-1.25], [0.90], [0.00], [ 0.95] ])
+# car_1_c = np.array([ [-1.05], [0.80], [0.95], [0.0] ])
 # car_2_c = np.array([ [-0.25], [0.00], [0.95], [ 0.00] ])
-# car_3_c = np.array([ [-0.45], [0.35], [0.00], [-0.95] ])
-# car_4_c = np.array([ [ 0.45], [0.10], [0.00], [ 0.95] ])
-# car_5_c = np.array([ [ 1.35], [0.70], [0.00], [-0.95] ])
+# car_3_c = np.array([ [-0.45], [0.45], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [ 0.00], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.30], [ 0.90], [ 0.95], [ 0.00] ])
 # #
-# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.25, 0.05 ]))
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 
 # # t = 8
-# car_1_c = np.array([ [-1.20], [0.90], [0.95], [ 0.00] ])
+# car_1_c = np.array([ [-1.00], [0.80], [0.95], [0.0] ])
 # car_2_c = np.array([ [-0.20], [0.00], [0.95], [ 0.00] ])
-# car_3_c = np.array([ [-0.45], [0.30], [0.00], [-0.95] ])
-# car_4_c = np.array([ [ 0.45], [0.15], [0.00], [ 0.95] ])
-# car_5_c = np.array([ [ 1.35], [0.65], [0.00], [-0.95] ])
+# car_3_c = np.array([ [-0.45], [0.40], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [ 0.05], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.35], [ 0.90], [ 0.95], [ 0.00] ])
 # #
 # car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
@@ -128,11 +124,11 @@ car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 
 # # t = 9
-# car_1_c = np.array([ [-1.15], [0.90], [0.95], [ 0.00] ])
+# car_1_c = np.array([ [-0.95], [0.80], [0.95], [0.0] ])
 # car_2_c = np.array([ [-0.15], [0.00], [0.95], [ 0.00] ])
-# car_3_c = np.array([ [-0.45], [0.25], [0.00], [-0.95] ])
-# car_4_c = np.array([ [ 0.45], [0.20], [0.00], [ 0.95] ])
-# car_5_c = np.array([ [ 1.35], [0.60], [0.00], [-0.95] ])
+# car_3_c = np.array([ [-0.45], [0.35], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [ 0.10], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.40], [ 0.90], [ 0.95], [ 0.00] ])
 # #
 # car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
@@ -141,11 +137,11 @@ car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 
 # # t = 10
-# car_1_c = np.array([ [-1.10], [0.90], [0.95], [ 0.00] ])
+# car_1_c = np.array([ [-0.90], [0.80], [0.95], [0.0] ])
 # car_2_c = np.array([ [-0.10], [0.00], [0.95], [ 0.00] ])
-# car_3_c = np.array([ [-0.45], [0.20], [0.00], [-0.95] ])
-# car_4_c = np.array([ [ 0.45], [0.25], [0.00], [ 0.95] ])
-# car_5_c = np.array([ [ 1.35], [0.55], [0.00], [-0.95] ])
+# car_3_c = np.array([ [-0.45], [0.30], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [ 0.15], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.45], [ 0.90], [ 0.95], [ 0.00] ])
 # #
 # car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
@@ -154,11 +150,11 @@ car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 
 # # t = 11
-# car_1_c = np.array([ [-1.05], [0.90], [0.95], [ 0.00] ])
+# car_1_c = np.array([ [-0.85], [0.80], [0.95], [0.0] ])
 # car_2_c = np.array([ [-0.05], [0.00], [0.95], [ 0.00] ])
-# car_3_c = np.array([ [-0.45], [0.15], [0.00], [-0.95] ])
-# car_4_c = np.array([ [ 0.45], [0.30], [0.00], [ 0.95] ])
-# car_5_c = np.array([ [ 1.35], [0.50], [0.00], [-0.95] ])
+# car_3_c = np.array([ [-0.45], [0.25], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [ 0.20], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.50], [ 0.90], [ 0.95], [ 0.00] ])
 # #
 # car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 # car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
@@ -166,10 +162,532 @@ car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 # car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
 
+# # t = 12
+# car_1_c = np.array([ [-0.80], [0.80], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.00], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.45], [0.20], [ 0.0], [-0.95] ])
+# car_4_c = np.array([ [0.45], [ 0.25], [ 0.0], [0.95] ])
+# car_5_c = np.array([ [ 0.55], [ 0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 13
+# car_1_c = np.array([ [-0.75], [0.80], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.05], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.55], [0.00], [ 0.95], [ 0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.30], [ 0.00], [ 0.95] ])
+# car_5_c = np.array([ [ 0.60], [0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 14
+# car_1_c = np.array([ [-0.70], [0.90], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.10], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.50], [0.00], [ 0.95], [ 0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.35], [ 0.00], [ 0.95] ])
+# car_5_c = np.array([ [ 0.65], [0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 15
+# car_1_c = np.array([ [-0.65], [0.90], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.15], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.35], [0.00], [ 0.95], [ 0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.40], [ 0.00], [ 0.95] ])
+# car_5_c = np.array([ [ 0.70], [0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 16
+# car_1_c = np.array([ [-0.60], [0.90], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.20], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.30], [0.00], [ 0.95], [ 0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.45], [ 0.00], [ 0.95] ])
+# car_5_c = np.array([ [ 0.75], [0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 17
+# car_1_c = np.array([ [-0.55], [0.90], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.25], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.25], [0.00], [ 0.95], [ 0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.50], [ 0.00], [ 0.95] ])
+# car_5_c = np.array([ [ 0.80], [ 0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 18
+# car_1_c = np.array([ [-0.50], [0.90], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.30], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.20], [0.00], [ 0.95], [ 0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.55], [ 0.00], [ 0.95] ])
+# car_5_c = np.array([ [ 0.85], [0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 19
+# car_1_c = np.array([ [-0.45], [0.90], [0.95], [0.0] ])
+# car_2_c = np.array([ [ 0.35], [0.00], [0.95], [ 0.00] ])
+# car_3_c = np.array([ [-0.15], [0.00], [ 0.95], [ 0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.60], [ 0.00], [ 0.95] ])
+# car_5_c = np.array([ [ 0.90], [0.90], [ 0.95], [ 0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 20
+# car_1_c = np.array([ [-0.40], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.40], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [-0.10], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.65], [0.00], [0.95] ])
+# car_5_c = np.array([ [ 0.95], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+
+# # t = 21
+# car_1_c = np.array([ [-0.35], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.45], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [-0.05], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.70], [0.00], [0.95] ])
+# car_5_c = np.array([ [ 1.00], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.00, 0.05 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 22
+# car_1_c = np.array([ [-0.30], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.50], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.00], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.35], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.05], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 23
+# car_1_c = np.array([ [-0.25], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.55], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.05], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.40], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.10], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 24
+# car_1_c = np.array([ [-0.20], [0.90], [0.95], [0.00] ])
+# # car_2_c = np.array([ [ 0.60], [0.00], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.605], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.10], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.45], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.15], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 25
+# car_1_c = np.array([ [-0.15], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.65], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.15], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.50], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.20], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 26
+# car_1_c = np.array([ [-0.10], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.70], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.20], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.55], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.25], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 27
+# car_1_c = np.array([ [-0.05], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.75], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.25], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.60], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.30], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 28
+# car_1_c = np.array([ [ 0.00], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.80], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.30], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.65], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.35], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 29
+# car_1_c = np.array([ [ 0.05], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.85], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.35], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.70], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.40], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 30
+# car_1_c = np.array([ [ 0.10], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.90], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.40], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.75], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.45], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 31
+# car_1_c = np.array([ [ 0.15], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 0.95], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.45], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.80], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.50], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 32
+# car_1_c = np.array([ [ 0.20], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.00], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.50], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.85], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.55], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 33
+# car_1_c = np.array([ [ 0.25], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.05], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.55], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.90], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.60], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 34
+# car_1_c = np.array([ [ 0.30], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.10], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.60], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 0.95], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.65], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 35
+# car_1_c = np.array([ [ 0.35], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.15], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.65], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.00], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.70], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 36
+# car_1_c = np.array([ [ 0.40], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.20], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.70], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.05], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.75], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 37
+# car_1_c = np.array([ [ 0.45], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.25], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.75], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.10], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.80], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 38
+# car_1_c = np.array([ [ 0.50], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.30], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.80], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.15], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.85], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 39
+# car_1_c = np.array([ [ 0.55], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.35], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.85], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.20], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.90], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 40
+# car_1_c = np.array([ [ 0.60], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.40], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.90], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.25], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 1.95], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 41
+# car_1_c = np.array([ [ 0.65], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.45], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 0.95], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.30], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.00], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 42
+# car_1_c = np.array([ [ 0.70], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.50], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.00], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.35], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.05], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 43
+# car_1_c = np.array([ [ 0.75], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.55], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.05], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.40], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.10], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 44
+# car_1_c = np.array([ [ 0.80], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.60], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.10], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.45], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.15], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 45
+# car_1_c = np.array([ [ 0.85], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.65], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.15], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.50], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.20], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 46
+# car_1_c = np.array([ [ 0.90], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.70], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.20], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.55], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.25], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 47
+# car_1_c = np.array([ [ 0.95], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.75], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.25], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.60], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.30], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 48
+# car_1_c = np.array([ [ 1.00], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.80], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.30], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.65], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.35], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 49
+# car_1_c = np.array([ [ 1.05], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.85], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.35], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.70], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.40], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 50
+# car_1_c = np.array([ [ 1.10], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.90], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.40], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.75], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.45], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+
+# # t = 51
+# car_1_c = np.array([ [ 1.15], [0.90], [0.95], [0.00] ])
+# car_2_c = np.array([ [ 1.95], [0.00], [0.95], [0.00] ])
+# car_3_c = np.array([ [ 1.45], [0.00], [0.95], [0.00] ])
+# car_4_c = np.array([ [ 1.80], [0.90], [0.95], [0.00] ])
+# car_5_c = np.array([ [ 2.50], [0.90], [0.95], [0.00] ])
+# #
+# car_1_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_2_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_3_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_4_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
+# car_5_gc = np.diag(np.array([ 0.15, 0.15, 0.05, 0.00 ]))
 
 class Car1:
     def __init__(self, t) -> None:
-        self.intersections = Intersections(t).intersections
+        self.t = t
+        self.inters_obj = Intersections(t)
+        self.intersections = self.inters_obj.intersections
         self.zono_op = ZonoOperations()
         self.dynamics = DynamicsModel4D()
         self.lw = 0.1
@@ -298,11 +816,31 @@ class Car1:
                 self.state_spaceFRS = intersection['ss']
                 self.conflict_zone = intersection['conflict_zone']
                 self.current_road = intersection['current_road']
+                self.related_conflict_area = intersection['related_conflict_area']
                 break
             else:
                 self.state_spaceFRS = None
                 self.conflict_zone = None
                 self.current_road = None
+                self.related_conflict_area = None
+
+        if self.t >= 15:
+            Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+            
+            # Horizontal
+            Gc = np.diag(np.array([ 1.05, 0.10]))
+            c = np.array([ [0.45], [0.95] ])
+            current_road_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)            
+
+            # Vertical
+            Gc = np.diag(np.array([ 0.05, 0.60]))
+            c = np.array([ [1.35], [0.45] ])
+            current_road_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)            
+
+            self.current_road = self.zono_op.union_hz_hz_v2(current_road_1, current_road_2)
+            self.current_road = self.zono_op.redundant_c_gc_hz_v2(self.current_road)
+            self.current_road = self.zono_op.redundant_c_gc_hz_v1(self.current_road)
+
 
     @property
     def initial_space4D(self):
@@ -310,7 +848,7 @@ class Car1:
         # c = np.array([ [-1.35], [-0.1], [0.5], [0.95] ])
         
         c = car_1_c
-        Gc = car_2_gc
+        Gc = car_1_gc
         Gb = np.zeros((4, 0))
         Ac = np.zeros((0, 4))
         Ab = np.zeros((0, 0))
@@ -340,11 +878,13 @@ class Car2:
                 self.state_spaceFRS = intersection['ss']
                 self.conflict_zone = intersection['conflict_zone']
                 self.current_road = intersection['current_road']
+                self.related_conflict_area = intersection['related_conflict_area']
                 break
             else:
                 self.state_spaceFRS = None
                 self.conflict_zone = None
                 self.current_road = None
+                self.related_conflict_area = None
 
     @property
     def initial_space4D(self):
@@ -362,7 +902,9 @@ class Car2:
 
 class Car3:
     def __init__(self, t) -> None:
-        self.intersections = Intersections(t).intersections
+        self.t = t
+        self.inters_obj = Intersections(t)
+        self.intersections = self.inters_obj.intersections
         self.zono_op = ZonoOperations()
         self.dynamics = DynamicsModel4D()
 
@@ -382,11 +924,35 @@ class Car3:
                 self.state_spaceFRS = intersection['ss']
                 self.conflict_zone = intersection['conflict_zone']
                 self.current_road = intersection['current_road']
+                self.related_conflict_area = intersection['related_conflict_area']
                 break
             else:
                 self.state_spaceFRS = None
                 self.conflict_zone = None
                 self.current_road = None
+                self.related_conflict_area = None
+
+        if self.t == 13 or self.t == 14:
+            init_data = self.inters_obj.i_12_l
+            
+            self.state_spaceFRS = init_data['ss']
+            self.conflict_zone = init_data['conflict_zone']
+            self.current_road = init_data['current_road']
+            self.related_conflict_area = init_data['related_conflict_area']   
+
+        if self.t >= 13 and self.t <= 25:
+            Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+            Gc = np.diag(np.array([ 0.15, 0.05/4]))
+            c = np.array([ [0.45], [-0.85 + 0.05/2] ])
+            self.related_conflict_area = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+            Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
+            Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+            c = np.array([ [-0.45], [0.0] ])
+            conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+            c = np.array([ [ 0.45], [0.0] ])
+            conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+            self.conflict_zone = [conflict_zone_1, conflict_zone_2]
 
     @property
     def initial_space4D(self):
@@ -404,6 +970,7 @@ class Car3:
 
 class Car4:
     def __init__(self, t) -> None:
+        self.t = t
         self.intersections = Intersections(t).intersections
         self.zono_op = ZonoOperations()
         self.dynamics = DynamicsModel4D()
@@ -424,11 +991,31 @@ class Car4:
                 self.state_spaceFRS = intersection['ss']
                 self.conflict_zone = intersection['conflict_zone']
                 self.current_road = intersection['current_road']
+                self.related_conflict_area = intersection['related_conflict_area']
                 break
             else:
                 self.state_spaceFRS = None
                 self.conflict_zone = None
                 self.current_road = None
+                self.related_conflict_area = None
+
+
+        if self.t >= 22 and self.t <= 25:
+            Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+
+            # Vertical
+            Gc = np.diag(np.array([ 0.05, 0.50]))
+            c = np.array([ [0.45], [0.50] ])
+            current_road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+            # Horizontal
+            Gc = np.diag(np.array([ 0.7, 0.05]))
+            c = np.array([ [1.1], [0.90] ])
+            current_road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)            
+
+            current_road = self.zono_op.union_hz_hz_v2(current_road_v, current_road_h)
+            current_road = self.zono_op.redundant_c_gc_hz_v2(current_road)
+            self.current_road = self.zono_op.redundant_c_gc_hz_v1(current_road)
 
     @property
     def initial_space4D(self):
@@ -466,11 +1053,14 @@ class Car5:
                 self.state_spaceFRS = intersection['ss']
                 self.conflict_zone = intersection['conflict_zone']
                 self.current_road = intersection['current_road']
+                self.related_conflict_area = intersection['related_conflict_area']
                 break
             else:
                 self.state_spaceFRS = None
                 self.conflict_zone = None
                 self.current_road = None
+                self.related_conflict_area = None
+
 
     @property
     def initial_space4D(self):
@@ -499,9 +1089,13 @@ class Intersections:
         self.t = t
         self.zono_op = ZonoOperations()
 
-        # self.intersections = [self.i_02_l, self.i_02_d, self.i_11_u, self.i_11_l_1, self.i_11_l_2, self.i_12_l, self.i_12_d, self.i_13_u, self.i_13_l]
-        self.intersections = [self.i_02_l, self.i_02_d, self.i_11_u, self.i_12_l, self.i_11_l, self.i_12_d, self.i_13_u, self.i_13_l]
+        # self.intersections = [self.i_02_l, self.i_02_d, self.i_11_u, self.i_12_l, self.i_11_l, self.i_12_d, self.i_13_u, self.i_13_l]
+        if self.t <= 15:
+            self.intersections = [self.i_02_l, self.i_12_d, self.i_12_l, self.i_11_u]
+        if self.t > 15:
+            self.intersections = [self.i_02_l, self.i_12_l, self.i_12_d, self.i_11_u]
 
+    # DONE 1-12
     @property
     def i_02_l(self):
         '''
@@ -512,9 +1106,11 @@ class Intersections:
         # State Space
         ####################################################        
         # Horizontal Road Sections
-        Gc = np.diag(np.array([ 1.5, 0.15, 0.025, 0.5 ]))
         Gb = np.zeros((4, 0))
+        Gc = np.diag(np.array([ 1.5, 0.15, 0.025, 0.5 ]))
         c = np.array([ [0.0], [0.9], [1.05], [-0.5] ])
+        # Gc = np.diag(np.array([ 1.5, 0.15, 0.01, 0.5 ]))
+        # c = np.array([ [0.0], [0.9], [0.99], [0.0] ])
         Ac = np.zeros((0, 4))
         Ab = np.zeros((0, 0))
         b = np.zeros((0, 1))
@@ -532,17 +1128,23 @@ class Intersections:
         ####################################################
         # Current road
         ####################################################
-        Gc = np.diag(np.array([ 0.45, 0.10]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [-0.15], [0.95] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
+        Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+        Gc = np.diag(np.array([ 1.05, 0.10]))
+        c = np.array([ [0.45], [0.95] ])
         current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
+        ####################################################
+        # Related Conflict Area
+        ####################################################
+        Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+        Gc = np.diag(np.array([ 0.15, 0.05/4]))
+        c = np.array([ [0.45], [0.05 + 0.05/2] ])
+        related_conflict_area = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        
         i_02_l = {
             'ss': ss,
             'conflict_zone': [conflict_zone],
+            'related_conflict_area': related_conflict_area,
             'current_road': current_road
         }
 
@@ -580,12 +1182,16 @@ class Intersections:
         ####################################################
         # Current road
         ####################################################
-        Gc = np.diag(np.array([ 0.15, 0.45]))
         Gb = np.zeros((2, 0))
-        c = np.array([ [0.45], [0.6] ])
         Ac = np.zeros((0, 2))
         Ab = np.zeros((0, 0))
         b = np.zeros((0, 1))
+        Gc = np.diag(np.array([ 0.15, 0.45]))
+        c = np.array([ [0.45], [0.6] ])
+
+        if self.t == 8 or self.t == 9 or self.t == 10 or self.t == 11 or self.t == 12:
+            Gc = np.diag(np.array([ 0.15, 0.6]))
+            c = np.array([ [0.45], [0.45] ])            
         current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
         i_02_d = {
@@ -596,6 +1202,7 @@ class Intersections:
 
         return i_02_d
 
+    # DONE 1-12
     @property
     def i_11_u(self):
         '''
@@ -605,14 +1212,14 @@ class Intersections:
         ####################################################
         # State Space
         ####################################################        
-        # Horizontal Road Sections
-        Gc = np.diag(np.array([ 1.05, 0.15, 0.025, 0.5 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [-0.45], [0.0], [1.05], [-0.5] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        # # Horizontal Road Sections
+        # Gc = np.diag(np.array([ 1.05, 0.15, 0.025, 0.5 ]))
+        # Gb = np.zeros((4, 0))
+        # c = np.array([ [-0.45], [0.0], [1.05], [-0.5] ])
+        # Ac = np.zeros((0, 4))
+        # Ab = np.zeros((0, 0))
+        # b = np.zeros((0, 1))
+        # road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
         # Vertical Road Sections
         Gc = np.diag(np.array([0.15, 1.05, 0.5, 0.025 ]))
@@ -623,9 +1230,10 @@ class Intersections:
         b = np.zeros((0, 1))
         road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
+        ss = road_v
+        # ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
+        # ss = self.zono_op.redundant_c_gc_hz_v2(ss)
+        # ss = self.zono_op.redundant_c_gc_hz_v1(ss)
 
         ####################################################
         # Conflict Zone
@@ -639,24 +1247,36 @@ class Intersections:
         # c = np.array([ [0.45], [0.0] ])
         # conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        # c = np.array([ [-0.45], [-0.9] ])
-        # conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        c = np.array([ [-0.45], [0.9] ])
+        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        conflict_zones = [conflict_zone_1, conflict_zone_3]
 
         ####################################################
         # Current road
         ####################################################
-        Gc = np.diag(np.array([ 0.15, 0.35]))
         Gb = np.zeros((2, 0))
-        c = np.array([ [-0.45], [0.5] ])
         Ac = np.zeros((0, 2))
         Ab = np.zeros((0, 0))
         b = np.zeros((0, 1))
+        Gc = np.diag(np.array([ 0.1, 0.95]))
+        c = np.array([ [-0.40], [-0.1] ])
+
         current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        ####################################################
+        # Related Conflict Area
+        ####################################################
+        Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+
+        Gc = np.diag(np.array([ 0.05/4, 0.15]))
+        c = np.array([ [-1.3 + 0.05/2], [0.0] ])
+        related_conflict_area = HybridZonotope(Gc, Gb, c, Ac, Ab, b)    
 
         i_11_u = {
             'ss': ss,
-            # 'conflict_zone': [conflict_zone_1, conflict_zone_2, conflict_zone_3],
-            'conflict_zone': [conflict_zone_1],
+            'conflict_zone': conflict_zones,
+            'related_conflict_area' : related_conflict_area,
             'current_road': current_road
         }
 
@@ -753,9 +1373,13 @@ class Intersections:
         # State Space
         ####################################################        
         # Horizontal Road Sections
-        Gc = np.diag(np.array([ 0.9, 0.15, 0.05, 0.5 ]))
+        # Gc = np.diag(np.array([ 1.8, 0.15, 0.05, 0.5 ]))
+        # c = np.array([ [0.0], [0.0], [1.15], [0.5] ])
+
+        Gc = np.diag(np.array([ 1.8, 0.15, 0.025, 0.5 ]))
+        c = np.array([ [0.0], [0.0], [1.05], [-0.5] ])
+        
         Gb = np.zeros((4, 0))
-        c = np.array([ [0.6], [0.0], [1.15], [0.5] ])
         Ac = np.zeros((0, 4))
         Ab = np.zeros((0, 0))
         b = np.zeros((0, 1))
@@ -767,35 +1391,80 @@ class Intersections:
         Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
         Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
         
-        c = np.array([ [0.45], [0.0] ])
+        c = np.array([ [-0.45], [0.0] ])
         conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        c = np.array([ [1.35], [0.0] ])
+        c = np.array([ [ 0.45], [0.0] ])
         conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        # c = np.array([ [0.45], [0.9] ])
-        # conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        c = np.array([ [ 1.35], [0.0] ])
+        conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        if self.t <= 15:
+            conflict_zones = [conflict_zone_1, conflict_zone_2]
+        if self.t > 15:
+            conflict_zones = [conflict_zone_2, conflict_zone_3]
 
         ####################################################
         # Current road
         ####################################################
-        Gc = np.diag(np.array([ 0.3, 0.15]))
         Gb = np.zeros((2, 0))
-        c = np.array([ [0.0], [0.0] ])
         Ac = np.zeros((0, 2))
         Ab = np.zeros((0, 0))
         b = np.zeros((0, 1))
+        Gc = np.diag(np.array([ 1.4, 0.05]))
+        c = np.array([ [0.4], [0.0] ])        
         current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+
+        if self.t > 12:
+            # Horizontal
+            Gc = np.diag(np.array([ 1.0, 0.05]))
+            c = np.array([ [0.5], [0.0] ])
+            current_road_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+            # Vertical
+            Gc = np.diag(np.array([ 0.05, 0.5]))
+            c = np.array([ [-0.45], [0.00] ])
+            current_road_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+            current_road = self.zono_op.union_hz_hz_v2(current_road_1, current_road_2)
+            current_road = self.zono_op.redundant_c_gc_hz_v2(current_road)
+            current_road = self.zono_op.redundant_c_gc_hz_v1(current_road)
+
+        if self.t >= 35:
+            # Horizontal
+            Gc = np.diag(np.array([ 1.0, 0.05]))
+            c = np.array([ [0.5], [0.0] ])
+            current_road_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)            
+            # Vertical
+            Gc = np.diag(np.array([ 0.05, 0.4]))
+            c = np.array([ [1.35], [-0.45] ])
+            current_road_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+            current_road = self.zono_op.union_hz_hz_v2(current_road_1, current_road_2)
+            current_road = self.zono_op.redundant_c_gc_hz_v2(current_road)
+            current_road = self.zono_op.redundant_c_gc_hz_v1(current_road)
+
+        ####################################################
+        # Related Conflict Area
+        ####################################################
+        Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
+
+        if self.t <= 15:
+            Gc = np.diag(np.array([ 0.15, 0.05/4]))
+            c = np.array([ [0.45], [-0.85 + 0.05/2] ])
+        if self.t > 15:
+            Gc = np.diag(np.array([ 0.15, 0.05/4]))
+            c = np.array([ [1.35], [0.85 - 0.05] ])            
+        related_conflict_area = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
         i_12_l = {
             'ss': ss,
-            # 'conflict_zone': conflict_zone,
-            'conflict_zone': [conflict_zone_1, conflict_zone_2],
+            'conflict_zone': conflict_zones,
+            'related_conflict_area': related_conflict_area,
             'current_road': current_road
         }
 
         return i_12_l  
 
+    # DONE 1-12
     @property
     def i_12_d(self):
         '''
@@ -805,14 +1474,14 @@ class Intersections:
         ####################################################
         # State Space
         ####################################################        
-        # Horizontal Road Sections
-        Gc = np.diag(np.array([ 1.05, 0.15, 0.025, 0.5 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [0.45], [0.0], [1.05], [0.5] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        # # Horizontal Road Sections
+        # Gc = np.diag(np.array([ 1.05, 0.15, 0.025, 0.5 ]))
+        # Gb = np.zeros((4, 0))
+        # c = np.array([ [0.45], [0.0], [1.05], [0.5] ])
+        # Ac = np.zeros((0, 4))
+        # Ab = np.zeros((0, 0))
+        # b = np.zeros((0, 1))
+        # road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
         # Vertical Road Sections
         Gc = np.diag(np.array([0.15, 1.05, 0.5, 0.025 ]))
@@ -823,9 +1492,10 @@ class Intersections:
         b = np.zeros((0, 1))
         road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
+        ss = road_v
+        # ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
+        # ss = self.zono_op.redundant_c_gc_hz_v2(ss)
+        # ss = self.zono_op.redundant_c_gc_hz_v1(ss)
 
         ####################################################
         # Conflict Zone
@@ -842,6 +1512,8 @@ class Intersections:
         c = np.array([ [0.45], [0.9] ])
         conflict_zone_3 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
+        conflict_zones = [conflict_zone_1, conflict_zone_3]
+
         ####################################################
         # Current road
         ####################################################
@@ -850,34 +1522,26 @@ class Intersections:
         Ab = np.zeros((0, 0))
         b = np.zeros((0, 1))
 
-        Gc = np.diag(np.array([ 0.15, 0.35]))
-        c = np.array([ [0.45], [-0.5] ])
-        current_road_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        Gc = np.diag(np.array([ 0.1, 0.95]))
+        c = np.array([ [0.5], [0.1] ])
+        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
+        
+        ####################################################
+        # Related Conflict Area
+        ####################################################
+        Gb = np.zeros((2, 0)); Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
 
-        Gc = np.diag(np.array([ 0.1, 0.45]))
-        c = np.array([ [0.5], [0.3] ])
-        current_road_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        current_road = self.zono_op.union_hz_hz_v2(current_road_1, current_road_2)
-        current_road = self.zono_op.redundant_c_gc_hz_v2(current_road)
-        current_road = self.zono_op.redundant_c_gc_hz_v1(current_road)
-
-        conflict_zones = [conflict_zone_1, conflict_zone_2]
-
-        if self.t == 4 or self.t == 5:
-            conflict_zones = [conflict_zone_1]
-
-        if self.t == 6 or self.t == 7:
-            conflict_zones = [conflict_zone_1, conflict_zone_3]
-
-        if self.t == 8 or self.t == 9 or self.t == 10 or self.t == 11 or self.t == 12:
-            conflict_zones = [conflict_zone_3]
+        Gc = np.diag(np.array([ 0.05/4, 0.15]))
+        c = np.array([ [-0.4 + 0.05/2], [0.9] ])
+        related_conflict_area = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
         i_12_d = {
             'ss': ss,
             'conflict_zone': conflict_zones,
+            'related_conflict_area': related_conflict_area,
             'current_road': current_road
         }
+
 
         return i_12_d
 
@@ -930,12 +1594,15 @@ class Intersections:
         ####################################################
         # Current road
         ####################################################
-        Gc = np.diag(np.array([ 0.15, 0.45]))
         Gb = np.zeros((2, 0))
-        c = np.array([ [1.35], [0.6] ])
         Ac = np.zeros((0, 2))
         Ab = np.zeros((0, 0))
         b = np.zeros((0, 1))
+
+        # Gc = np.diag(np.array([ 0.15, 0.45]))
+        # c = np.array([ [1.35], [0.6] ])
+        Gc = np.diag(np.array([ 0.15, 0.6]))
+        c = np.array([ [1.35], [0.45] ])
         current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
         i_13_u = {
@@ -998,124 +1665,9 @@ class Intersections:
     
 
 
-    @property
-    def i_21_u(self):
-        '''
-        i: Intersection - Third row from top, second column from left
-        u: Coming direction - up
-        '''
-        ####################################################
-        # State Space
-        ####################################################
-        # Vertical Road Sections
-        Gc = np.diag(np.array([0.15, 1.05, 0.5, 0.05 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [-0.45], [-0.6], [-0.5], [-1.15] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        ss = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        Gc = np.diag(np.array([ 0.15, 0.15]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [-0.45], [-0.9] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
 
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.15, 0.45]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [-0.45], [-0.6] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 
-        i_21_u = {
-            'ss': ss,
-            'conflict_zone': [conflict_zone],
-            'current_road': current_road
-        }
-
-        return i_21_u
-
-    @property
-    def i_21_r(self):
-        '''
-        i: Intersection - Third row from top, second column from left
-        r: Coming direction - right
-        '''
-        ####################################################
-        # State Space
-        ####################################################        
-        # Horizontal Road Sections
-        Gc = np.diag(np.array([ 0.9, 0.15, 0.05, 0.5 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [0.3], [-0.9], [-1.15], [0.5] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_h = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        # Vertical Road Sections
-        Gc = np.diag(np.array([0.15, 1.05, 0.5, 0.05 ]))
-        Gb = np.zeros((4, 0))
-        c = np.array([ [0.45], [0.0], [0.5], [1.15] ])
-        Ac = np.zeros((0, 4))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        road_v = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        ss = self.zono_op.union_hz_hz_v2(road_v, road_h)
-        ss = self.zono_op.redundant_c_gc_hz_v2(ss)
-        ss = self.zono_op.redundant_c_gc_hz_v1(ss)
-
-        ####################################################
-        # Conflict Zone
-        ####################################################
-        # Gc = np.diag(np.array([ 0.15, 0.15]))
-        # Gb = np.zeros((2, 0))
-        # c = np.array([ [-0.45], [-0.9] ])
-        # Ac = np.zeros((0, 2))
-        # Ab = np.zeros((0, 0))
-        # b = np.zeros((0, 1))
-        # conflict_zone = HybridZonotope(Gc, Gb, c, Ac, Ab, b) 
-
-        Gc = np.diag(np.array([ 0.15, 0.15])); Gb = np.zeros((2, 0))
-        Ac = np.zeros((0, 2)); Ab = np.zeros((0, 0)); b = np.zeros((0, 1))
-        
-        c = np.array([ [-0.45], [-0.9] ])
-        conflict_zone_1 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        c = np.array([ [0.45], [0.0] ])
-        conflict_zone_2 = HybridZonotope(Gc, Gb, c, Ac, Ab, b)        
-
-        ####################################################
-        # Current road
-        ####################################################
-        Gc = np.diag(np.array([ 0.75, 0.15]))
-        Gb = np.zeros((2, 0))
-        c = np.array([ [0.45], [-0.9] ])
-        Ac = np.zeros((0, 2))
-        Ab = np.zeros((0, 0))
-        b = np.zeros((0, 1))
-        current_road = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
-
-        i_21_r = {
-            'ss': ss,
-            # 'conflict_zone': conflict_zone,
-            'conflict_zone': [conflict_zone_1, conflict_zone_2],
-            'current_road': current_road
-        }
-
-        return i_21_r
 
 
 

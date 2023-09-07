@@ -30,8 +30,8 @@ exit_space = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 ################################################################################################
 # Step 0: Initialize Environment
 ################################################################################################
-t = 6
-N = 20
+t = 51
+N = 30
 
 zono_op = ZonoOperations()
 vis = ZonoVisualizer(zono_op = zono_op)    # Object for visualization
@@ -59,7 +59,7 @@ print(f'tc = {end_time - start_time}')  # Computation time
 # env.vis.vis_hz_4d(env.cars[0].conflict_zone, colors = obs_color, show_edges=True, zorder=11)
 # env.vis.vis_hz_4d([env.cars[0].current_road], colors = obs_color, show_edges=True, zorder=11)
 # env.vis.vis_hz_4d([env.cars[0].state_spaceFRS], colors = obs_color, show_edges=True, zorder=11)
-
+# env.vis.vis_hz_4d([env.cars[0].related_conflict_area], colors = obs_color, show_edges=True, zorder=11)
 
 env.vis_env()
 start_time_2 = time.perf_counter()
