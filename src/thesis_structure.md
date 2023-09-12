@@ -99,6 +99,160 @@ In this work we focus on the generation and update of the temporal logic tree in
     - Hybrid Zonotopes
 
 
+[//]: #######################################################
+
+# Our Approach
+
+## Show an example of the computation of the entire 
+
+## RCI for Hybrid zonotopes
+    - Provide an algorithm for it
+    - Show examples:
+        - First start with a static object
+        - Then move to a moving object
+            - Ask Frank if you can term it as "moving RCI" or something like that in case this idea does not already formally exist
+        - 2D or 3D?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. Introduction
+
+1.1 Background
+1.2 Contributions
+1.3 Outline
+
+
+2. Preliminaries
+
+2.1 Notation
+2.2 Plant Model
+2.3 Reachability Analysis
+
+2.4 Temporal Logic
+    - Linear Temporal Logic
+    - Temporal Logic Trees
+        - Since we are only dealing with the computation of the TLT and its update in an online fashion, we should emphasize more on the 
+        generation of the TLT and its real time capabilities, instead on the model checking and control synthesis.
+        However, you should still mention that the TLT will then be used to perform model checking and control synthesis.
+
+        
+        - To illustrate the idea of the TLT, we consider briefly explain an example of how to construct a TLT for a given LTL specification regarding parking of autonomous vehicles. Consiser 
+
+        - In this work we emphasize first on the construction of a static TLT as shown , and then 
+
+        - Generation
+        - Model Checking
+        - Control Synthesis
+
+2.5 Set Representation
+    - Level Sets
+    - Polytopes
+    - Zonotopes
+    - Constrained Zonotopes
+    - Hybrid Zonotopes
+
+
+
+3. Our Approach
+    - In this chapter we start by describing the scenario we are gonna deal with later on in the expirements chapter as well.
+
+
+3.1 LTL specification
+    - Explain how each LTL component is mapped into the TLT
+
+3.2 Generation of temporal logic tree
+    - Explain how each set node of the TLT is computed
+
+3.3 RCI for Constrained Zonotopes / Hybrid Zonotopes
+
+3.4 Dynamic Environment
+    - Introduce the dynamic environment
+    - Update the LTL specification to match the new goals
+    - Explain how we can handle moving obstacles
+        - Here you might wanna introduce the idea of computing the RCI of moving sets (Ask Frank about how you should do this)
+
+
+
+4. Results
+
+4.1 Static Environment
+    - Focus on showing the capabilities of the Hybrid zonotope in terms of teh complexity of the environment.
+    - Try to showcase the computation of the safe space due to all the static obstacles in the environment
+        - This can be used as a good enough argument in the dynamic environment to say that since we know that these objects are static,
+        we precompute it.
+
+
+4.2 Dynamic Environment
+
+    - Motivate why you do not consider the path travelled by a car as a non-safe space
+        - To do that you can say how we are now considering a problem where we don't just wanna see where in the place a car can begin at,
+        but we also add 5 cars moving in the environment that are at the same time considered as obstacles but also as agents that want to 
+        accomplish the temporal logic task.
+        - You can also motivate it later, by its future work. One future work is to later reformulate the specification to see if it is possible
+        that all agents can accomplish their tasks without colliding with each other, and then perform control synthesis.
+
+
+    - TODO: Better motivate the particular specification, resulting safe space and generally the safe space of this experiment.
+
+
+
+
+
+
+
+
+
+
+# Our Approach
+
+## Show an example of the computation of the entire 
+
+## RCI for Hybrid zonotopes
+    - Provide an algorithm for it
+    - Show examples:
+        - First start with a static object
+        - Then move to a moving object
+            - Ask Frank if you can term it as "moving RCI" or something like that in case this idea does not already formally exist
+        - 2D or 3D?
+
+
+
+
+
+
+
 
 
 
