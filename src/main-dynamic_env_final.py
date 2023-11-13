@@ -30,7 +30,7 @@ exit_space = HybridZonotope(Gc, Gb, c, Ac, Ab, b)
 ################################################################################################
 # Step 0: Initialize Environment
 ################################################################################################
-t = 51
+t = 45
 N = 30
 
 zono_op = ZonoOperations()
@@ -75,8 +75,10 @@ print(f'******************************************************************')
 
 plt.show()
 name = f'safe_space_{t}'
-env.vis.fig.savefig(f'./results/animation/pdf/{name}.pdf', dpi=300)
-env.vis.fig.savefig(f'./results/animation/png/{name}.png', dpi=300)
+# env.vis.fig.savefig(f'./results/animation/pdf/{name}.pdf', dpi=300)
+# env.vis.fig.savefig(f'./results/animation/png/{name}.png', dpi=300)
+
+env.vis.fig.savefig(f'./results/dynamic/{name}.png', dpi=300)
 
 
 

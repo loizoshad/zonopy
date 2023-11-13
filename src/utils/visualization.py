@@ -42,22 +42,22 @@ class ZonoVisualizer:
         self.manager = plt.get_current_fig_manager()
         self.manager.window.attributes('-zoomed', True)
 
-        self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
-        self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
-        self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
+        # self.ax.spines['right'].set_visible(False); self.ax.spines['left'].set_visible(False)
+        # self.ax.spines['top'].set_visible(False); self.ax.spines['bottom'].set_visible(False)
+        # self.ax.get_xaxis().set_visible(False); self.ax.get_yaxis().set_visible(False)
 
-        # step_size = 0.1
-        # # self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
-        # self.ax.set_xticks(np.arange(-1.65, 1.65, step_size)); self.ax.set_yticks(np.arange(-1.05, 1.05, step_size))    # Set ticks every 0.1 and 0.1
-        # self.ax.set_xticks(np.arange(-1.5, 1.8, step_size)); self.ax.set_yticks(np.arange(-1.05, 1.05, step_size))    # Set ticks every 0.1 and 0.1
-        # self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
-        # self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
+        step_size = 0.1
+        # self.ax.set_xticks(np.arange(-2.5, 2.5, 0.05)); self.ax.set_yticks(np.arange(-1.4, 1.4, 0.05))    # Set ticks every 0.1 and 0.1
+        self.ax.set_xticks(np.arange(-1.65, 1.65, step_size)); self.ax.set_yticks(np.arange(-1.05, 1.05, step_size))    # Set ticks every 0.1 and 0.1
+        self.ax.set_xticks(np.arange(-1.5, 1.8, step_size)); self.ax.set_yticks(np.arange(-1.05, 1.05, step_size))    # Set ticks every 0.1 and 0.1
+        self.ax.grid(True, which='both', axis='both', linestyle='--', color='gray', linewidth=0.5)      # Add grid
+        self.ax.tick_params(axis='both', which='major', labelsize=6)                                    # Reduce font size of tick numbers
 
-        # Set the tick label color to white
-        for tick in self.ax.xaxis.get_major_ticks():
-            tick.label.set_color('white')
-        for tick in self.ax.yaxis.get_major_ticks():
-            tick.label.set_color('white')
+        # # Set the tick label color to white
+        # for tick in self.ax.xaxis.get_major_ticks():
+        #     tick.label.set_color('white')
+        # for tick in self.ax.yaxis.get_major_ticks():
+        #     tick.label.set_color('white')
 
 
         # self.ax.set_xlim(-2.5, 2.5); self.ax.set_ylim(-1.4, 1.4)

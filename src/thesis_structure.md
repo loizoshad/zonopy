@@ -258,6 +258,81 @@ In this work we focus on the generation and update of the temporal logic tree in
 
 
 
+# Outline
+
+In the remainder of this thesis, we will first introduce the preliminaries in Chapter 2 and explain the theory behind reachability analysis, temporal logic, 
+and Hybrid Zonotopes. In Chapter 3, we lay out our methodology for constructing a TLT using Hybrid Zonotopes and show how we can deal with environments populated
+with moving obstacles. In Chapter 4, we formulate two case studies, one in a static and one in a dynamic environment, where we show the construction of the TLT for each case and showcase some intereseting properties of Hybrid Zonotopes. Finally, in Chapter 5, we conclude our work and discuss some future work that can be done in this area.
+
+
+# Discussions
+    - Limitations
+        - Highly non-convex spaces
+            - While the Hybtid Zonotope representation demonstrates proficiency in handling non-convex disjoint  sets, its efficacy diminishes when confronted
+            when it needs to create non-polygonal shapes. This is because the Hybrid Zonotope representation, similarly to its predecessor, the Zonotope, it only uses a linear combination of its generators to represent a set.
+        - High levels of redundancy
+            - In addition, the Hybrid Zonotope representation suffers from high levels of redundancy in its representation. Although redundancy removal techniques exist and are used in this work further improvements are still needed as they do not fully get rid of it. Certain operations that introduce a lot of redundancy are the \textit{Union} and the \textit{Complement}.
+        - Although the representation allows for fast computation of set operations, if a problem requires check for emptiness, or point containment, the computation time increases significantly, that is because these problems are mixed integer linear programming problems, which are NP-hard.
+
+    - Conclusions:
+        - Ensuring the safety of autonomous vehicles throughout their entire operational spectrum poses a challenging yet vital task that requires out attention.
+        In this work, we have shown how one might use Linear Temporal Logic to formally specify parking and navigation missions in dynamic environments and how one might use Hybrid Zonotope-based reachability analysis to guarantee safety for these missions. Additionally, we illustrate how the divide and conquer nature of the TLT alongside the high computational efficiency of Hybrid Zonotopes enable online adjustments due to changes in the environment.
+
+        - In general, guaranteeing safety for automated vehicles over their entire operation is difficult, but remains an important problem we need to solve. We show in this paper how one might formally specify parking and navigation missions in dynamic environments using Linear Temporal Logic, and how one might use Hybrid Zonotope-based reachability analysis to guarantee safety for these missions. We also show how one enable online changes to the goal with the use of the highly modular tree structure of the TLT.
+
+        - Compare with related work
+            - Although most works using Zonotopes in reachability analysis use them due to their notable computational efficiency, very few works, if any handle problems with the level of complexity that we suggest. This higher level of complexity in the problem is enabled through the use of the temporal logic formalism, and the use of Hybrid Zonotopes allows accelerate the computation of the reachability analysis.
+            - A similar work done by the authors of [\todo{jiang2020ensuring}] deals a similar problem as we do, providing safety guarantees for an autonomous parking task. However, the use of Hamilton-Jacobi reachability analysis in their work limits the potential for dealing with dynamic obstacles as we do in our work.
+
+
+    - Future Work
+        - Apply this method on more abstract goals, in order to exploit the hybrid nature of Hybrid Zonotopes, instead of using linear systems. One idea could be to implement this on a more abstract level for coordinating different aspects of a smart city, whose complex dynamics can be abstracted away and allow the Hybrid Zonotope to deal with the distributed nature of the problem.
+
+        - 
+        
+
+# English Abstract:
+
+- In this report, we introduce a formal approach aimed at providing guarantees regarding the behavior of autonomous systems operating within dynamic environments. Our methodology is presented within the context of ensuring the safety of a vehicle throughout parking and navigation missions. To formally describe the mission, we employ Linear Temporal Logic. The evaluation of specification fulfillment is fascilitated through the construction of a Temporal Logic Tree via reachability analysis. To accelerate the reachability analysis, we leverage the computational efficiency of Hybrid Zonotopes, a set representation method that allows for fast computation of set operations on non-convex disjoint sets. We illustrate how the utilizaation of Hybrid Zonotopes enables the description of complex and abstract tasks, as well as the ability to deal with environments containing multiple moving vehicles. To demonstrate the efficacy of our approach, we present two case studies: one in a static environment, focusing on parking in one of the available parking spots, and another in a dynamic environment, where the objective is to navigate towards the parking lot exit while avoiding collisions with other vehicles. Our results, showcase the ability of our approach to combine the expressiveness of Linear Temporal Logic with the computational efficiency of Hybrid Zonotopes to provide safety guarantees for autonomous systems operating in dynamic environments.
+
+
+# Swedish Abstract:
+
+
+- I denna rapport introducerar vi ett formellt tillvägagångssätt med syfte att ge garantier om beteendet hos autonoma system som verkar inom dynamiska miljöer. Vår metodik presenteras inom ramen för att säkerställa fordons säkerhet under parkerings- och navigationsuppdrag. För att formellt beskriva uppdraget använder vi Linjär Temporal Logik. Utvärderingen av specifikationens uppfyllelse underlättas genom konstruktionen av ett Temporal Logik Träd med hjälp av nåbarhetsanalys. För att påskynda nåbarhetsanalysen utnyttjar vi den beräkningsmässiga effektiviteten hos Hybrid Zonotoper, en metod för representation av mängder som möjliggör snabb beräkning av mängdoperationer på icke-konvexa och disjunkta mängder. Vi illustrerar hur användningen av Hybrid Zonotoper möjliggör beskrivningen av komplexa och abstrakta uppgifter samt förmågan att hantera miljöer med flera rörliga fordon. För att påvisa effektiviteten av vår metod presenterar vi två fallstudier: en i en statisk miljö med fokus på parkering på en av de tillgängliga parkeringsplatserna och en annan i en dynamisk miljö där målet är att navigera mot parkeringsplatsens utgång och samtidigt undvika kollisioner med andra fordon. Våra resultat visar förmågan hos vår metod att kombinera Linjär Temporal Logiks uttrycksfullhet med Hybrid Zonotopers beräkningsmässiga effektivitet för att ge säkerhetsgarantier för autonoma system som verkar i dynamiska miljöer.
+
+
+# Acknowledgements
+
+I would like to thank my supervisors Frank Jiang and Amr Alanwar for their invaluable advice, continuous support, and patience throughout the course of this work. Additionally, I want to express my gratitude to friends and colleagues, Matthew William Lock, Sujet Phodapol, and Kaj Munhoz Arfviddson, for the long discussions and brainstorming sessions that helped me shape my ideas and improve my work. Last but not least, I wish to express appreciation to my family and friends for their understanding and encouragament throughout my academic journey.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

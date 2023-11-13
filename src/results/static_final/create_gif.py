@@ -4,7 +4,7 @@ import os
 import imageio
 from pdf2image import convert_from_path
 # max_N = 144
-max_N = 144
+max_N = 145
 
 def create_gif(filenames, duration):
     images = []
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     for N in range(0, max_N):
         filename = f'brs_{n}.png'
         filenames.append(filename)
-        n = N + 2
+        n = N + 1
 
-    duration = 2.0
+    duration = 10.0
     create_gif(filenames, duration)

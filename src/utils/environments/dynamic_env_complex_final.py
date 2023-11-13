@@ -324,8 +324,16 @@ class Environment:
                     w = 0.1
                     h = step_size
                     rect = patches.Rectangle((p[0] - w/2, p[1] - h/2), w, h, linewidth = 0.1, edgecolor = '#6C8EBF', facecolor = '#6C8EBF', alpha = 0.4, zorder = 11)
+            else:
+                if dir[i] == 'horizontal':
+                    w = step_size
+                    h = 0.1
+                    rect = patches.Rectangle((p[0] - w/2, p[1] - h/2), w, h, linewidth = 0.1, edgecolor = '#FF0000', facecolor = '#FF0000', alpha = 0.4, zorder = 11)
+                elif dir[i] == 'vertical':
+                    w = 0.1
+                    h = step_size
+                    rect = patches.Rectangle((p[0] - w/2, p[1] - h/2), w, h, linewidth = 0.1, edgecolor = '#FF0000', facecolor = '#FF0000', alpha = 0.4, zorder = 11)
 
-                
                 self.vis.ax.add_patch(rect)
 
         # Update flags

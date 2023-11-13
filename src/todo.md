@@ -423,3 +423,82 @@ My research background in formal methods for autonomous systems alongside previo
 
     - Static Environment:
         - Give each target its own state space to reduce the complexity
+
+
+
+
+
+Dynamic:
+    - Goal: Given that we have 5 agents in the environment, the goal is to safely navigate all of the agents to the exit of the parking lot.
+
+    - Specification:
+        - Component 1:
+            - Stay out of the FRS of all other agents
+            - The result of this step is represented by the set "SS"
+
+        - Component 2:
+            - Alternative ideas about expressing the safety of each agent
+                - Ensure that the FRS of each agent is not entirely in the RCI of the obstacle
+                - Ensure that the intersection of the FRS of each agent with the rest of the "SS" induced by the other agents is not empty
+                - Find all states that ensure that all agents are in the "SS"
+
+                - Find all states in the environment whose FRS is not entirely in the moving RCI of all other agents
+
+
+
+Car 1
+    - Compute n-step FRS of all obstacles (o2, o3, o4, o5)
+    - Compute the complement of all obstacles (co2, co3, co4, co5)
+    - Compute the intersection of all complements (ico)
+    - Compute the n-step BRS of the intersection (brs_ico)
+
+Car 2
+    - Compute n-step FRS of all obstacles (o1, o3, o4, o5)
+    - Compute the complement of all obstacles (co1, co3, co4,   co5)
+    - Compute the intersection of all complements (ico)
+    - Compute the n-step BRS of the intersection (brs_ico)
+
+
+
+
+
+
+
+
+
+Meeting with Frank
+
+DONE    - Discuss results
+DONE    - Discuss LTL specification
+            - For this one we are indeed gonna focus on having a single agent, different from all these 5 cars. And we will explain it as how this TLT is 
+            the "environment" TLT.
+    - Opponent
+DEON        - Most likely Miguel
+
+    - PhD
+DONE        - Ask about inviting other profs (Jonas and Jana) or any othe ideas to share my work with them
+
+    - Job
+        - Other than my thesis work, I waant to find other ways to show to Jonas my work in case it does not work out with Jana,
+        are there any opportunities in ITRL for the next few months to work on something?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

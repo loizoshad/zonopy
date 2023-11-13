@@ -103,40 +103,43 @@ class Environment:
         '''
         D = np.block([self.dynamics.A, self.dynamics.B])
         brs = [target.hz for target in self.targets]
-
+        print(f'starting time')
         start_time = time.perf_counter()
 
-        # for n in range(1, N + 1):
+        for n in range(1, N + 1):
         # for n in range(73, N + 1):       # TODO: TEMP
-        for n in range(105, N + 1):       # TODO: TEMP
-            print(f'Time step: {n}')
+        # for n in range(105, N + 1):       # TODO: TEMP
+            # print(f'Time step: {n}')
             for t_i, target in enumerate(self.targets):
                 X = target.state_space
                 brs[t_i] = self.zono_op.one_step_brs_hz(X = X, T = brs[t_i], D = D)
                 target.brs = brs[t_i]
-                print(f'Target {t_i}: ng = {brs[t_i].ng}, nc = {brs[t_i].nc}, nb = {brs[t_i].nb}')
+                # print(f'Target {t_i}: ng = {brs[t_i].ng}, nc = {brs[t_i].nc}, nb = {brs[t_i].nb}')
 
-            # if n <= 20:
-            # if n > 20 and n <= 40:
-            # if n > 40 and n <= 60:
-            # if n > 60 and n <= 65:
-            # if n > 65 and n <= 70:
-            # if n > 70 and n <= 75:
-            # if n > 75 and n <= 80:
-            # if n > 80 and n <= 85:
-            # if n > 85 and n <= 90:
-            # if n > 90 and n <= 100:
-            # if n > 100 and n <= 110:
-            if n > 110:
-                # Visualize current time step
-                self.vis_targets(self.targets)
-                name = f'brs_{n}'
-                end_time = time.perf_counter()
-                print(f'Total computation time (without saving) = {end_time - start_time}')
-                self.vis.fig.savefig(f'./results/static_final/png_step_025/{name}.png', dpi=300)
-                end_time_2 = time.perf_counter()
-                print(f'Total time to save figure = {end_time_2 - end_time}')
+            # # if n <= 20:
+            # # if n > 20 and n <= 40:
+            # # if n > 40 and n <= 60:
+            # # if n > 60 and n <= 65:
+            # # if n > 65 and n <= 70:
+            # # if n > 70 and n <= 75:
+            # # if n > 75 and n <= 80:
+            # # if n > 80 and n <= 85:
+            # # if n > 85 and n <= 90:
+            # # if n > 90 and n <= 100:
+            # # if n > 100 and n <= 110:
+            # if n > 110:
+            #     # Visualize current time step
+            #     self.vis_targets(self.targets)
+            #     name = f'brs_{n}'
+            #     end_time = time.perf_counter()
+            #     print(f'Total computation time (without saving) = {end_time - start_time}')
+            #     self.vis.fig.savefig(f'./results/static_final/png_step_025/{name}.png', dpi=300)
+            #     end_time_2 = time.perf_counter()
+            #     print(f'Total time to save figure = {end_time_2 - end_time}')
 
+        end_time = time.perf_counter()
+
+        print(f'total time = {end_time - start_time}')
 
         # # Compute the union between all brs[t_i]
         self.brs = brs[0]

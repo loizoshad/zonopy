@@ -1,0 +1,118 @@
+And for a bit more quantitative view on the results, these are the averages for the full computation time of the safes-space at each time step. By time step,
+I am referring to each frame of the video, so one time-step represents the computation of the full-safe space given that the moving vehicles begun at that particular position at that time.
+
+As expected the more cars we have it takes on average more time to generate the tree.
+It is important to observe that there are high deviations. That is because at some time steps the intersections are more crowded so it will take longer for the safe space to converge, but at others there is very little traffic around them.
+
+5 cars:
+
+    These are the averages for all time steps that all 5 cars are present in the scene.
+
+    - Average (Mean): 33.50104225662851
+    - Median: 28.31696818798082
+    - Minimum: 17.9295804790454
+    - Maximum: 115.59891325101489
+    - 25th Percentile: 25.140828905976377
+    - 75th Percentile: 36.57763349398738
+
+4 cars:
+
+    These are the averages for all time steps that 4 cars are present in the scene.
+
+    - Average (Mean): 11.728579916108077
+    - Median: 11.038569157011807
+    - Minimum: 5.127939386991784
+    - Maximum: 18.11260275100358    
+    - 25th Percentile: 7.193830611067824
+    - 75th Percentile: 16.06222591502592
+
+3 cars:
+    - There are no time steps where exactly 3 cars are present in the scene.
+
+
+2 cars: 
+
+    These are the averages for all time steps that only 2 cars are present in the scene.
+
+    - Average (Mean): 3.2397039666656377
+    - Median: 3.999855398084037
+    - Minimum: 0.6286579261068255
+    - Maximum: 4.488682543975301    
+    - 25th Percentile: 1.6031879959627986
+    - 75th Percentile: 4.370643940055743
+
+
+Average for all time steps:
+
+    These are the averages for all time steps regardless of how many cars are active at each time step.
+
+    - Average (Mean): 24.284919127999503
+    - Median: 25.140828905976377
+    - Minimum: 0.6286579261068255
+    - Maximum: 115.59891325101489
+    - 25th Percentile: 16.951153997913934
+    - 75th Percentile: 32.578549590019975
+
+
+
+
+
+
+
+
+
+
+
+List of computational time for all time steps
+
+tc = 85.75186834402848
+tc = 84.48207478102995
+tc = 115.59891325101489
+tc = 60.858325576991774
+tc = 40.49871430301573
+tc = 42.46205347002251
+tc = 36.57763349398738
+tc = 34.65415558102541
+tc = 30.46466167503968
+tc = 28.31696818798082
+tc = 32.578549590019975
+tc = 28.145226294000167
+tc = 29.40881590603385
+tc = 26.89879900199594
+tc = 25.09359244501684
+tc = 24.636338817013893
+tc = 26.329977061017416
+tc = 27.17925671103876
+tc = 26.961308542988263
+tc = 23.15619795600651
+tc = 28.026661672978662
+tc = 25.140828905976377
+tc = 25.754357917932793
+tc = 32.02511141193099
+tc = 36.66135504608974
+tc = 33.031956542050466
+tc = 31.96039360901341
+tc = 30.05063401197549
+tc = 28.390186742995866
+tc = 25.243055798928253
+tc = 19.0158602000447
+tc = 19.379545463016257
+tc = 17.9295804790454
+tc = 18.11260275100358
+tc = 17.200810385053046
+tc = 16.951153997913934
+tc = 16.718358712038025
+tc = 16.06222591502592
+tc = 13.466656174976379
+tc = 11.038569157011807
+tc = 7.215582959936
+tc = 7.193830611067824
+tc = 5.768686291994527
+tc = 5.127939386991784
+tc = 4.370643940055743
+tc = 3.9042915829923004
+tc = 3.999855398084037
+tc = 4.488682543975301
+tc = 3.389285702025518
+tc = 0.6286579261068255
+tc = 1.6031879959627986
