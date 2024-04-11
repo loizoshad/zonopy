@@ -50,7 +50,7 @@ To run the demo for the static environment, use the script
 
 A demonstration of the results of main-static_env is provided here
 
-<img src="https://github.com/loizoshad/zonopy/src/results/animation/static_env.gif" alt="Alt Text" width="560" height="358">
+<img src="src/results/animation/static_env.gif" alt="Alt Text" width="560" height="358">
 
 
 
@@ -62,7 +62,7 @@ To run the demo for the dynamic environment, use the script
 
 A demonstration of the results of main-dynamic_env is provided here
 
-<img src="https://github.com/loizoshad/zonopy/src/results/animation/dynamic_env.gif" alt="Alt Text" width="560" height="358">
+<img src="src/results/animation/dynamic_env.gif" alt="Alt Text" width="560" height="358">
 
 ## References
 
