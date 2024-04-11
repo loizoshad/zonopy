@@ -1,6 +1,4 @@
 import numpy as np
-# import cdd as pcdd # Enumerate vertices of a polytope
-# from scipy.spatial import ConvexHull
 
 '''
 The properties of the hybrid zonotope class follow the work in [1]

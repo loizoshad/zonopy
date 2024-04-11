@@ -10,7 +10,8 @@ import time
 
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
-from utils.environments.static_env_final import Environment
+from src.utils.environments.static_env_2 import Environment # paper
+# from utils.environments.static_env_1 import Environment
 
 from utils.sets.hybrid_zonotopes import HybridZonotope
 

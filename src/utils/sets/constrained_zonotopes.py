@@ -8,7 +8,6 @@ from scipy.optimize import linprog
 
 
 import matplotlib.pyplot as plt
-import pypoman
 
 '''
 The properties of the constrained zonotope class follow the Scott's, et al. work

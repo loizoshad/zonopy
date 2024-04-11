@@ -1,24 +1,11 @@
-import graphviz
-
 import numpy as np
 from scipy.spatial import ConvexHull
-from matplotlib.collections import PatchCollection
-from matplotlib.patches import Polygon, FancyArrowPatch, FancyArrow, FancyBboxPatch, Rectangle
+from matplotlib.patches import Polygon
 import matplotlib.pyplot as plt
-import matplotlib.image as image
 import itertools
-import pypoman
 
-# Supported Sets
-from utils.sets.zonotopes import Zonotope
-from utils.operations.operations import ZonoOperations
 from utils.sets.constrained_zonotopes import ConstrainedZonotope
 from utils.sets.hybrid_zonotopes import HybridZonotope
-# TLT
-from utils.tlt.nodes import OR, AND, UNTIL, set_node, WUNTIL
-
-import time
-import math
  
 
 class ZonoVisualizer:
@@ -251,39 +238,6 @@ class ZonoVisualizer:
         # Update flags
         brs_settings.space['flags'] = flags
  
-
-class TreeVisualizer:
-    '''
-    This class allows the visualization of trees
-    '''
-    dot = graphviz.Digraph()
-    
-    def vis_tree(self, tree):
-        '''
-        Visualizes a tree
-        '''
-        nodes = tree.nodes
-        for i, n in enumerate(nodes):
-            shape = 'square' if type(n) == set_node else 'circle'
-            self.dot.node(n.name, n.label, {'color': 'black', 'style': 'filled', 'shape': shape, 'fillcolor': '#F5F5F5', 'fontcolor': 'black',})
-
-        for i, n in enumerate(nodes):
-            if isinstance(n, set_node):
-                if n.is_root:
-                    continue
-            if n.parent:
-                self.dot.edge(n.parent.name, n.name)
-
-                  
-        # Save and open graph
-        self.dot.render('test-output/round-table.gv')
-        self.dot.view()
-
-
-
-
-
-
 
 
 

@@ -10,9 +10,7 @@ import time
 
 from utils.visualization import ZonoVisualizer
 from utils.operations.operations import ZonoOperations
-from utils.environments.dynamic_env_complex_final import Environment
-
-from utils.cars import Car1, Car2, Car3, Car4, Car5
+from src.utils.environments.dynamic_env import Environment
 from utils.sets.hybrid_zonotopes import HybridZonotope
 
 

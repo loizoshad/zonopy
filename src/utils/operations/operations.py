@@ -1,14 +1,3 @@
-ALWAYS_SYMBOL = '\u25A1'
-EVENTUALLY_SYMBOL = '\u25CA'
-OR_SYMBOL = '\u2228'
-AND_SYMBOL = '\u2227'
-UNION_SYMBOL = '\u222A'
-INTERSECTION_SYMBOL = '\u2229'
-NEXT_SYMBOL = '\u25EF'
-UNTIL_SYMBOL = '\u0055'
-WUNTIL_SYMBOL = '\u0057'
-REACH_SYMBOL = '\u211B'
-
 import numpy as np
 import sympy as sympy
 import math
@@ -24,9 +13,6 @@ from gurobipy import *
 from utils.sets.zonotopes import Zonotope
 from utils.sets.constrained_zonotopes import ConstrainedZonotope
 from utils.sets.hybrid_zonotopes import HybridZonotope
-from utils.tlt.nodes import OR, AND, UNTIL, set_node
-from utils.tlt.tree import Tree
-
 
 '''
 
@@ -2541,13 +2527,9 @@ class ZonoOperations:
         return X_intersection_A_I_plus_B_U
 
     ##### TODO:
-
     def rci_hz(self, X: HybridZonotope, T: HybridZonotope, D: np.ndarray, N: int) -> HybridZonotope:
-        '''
-        
-        '''
-        for i in range(N):
-            pass
+        raise NotImplementedError("This method is not implemented yet")
+
 
     ############################################################################################################
     # Interval set methods
@@ -2807,127 +2789,6 @@ class ZonoOperations:
 
         return ConstrainedZonotope(G, C, A, b)
 
-
-
-
-
-class TreeOperations:
-
-    op = ZonoOperations()
-
-    def __init__(self):
-        pass
-
-    def attach_trees(self, connection, tree1, tree2, N = 1):
-        '''
-        Given multiple trees, attach them
-        '''
-
-        # TODO: Think of how to handle the connections between trees that do not have a new common root (e.g., Until operation)
-        
-        if connection == 'OR':
-            return self.OR(tree1, tree2)
-        elif connection == 'AND':
-            return self.AND(tree1, tree2)
-        elif connection == 'UNTIL':
-            return self.UNTIL(tree1, tree2, N)
-
-    def OR(self, tree1, tree2):        
-        # Step 1: Find root node of each tree
-        root1 = tree1.root; root2 = tree2.root
-
-        # Step 2: Compute the union of the hybrid zonotopes of the root nodes
-        union = self.op.union_hz_hz(root1.set, root2.set)
-
-        # Step 3: Construct the new root node
-        root = set_node(union, f'{root1} {UNION_SYMBOL} {root2}')
-
-        # Step 4: Set the root1 and root2 flags to False
-        root1.is_root = False; root2.is_root = False
-
-        # Step 5: Create an OR node
-        operation = OR(root, root1, root2)
-
-        # Step 6: Construct the new tree
-        nodes = [root, operation] + list(tree1.nodes) + list(tree2.nodes)
-        return Tree(*nodes)
-
-    def AND(self, tree1, tree2):
-        # Step 1: Find root node of each tree
-        root1 = tree1.root; root2 = tree2.root
-
-        # Step 2: Compute the union of the hybrid zonotopes of the root nodes
-        union = self.op.intersection_hz_hz(root1.set, root2.set)
-
-        # Step 3: Construct the new root node
-        root = set_node(union, f'{root1} {INTERSECTION_SYMBOL} {root2}')
-
-        # Step 4: Set the root1 and root2 flags to False
-        root1.is_root = False; root2.is_root = False
-
-        # Step 5: Create an OR node
-        operation = AND(root, root1, root2)
-
-        # Step 6: Construct the new tree
-        nodes = [root, operation] + list(tree1.nodes) + list(tree2.nodes)
-        return Tree(*nodes)
-
-    def UNTIL(self, tree1, tree2, N = 1):
-
-        # TODO: Step 0: Temporarily hardcode the model
-        # Dynamic Model
-        A = np.array([
-            [1.0, 0.0],
-            [0.0, 1.0]
-        ])
-
-        B = np.array([
-            [1.0, 1.0],
-            [0.0, 1.0]
-        ])
-
-        D = np.block([A, B])
-
-        # Step 1: Find root node of each tree
-        root1 = tree1.root; root2 = tree2.root
-
-        # Step 2: Find the leaves of the first tree
-        leaves1 = tree1.leaves
-
-        # Step 3: For each leaf, compute the BRS of the hybrid zonotopes of the leaf and the root of the second tree
-        # Then replace the leaf node with the new node containing the BRS.
-        # Then attach to the new node, the entire tree2
-        for leaf in leaves1:
-            # Compute the BRS
-            brs = self.op.brs_hz(X = leaf.set, D = D, T = root2.set, N = N)
-
-            # Construct the new node
-            new_node = set_node(brs, f'{REACH_SYMBOL}({leaf}, {root2})')
-
-            # Replace the leaf with the new node
-            tree1.replace_node(leaf, new_node)
-
-
-            # Create a copy of tree2
-            tree2_copy = deepcopy(tree2)
-
-            # Replace the label of each node of tree2 by just adding _tree2_{leaf_name} to the end of it
-            for node in tree2_copy.nodes:
-                node.extra_name = f'_tree_{leaf.name}'
-
-            # Attach to the new node, a node with the UNTIL operation
-            operation = UNTIL(new_node, tree2_copy.root)
-
-            # Step 4: Construct the new tree
-            nodes = list(tree1.nodes) + list(tree2_copy.nodes) + [operation]
-
-            # Step 5: Create the new tree
-            new_tree1 = Tree(*nodes)
-
-
-        # Step 6: Pass the new_tree1 and tree2 to the OR operation
-        return self.OR(new_tree1, tree2)
-    
 
 
 

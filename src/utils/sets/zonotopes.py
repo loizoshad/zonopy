@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib.patches import Polygon
 from scipy.spatial import ConvexHull
 
 class Zonotope:
